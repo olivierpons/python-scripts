@@ -117,7 +117,7 @@ def resize_image(
     jpeg_quality: int = 80,
     dry_run: bool = False,
     overwrite: bool = False,
-) -> bool:
+) -> tuple[bool, bool]:
     """Resizes a single image file for web use.
 
     Args:
@@ -129,11 +129,11 @@ def resize_image(
         overwrite: If True, replace existing resized images.
 
     Returns:
-        True if the operation was successful (or if in dry_run mode), False otherwise.
+        Tuple of (operation_successful, skipped). Both are True/False values.
     """
     # Skip if file exists and we're not overwriting
-    if output_path.exists() and not overwrite and not dry_run:
-        return False
+    if output_path.exists() and not overwrite:
+        return False, True
 
     try:
         if not dry_run:
@@ -150,10 +150,10 @@ def resize_image(
 
                 # Save the image with specified quality
                 resized_img.save(output_path, "JPEG", quality=jpeg_quality)
-        return True
+        return True, False
     except Exception as e:
         print(f"Error processing {img_path}: {e}")
-        return False
+        return False, False
 
 
 def resize_images_for_web(
@@ -162,7 +162,7 @@ def resize_images_for_web(
     jpeg_quality: int = 80,
     dry_run: bool = False,
     overwrite: bool = False,
-) -> dict[str, list[str]]:
+) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
     """Resizes images for web use.
 
     For each folder in the directory, creates a 'petites' subfolder and processes
@@ -176,9 +176,11 @@ def resize_images_for_web(
         overwrite: If True, replace existing resized images.
 
     Returns:
-        Dictionary mapping folder names to lists of resized files.
+        Tuple of (resized_files, skipped_files) dictionaries mapping folder names to
+        lists of files.
     """
     resized_files: dict[str, list[str]] = {}
+    skipped_files: dict[str, list[str]] = {}
 
     # Get only directories in the specified path (after organization step)
     folders = [f for f in directory_path.iterdir() if f.is_dir()]
@@ -202,6 +204,7 @@ def resize_images_for_web(
 
         # Track files for this folder
         folder_files = []
+        folder_skipped = []
 
         # Create 'petites' subfolder only if there are images to process
         petites_folder = folder / "petites"
@@ -214,16 +217,22 @@ def resize_images_for_web(
             output_filename = img_path.stem + ".jpg"
             output_path = petites_folder / output_filename
 
-            if resize_image(
+            resized, skipped = resize_image(
                 img_path, output_path, max_pixels, jpeg_quality, dry_run, overwrite
-            ):
-                folder_files.append(output_filename)
+            )
 
-        # Add to tracking dictionary if any files were processed
+            if resized:
+                folder_files.append(output_filename)
+            elif skipped:
+                folder_skipped.append(output_filename)
+
+        # Add to tracking dictionaries if any files were processed or skipped
         if folder_files:
             resized_files[folder.name] = folder_files
+        if folder_skipped:
+            skipped_files[folder.name] = folder_skipped
 
-    return resized_files
+    return resized_files, skipped_files
 
 
 def verify_and_complete_resizing(
@@ -232,7 +241,7 @@ def verify_and_complete_resizing(
     jpeg_quality: int = 80,
     dry_run: bool = False,
     overwrite: bool = False,
-) -> dict[str, list[str]]:
+) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
     """Verifies that all timestamp folders have properly resized images.
 
     Finds all folders matching the timestamp format (YYYYMMDD-HHhMMmSSs) and checks
@@ -247,12 +256,14 @@ def verify_and_complete_resizing(
         overwrite: If True, replace existing resized images.
 
     Returns:
-        Dictionary mapping folder names to lists of newly resized files.
+        Tuple of (newly_resized_files, skipped_files) dictionaries mapping folder
+        names to lists of files.
     """
     # Regular expression to match timestamp format folders
     timestamp_pattern: re.Pattern[str] = re.compile(r"^\d{8}-\d{2}h\d{2}m\d{2}s$")
 
     newly_resized_files: dict[str, list[str]] = {}
+    skipped_files: dict[str, list[str]] = {}
 
     # Find all directories in the specified path
     for folder in directory_path.iterdir():
@@ -271,51 +282,42 @@ def verify_and_complete_resizing(
             if not image_files:
                 continue
 
-            # Check which files need resizing (don't have resized versions or overwrite)
-            petites_folder = folder / "petites"
-            files_to_resize = []
-
-            for img_path in image_files:
-                # Check if this image already has a resized version
-                output_filename = img_path.stem + ".jpg"
-                output_path = petites_folder / output_filename
-
-                # If resized file doesn't exist, or we're overwriting, add to list
-                if overwrite or not output_path.exists():
-                    files_to_resize.append(img_path)
-
-            # Skip if no files need resizing
-            if not files_to_resize:
-                continue
-
-            # Create 'petites' subfolder only if needed
-            if not dry_run and not petites_folder.exists():
-                petites_folder.mkdir(exist_ok=True)
-
             # Track files for this folder
             folder_files = []
+            folder_skipped = []
 
-            # Process each image file that needs resizing
-            for img_path in files_to_resize:
+            # Create 'petites' subfolder only if needed
+            petites_folder = folder / "petites"
+            if not dry_run and not petites_folder.exists() and image_files:
+                petites_folder.mkdir(exist_ok=True)
+
+            # Process each image file
+            for img_path in image_files:
                 # Extract filename without extension
                 output_filename = img_path.stem + ".jpg"
                 output_path = petites_folder / output_filename
 
-                if resize_image(
+                resized, skipped = resize_image(
                     img_path,
                     output_path,
                     max_pixels,
                     jpeg_quality,
                     dry_run,
                     overwrite,
-                ):
-                    folder_files.append(output_filename)
+                )
 
-            # Add to tracking dictionary if any files were processed
+                if resized:
+                    folder_files.append(output_filename)
+                elif skipped:
+                    folder_skipped.append(output_filename)
+
+            # Add to tracking dictionaries if any files were processed or skipped
             if folder_files:
                 newly_resized_files[folder.name] = folder_files
+            if folder_skipped:
+                skipped_files[folder.name] = folder_skipped
 
-    return newly_resized_files
+    return newly_resized_files, skipped_files
 
 
 def dry_run_status(text: str) -> str:
@@ -502,28 +504,43 @@ def main() -> None:
     # STEP 3: Resize images if requested
     if args.resize:
         # First resize newly organized images
-        resized_files: dict[str, list[str]] = resize_images_for_web(
+        resize_result = resize_images_for_web(
             args.directory,
             args.max_pixels,
             args.quality,
             args.dry_run,
             args.overwrite,
         )
+        resized_files, skipped_files = resize_result
 
         # Then check for and complete any missing resized images in timestamp folders
-        newly_resized_files: dict[str, list[str]] = verify_and_complete_resizing(
+        verify_result = verify_and_complete_resizing(
             args.directory,
             args.max_pixels,
             args.quality,
             args.dry_run,
             args.overwrite,
         )
+        newly_resized_files, newly_skipped_files = verify_result
 
         # Combine results for reporting
         total_resized_folders = len(resized_files) + len(newly_resized_files)
         total_resized_files = sum(len(files) for files in resized_files.values()) + sum(
             len(files) for files in newly_resized_files.values()
         )
+
+        # Combine skipped files for reporting
+        all_skipped_files = {}
+        for folder, files in skipped_files.items():
+            all_skipped_files[folder] = files
+        for folder, files in newly_skipped_files.items():
+            if folder in all_skipped_files:
+                all_skipped_files[folder].extend(files)
+            else:
+                all_skipped_files[folder] = files
+
+        total_skipped_folders = len(all_skipped_files)
+        total_skipped_files = sum(len(files) for files in all_skipped_files.values())
 
         if args.verbose >= 1:
             if total_resized_files > 0:
@@ -565,6 +582,27 @@ def main() -> None:
                                 )
             else:
                 print("No files found to resize.")
+
+            # Report skipped files
+            if total_skipped_files > 0:
+                skipped_text = (
+                    f"Skipped {total_skipped_files} existing files in "
+                    f"{total_skipped_folders} folders."
+                )
+                print(skipped_text)
+
+                if args.verbose >= 2:
+                    for folder_name, files in all_skipped_files.items():
+                        print(f"  Folder: {folder_name}")
+                        print(
+                            f"    {len(files)} files already exist in 'petites' "
+                            f"subfolder"
+                        )
+                        if args.verbose > 2:  # Extra verbose level for file details
+                            for file_name in files:
+                                print(f"      {file_name} (already exists)")
+            elif not args.overwrite:
+                print("No existing files found to skip.")
 
 
 if __name__ == "__main__":
