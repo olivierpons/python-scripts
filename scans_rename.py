@@ -256,8 +256,8 @@ def verify_and_complete_resizing(
         overwrite: If True, replace existing resized images.
 
     Returns:
-        Tuple of (newly_resized_files, skipped_files) dictionaries mapping folder
-        names to lists of files.
+        Tuple of (newly_resized_files, skipped_files) dictionaries mapping folder names
+        to lists of files.
     """
     # Regular expression to match timestamp format folders
     timestamp_pattern: re.Pattern[str] = re.compile(r"^\d{8}-\d{2}h\d{2}m\d{2}s$")
@@ -272,6 +272,28 @@ def verify_and_complete_resizing(
 
         # Check if folder name matches timestamp pattern
         if timestamp_pattern.match(folder.name):
+            petites_folder = folder / "petites"
+
+            # Skip folders where all images are already processed
+            if petites_folder.exists() and not overwrite:
+                # Get all image files in the folder
+                image_files = [
+                    f
+                    for f in folder.iterdir()
+                    if f.is_file() and f.suffix.lower() in SUPPORTED_IMAGE_EXTENSIONS
+                ]
+
+                # Count how many files already have resized versions
+                already_resized = 0
+                for img_path in image_files:
+                    output_path = petites_folder / (img_path.stem + ".jpg")
+                    if output_path.exists():
+                        already_resized += 1
+
+                # Skip this folder if all images are already resized
+                if already_resized == len(image_files):
+                    continue
+
             # Get all supported image files in the timestamp folder
             image_files = [
                 f
@@ -287,7 +309,6 @@ def verify_and_complete_resizing(
             folder_skipped = []
 
             # Create 'petites' subfolder only if needed
-            petites_folder = folder / "petites"
             if not dry_run and not petites_folder.exists() and image_files:
                 petites_folder.mkdir(exist_ok=True)
 
@@ -586,7 +607,7 @@ def main() -> None:
             # Report skipped files
             if total_skipped_files > 0:
                 skipped_text = (
-                    f"Skipped {total_skipped_files} existing files in "
+                    f"Skipped {total_skipped_files} existing files in"
                     f"{total_skipped_folders} folders."
                 )
                 print(skipped_text)
@@ -595,8 +616,7 @@ def main() -> None:
                     for folder_name, files in all_skipped_files.items():
                         print(f"  Folder: {folder_name}")
                         print(
-                            f"    {len(files)} files already exist in 'petites' "
-                            f"subfolder"
+                            f"    {len(files)} files already exist in 'petites' subfolder"
                         )
                         if args.verbose > 2:  # Extra verbose level for file details
                             for file_name in files:
