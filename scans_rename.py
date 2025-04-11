@@ -124,7 +124,7 @@ def resize_image(
         dry_run: If True, only simulate the resizing without actually changing files.
 
     Returns:
-        True if the operation was successful (or would be in dry_run mode), False otherwise.
+        True if the operation was successful (or if in dry_run mode), False otherwise.
     """
     try:
         if not dry_run:
@@ -223,7 +223,7 @@ def verify_and_complete_resizing(
     """Verifies that all timestamp folders have properly resized images.
 
     Finds all folders matching the timestamp format (YYYYMMDD-HHhMMmSSs) and checks
-    if each image in these folders has been properly converted to the "petites" subfolder.
+    if each image in these folders has been converted to the "petites" subfolder.
     If not, it creates the necessary resized versions.
 
     Args:
@@ -299,6 +299,36 @@ def verify_and_complete_resizing(
                 newly_resized_files[folder.name] = folder_files
 
     return newly_resized_files
+
+
+def dry_run_status(text: str) -> str:
+    """Add dry run indicator to text.
+
+    Args:
+        text: The text to append the dry run indicator to
+
+    Returns:
+        Text with dry run indicator appended
+    """
+    return f"{text} (dry run)"
+
+
+def print_file_operation(
+    old_path: str, new_path: str, dry_run: bool, indent: int = 0
+) -> None:
+    """Print a file operation with consistent formatting.
+
+    Args:
+        old_path: The original file path
+        new_path: The new file path
+        dry_run: Whether this is a dry run
+        indent: Number of spaces to indent (default: 0)
+    """
+    indentation = " " * indent
+    operation = f"{indentation}{old_path} → {new_path}"
+    if dry_run:
+        operation = dry_run_status(operation)
+    print(operation)
 
 
 def main() -> None:
@@ -403,16 +433,16 @@ def main() -> None:
         )
         if args.verbose >= 1:
             if renamed_files:
+                operation_text = f"Successfully renamed {len(renamed_files)} files."
                 if args.dry_run:
-                    print(f"Dry run: {len(renamed_files)} files would be renamed.")
-                else:
-                    print(f"Successfully renamed {len(renamed_files)} files.")
+                    operation_text = (
+                        f"Dry run: {len(renamed_files)} files would be renamed."
+                    )
+                print(operation_text)
+
                 if args.verbose >= 2:
                     for old_name, new_name in renamed_files:
-                        if args.dry_run:
-                            print(f"  {old_name} → {new_name} (dry run)")
-                        else:
-                            print(f"  {old_name} → {new_name}")
+                        print_file_operation(old_name, new_name, args.dry_run, indent=2)
             else:
                 print("No matching files found to rename.")
 
@@ -424,27 +454,23 @@ def main() -> None:
         if args.verbose >= 1:
             if organized_files:
                 total_files: int = sum(len(files) for files in organized_files.values())
-                if args.dry_run:
-                    print(
-                        f"Dry run: {total_files} files would be organized into "
-                        f"{len(organized_files)} folders."
-                    )
-                else:
-                    print(
-                        f"Successfully organized {total_files} files into "
-                        f"{len(organized_files)} folders."
-                    )
+                operation_text = (
+                    f"{'Dry run: ' if args.dry_run else ''}"
+                    f"{'Would organize' if args.dry_run else 'Successfully organized'} "
+                    f"{total_files} files into {len(organized_files)} folders."
+                )
+                print(operation_text)
+
                 if args.verbose >= 2:
                     for folder_name, files in organized_files.items():
                         print(f"  Folder: {folder_name}")
                         for file_name in files:
-                            if args.dry_run:
-                                print(
-                                    f"    {file_name} → {folder_name}/{file_name} "
-                                    f"(dry run)"
-                                )
-                            else:
-                                print(f"    {file_name} → {folder_name}/{file_name}")
+                            print_file_operation(
+                                file_name,
+                                f"{folder_name}/{file_name}",
+                                args.dry_run,
+                                indent=4,
+                            )
             else:
                 print("No matching files found to organize.")
 
@@ -468,16 +494,13 @@ def main() -> None:
 
         if args.verbose >= 1:
             if total_resized_files > 0:
-                if args.dry_run:
-                    print(
-                        f"Dry run: {total_resized_files} files would be resized in "
-                        f"{total_resized_folders} folders."
-                    )
-                else:
-                    print(
-                        f"Successfully resized {total_resized_files} files in "
-                        f"{total_resized_folders} folders."
-                    )
+                operation_text = (
+                    f"{'Dry run: ' if args.dry_run else ''}"
+                    f"{'Would resize' if args.dry_run else 'Successfully resized'} "
+                    f"{total_resized_files} files in {total_resized_folders} folders."
+                )
+                print(operation_text)
+
                 if args.verbose >= 2:
                     # Report on regular resize operations
                     for folder_name, files in resized_files.items():
@@ -485,13 +508,12 @@ def main() -> None:
                         print(f"    {len(files)} files resized to 'petites' subfolder")
                         if args.verbose > 2:  # Extra verbose level for file details
                             for file_name in files:
-                                if args.dry_run:
-                                    print(
-                                        f"      {file_name} → petites/{file_name} "
-                                        f"(dry run)"
-                                    )
-                                else:
-                                    print(f"      {file_name} → petites/{file_name}")
+                                print_file_operation(
+                                    file_name,
+                                    f"petites/{file_name}",
+                                    args.dry_run,
+                                    indent=6,
+                                )
 
                     # Report on verification resize operations
                     for folder_name, files in newly_resized_files.items():
@@ -502,13 +524,12 @@ def main() -> None:
                         )
                         if args.verbose > 2:  # Extra verbose level for file details
                             for file_name in files:
-                                if args.dry_run:
-                                    print(
-                                        f"      {file_name} → petites/{file_name} "
-                                        f"(dry run)"
-                                    )
-                                else:
-                                    print(f"      {file_name} → petites/{file_name}")
+                                print_file_operation(
+                                    file_name,
+                                    f"petites/{file_name}",
+                                    args.dry_run,
+                                    indent=6,
+                                )
             else:
                 print("No files found to resize.")
 
