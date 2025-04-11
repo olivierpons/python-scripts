@@ -3,6 +3,7 @@ import argparse
 import shutil
 from pathlib import Path
 from PIL import Image
+from PIL.Image import Resampling
 
 
 def rename_japanese_timestamp_files(
@@ -106,6 +107,46 @@ def organize_files_into_folders(
     return organized_files
 
 
+def resize_image(
+    img_path: Path,
+    output_path: Path,
+    max_pixels: int = 400,
+    jpeg_quality: int = 80,
+    dry_run: bool = False,
+) -> bool:
+    """Resizes a single image file for web use.
+
+    Args:
+        img_path: Path to the source image file.
+        output_path: Path where the resized image should be saved.
+        max_pixels: Maximum width/height in pixels for the resized image.
+        jpeg_quality: Quality of the JPEG compression (0-100, higher is better).
+        dry_run: If True, only simulate the resizing without actually changing files.
+
+    Returns:
+        True if the operation was successful (or would be in dry_run mode), False otherwise.
+    """
+    try:
+        if not dry_run:
+            # Open the image
+            with Image.open(img_path) as img:
+                # Calculate scaling ratio to maintain aspect ratio
+                width, height = img.size
+                ratio = min(max_pixels / width, max_pixels / height)
+                new_width = int(width * ratio)
+                new_height = int(height * ratio)
+
+                # Resize the image
+                resized_img = img.resize((new_width, new_height), Resampling.BICUBIC)
+
+                # Save the image with specified quality
+                resized_img.save(output_path, "JPEG", quality=jpeg_quality)
+        return True
+    except Exception as e:
+        print(f"Error processing {img_path}: {e}")
+        return False
+
+
 def resize_images_for_web(
     directory_path: Path,
     max_pixels: int = 400,
@@ -137,14 +178,6 @@ def resize_images_for_web(
         if folder.name == "petites":
             continue
 
-        # Create 'petites' subfolder
-        petites_folder = folder / "petites"
-        if not dry_run:
-            petites_folder.mkdir(exist_ok=True)
-
-        # Track files for this folder
-        folder_files = []
-
         # Get all supported image files in the folder
         image_files = [
             f
@@ -153,34 +186,26 @@ def resize_images_for_web(
             and f.suffix.lower() in [".jpg", ".jpeg", ".tif", ".png", ".psd", ".cr2"]
         ]
 
+        # Skip if no files to resize
+        if not image_files:
+            continue
+
+        # Track files for this folder
+        folder_files = []
+
+        # Create 'petites' subfolder only if there are images to process
+        petites_folder = folder / "petites"
+        if not dry_run:
+            petites_folder.mkdir(exist_ok=True)
+
         # Process each image file
         for img_path in image_files:
-            try:
-                # Extract filename without extension
-                output_filename = img_path.stem + ".jpg"
-                output_path = petites_folder / output_filename
+            # Extract filename without extension
+            output_filename = img_path.stem + ".jpg"
+            output_path = petites_folder / output_filename
 
-                if not dry_run:
-                    # Open the image
-                    with Image.open(img_path) as img:
-                        # Calculate scaling ratio to maintain aspect ratio
-                        width, height = img.size
-                        ratio = min(max_pixels / width, max_pixels / height)
-                        new_width = int(width * ratio)
-                        new_height = int(height * ratio)
-
-                        # Resize the image
-                        resized_img = img.resize((new_width, new_height), Image.BICUBIC)
-
-                        # Save the image with specified quality
-                        resized_img.save(output_path, "JPEG", quality=jpeg_quality)
-
-                # Track the resized file
+            if resize_image(img_path, output_path, max_pixels, jpeg_quality, dry_run):
                 folder_files.append(output_filename)
-
-            except Exception as e:
-                print(f"Error processing {img_path}: {e}")
-                continue
 
         # Add to tracking dictionary if any files were processed
         if folder_files:
@@ -189,22 +214,111 @@ def resize_images_for_web(
     return resized_files
 
 
+def verify_and_complete_resizing(
+    directory_path: Path,
+    max_pixels: int = 400,
+    jpeg_quality: int = 80,
+    dry_run: bool = False,
+) -> dict[str, list[str]]:
+    """Verifies that all timestamp folders have properly resized images.
+
+    Finds all folders matching the timestamp format (YYYYMMDD-HHhMMmSSs) and checks
+    if each image in these folders has been properly converted to the "petites" subfolder.
+    If not, it creates the necessary resized versions.
+
+    Args:
+        directory_path: Path to the directory containing timestamp folders.
+        max_pixels: Maximum width/height in pixels for the resized images.
+        jpeg_quality: Quality of the JPEG compression (0-100, higher is better).
+        dry_run: If True, only simulate the resizing without actually changing files.
+
+    Returns:
+        Dictionary mapping folder names to lists of newly resized files.
+    """
+    # Regular expression to match timestamp format folders
+    timestamp_pattern: re.Pattern[str] = re.compile(r"^\d{8}-\d{2}h\d{2}m\d{2}s$")
+
+    newly_resized_files: dict[str, list[str]] = {}
+
+    # Find all directories in the specified path
+    for folder in directory_path.iterdir():
+        if not folder.is_dir():
+            continue
+
+        # Check if folder name matches timestamp pattern
+        if timestamp_pattern.match(folder.name):
+            # Get all supported image files in the timestamp folder
+            image_files = [
+                f
+                for f in folder.iterdir()
+                if f.is_file()
+                and f.suffix.lower()
+                in [".jpg", ".jpeg", ".tif", ".png", ".psd", ".cr2"]
+            ]
+
+            if not image_files:
+                continue
+
+            # Check which files need resizing (don't have resized versions)
+            petites_folder = folder / "petites"
+            files_to_resize = []
+
+            for img_path in image_files:
+                # Check if this image already has a resized version
+                output_filename = img_path.stem + ".jpg"
+                output_path = petites_folder / output_filename
+
+                # If resized file doesn't exist, add to list
+                if not output_path.exists():
+                    files_to_resize.append(img_path)
+
+            # Skip if no files need resizing
+            if not files_to_resize:
+                continue
+
+            # Create 'petites' subfolder only if needed
+            if not dry_run and not petites_folder.exists():
+                petites_folder.mkdir(exist_ok=True)
+
+            # Track files for this folder
+            folder_files = []
+
+            # Process each image file that needs resizing
+            for img_path in files_to_resize:
+                # Extract filename without extension
+                output_filename = img_path.stem + ".jpg"
+                output_path = petites_folder / output_filename
+
+                if resize_image(
+                    img_path, output_path, max_pixels, jpeg_quality, dry_run
+                ):
+                    folder_files.append(output_filename)
+
+            # Add to tracking dictionary if any files were processed
+            if folder_files:
+                newly_resized_files[folder.name] = folder_files
+
+    return newly_resized_files
+
+
 def main() -> None:
     """Parse command-line arguments and execute file operations.
 
-    Handles parsing arguments for three main operations:
+    Handles parsing arguments for main operations:
     1. Rename: Convert Japanese timestamp characters to Latin characters
     2. Organize: Group files into folders based on timestamp prefix
-    3. Resize: Resize images for web use
+    3. Resize: Resize images for web use and check for missing resized images
 
     Each operation can be enabled independently with command-line flags.
     """
     parser: argparse.ArgumentParser = argparse.ArgumentParser(
         description=(
-            "Rename Japanese timestamp files, organize them into folders, and resize for web. "
-            "Three operations are available: rename, organize, and resize. "
-            "Renaming changes '時分秒' to 'hms'. Organization groups files into folders by their timestamp prefix. "
-            "Resize creates smaller versions of images for web use."
+            "Rename Japanese timestamp files, organize them into folders, and "
+            "resize for web. Three operations are available: rename, organize, "
+            "and resize. Renaming changes '時分秒' to 'hms'. Organization groups files "
+            "into folders by their timestamp prefix. Resize creates smaller versions "
+            "of images for web use and checks existing timestamp folders for missing "
+            "resized images."
         )
     )
     parser.add_argument(
@@ -237,13 +351,14 @@ def main() -> None:
         "-o",
         "--organize",
         action="store_true",
-        help="Enable the file organization step (move files into timestamp-named folders)",
+        help="Enable the file organization step (move files into timestamp-named "
+        "folders)",
     )
     parser.add_argument(
         "-z",
         "--resize",
         action="store_true",
-        help="Enable the image resizing step",
+        help="Enable the image resizing step (including checking for missing resizes)",
     )
     parser.add_argument(
         "-m",
@@ -275,7 +390,8 @@ def main() -> None:
     # If no operation is specified, print help and exit
     if not (args.rename or args.organize or args.resize):
         print(
-            "No operation specified. Please use --rename, --organize, or --resize (or any combination)."
+            "No operation specified. Please use --rename, --organize, or --resize "
+            "(or any combination)."
         )
         parser.print_help()
         return
@@ -310,11 +426,13 @@ def main() -> None:
                 total_files: int = sum(len(files) for files in organized_files.values())
                 if args.dry_run:
                     print(
-                        f"Dry run: {total_files} files would be organized into {len(organized_files)} folders."
+                        f"Dry run: {total_files} files would be organized into "
+                        f"{len(organized_files)} folders."
                     )
                 else:
                     print(
-                        f"Successfully organized {total_files} files into {len(organized_files)} folders."
+                        f"Successfully organized {total_files} files into "
+                        f"{len(organized_files)} folders."
                     )
                 if args.verbose >= 2:
                     for folder_name, files in organized_files.items():
@@ -322,7 +440,8 @@ def main() -> None:
                         for file_name in files:
                             if args.dry_run:
                                 print(
-                                    f"    {file_name} → {folder_name}/{file_name} (dry run)"
+                                    f"    {file_name} → {folder_name}/{file_name} "
+                                    f"(dry run)"
                                 )
                             else:
                                 print(f"    {file_name} → {folder_name}/{file_name}")
@@ -331,21 +450,36 @@ def main() -> None:
 
     # STEP 3: Resize images if requested
     if args.resize:
+        # First resize newly organized images
         resized_files: dict[str, list[str]] = resize_images_for_web(
             args.directory, args.max_pixels, args.quality, args.dry_run
         )
+
+        # Then check for and complete any missing resized images in timestamp folders
+        newly_resized_files: dict[str, list[str]] = verify_and_complete_resizing(
+            args.directory, args.max_pixels, args.quality, args.dry_run
+        )
+
+        # Combine results for reporting
+        total_resized_folders = len(resized_files) + len(newly_resized_files)
+        total_resized_files = sum(len(files) for files in resized_files.values()) + sum(
+            len(files) for files in newly_resized_files.values()
+        )
+
         if args.verbose >= 1:
-            if resized_files:
-                total_files: int = sum(len(files) for files in resized_files.values())
+            if total_resized_files > 0:
                 if args.dry_run:
                     print(
-                        f"Dry run: {total_files} files would be resized in {len(resized_files)} folders."
+                        f"Dry run: {total_resized_files} files would be resized in "
+                        f"{total_resized_folders} folders."
                     )
                 else:
                     print(
-                        f"Successfully resized {total_files} files in {len(resized_files)} folders."
+                        f"Successfully resized {total_resized_files} files in "
+                        f"{total_resized_folders} folders."
                     )
                 if args.verbose >= 2:
+                    # Report on regular resize operations
                     for folder_name, files in resized_files.items():
                         print(f"  Folder: {folder_name}")
                         print(f"    {len(files)} files resized to 'petites' subfolder")
@@ -353,12 +487,30 @@ def main() -> None:
                             for file_name in files:
                                 if args.dry_run:
                                     print(
-                                        f"      {file_name} → petites/{file_name} (dry run)"
+                                        f"      {file_name} → petites/{file_name} "
+                                        f"(dry run)"
+                                    )
+                                else:
+                                    print(f"      {file_name} → petites/{file_name}")
+
+                    # Report on verification resize operations
+                    for folder_name, files in newly_resized_files.items():
+                        print(f"  Folder: {folder_name} (missing files)")
+                        print(
+                            f"    {len(files)} missing files resized to 'petites' "
+                            f"subfolder"
+                        )
+                        if args.verbose > 2:  # Extra verbose level for file details
+                            for file_name in files:
+                                if args.dry_run:
+                                    print(
+                                        f"      {file_name} → petites/{file_name} "
+                                        f"(dry run)"
                                     )
                                 else:
                                     print(f"      {file_name} → petites/{file_name}")
             else:
-                print("No matching files found to resize.")
+                print("No files found to resize.")
 
 
 if __name__ == "__main__":
