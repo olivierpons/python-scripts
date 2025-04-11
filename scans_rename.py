@@ -5,6 +5,9 @@ from pathlib import Path
 from PIL import Image
 from PIL.Image import Resampling
 
+# Supported image file extensions
+SUPPORTED_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".tif", ".png", ".psd", ".cr2"]
+
 
 def rename_japanese_timestamp_files(
     directory_path: Path, dry_run: bool = False
@@ -110,9 +113,10 @@ def organize_files_into_folders(
 def resize_image(
     img_path: Path,
     output_path: Path,
-    max_pixels: int = 400,
+    max_pixels: int = 2000,
     jpeg_quality: int = 80,
     dry_run: bool = False,
+    overwrite: bool = False,
 ) -> bool:
     """Resizes a single image file for web use.
 
@@ -122,10 +126,15 @@ def resize_image(
         max_pixels: Maximum width/height in pixels for the resized image.
         jpeg_quality: Quality of the JPEG compression (0-100, higher is better).
         dry_run: If True, only simulate the resizing without actually changing files.
+        overwrite: If True, replace existing resized images.
 
     Returns:
         True if the operation was successful (or if in dry_run mode), False otherwise.
     """
+    # Skip if file exists and we're not overwriting
+    if output_path.exists() and not overwrite and not dry_run:
+        return False
+
     try:
         if not dry_run:
             # Open the image
@@ -149,9 +158,10 @@ def resize_image(
 
 def resize_images_for_web(
     directory_path: Path,
-    max_pixels: int = 400,
+    max_pixels: int = 2000,
     jpeg_quality: int = 80,
     dry_run: bool = False,
+    overwrite: bool = False,
 ) -> dict[str, list[str]]:
     """Resizes images for web use.
 
@@ -163,6 +173,7 @@ def resize_images_for_web(
         max_pixels: Maximum width/height in pixels for the resized images.
         jpeg_quality: Quality of the JPEG compression (0-100, higher is better).
         dry_run: If True, only simulate the resizing without actually changing files.
+        overwrite: If True, replace existing resized images.
 
     Returns:
         Dictionary mapping folder names to lists of resized files.
@@ -182,8 +193,7 @@ def resize_images_for_web(
         image_files = [
             f
             for f in folder.iterdir()
-            if f.is_file()
-            and f.suffix.lower() in [".jpg", ".jpeg", ".tif", ".png", ".psd", ".cr2"]
+            if f.is_file() and f.suffix.lower() in SUPPORTED_IMAGE_EXTENSIONS
         ]
 
         # Skip if no files to resize
@@ -204,7 +214,9 @@ def resize_images_for_web(
             output_filename = img_path.stem + ".jpg"
             output_path = petites_folder / output_filename
 
-            if resize_image(img_path, output_path, max_pixels, jpeg_quality, dry_run):
+            if resize_image(
+                img_path, output_path, max_pixels, jpeg_quality, dry_run, overwrite
+            ):
                 folder_files.append(output_filename)
 
         # Add to tracking dictionary if any files were processed
@@ -216,9 +228,10 @@ def resize_images_for_web(
 
 def verify_and_complete_resizing(
     directory_path: Path,
-    max_pixels: int = 400,
+    max_pixels: int = 2000,
     jpeg_quality: int = 80,
     dry_run: bool = False,
+    overwrite: bool = False,
 ) -> dict[str, list[str]]:
     """Verifies that all timestamp folders have properly resized images.
 
@@ -231,6 +244,7 @@ def verify_and_complete_resizing(
         max_pixels: Maximum width/height in pixels for the resized images.
         jpeg_quality: Quality of the JPEG compression (0-100, higher is better).
         dry_run: If True, only simulate the resizing without actually changing files.
+        overwrite: If True, replace existing resized images.
 
     Returns:
         Dictionary mapping folder names to lists of newly resized files.
@@ -251,15 +265,13 @@ def verify_and_complete_resizing(
             image_files = [
                 f
                 for f in folder.iterdir()
-                if f.is_file()
-                and f.suffix.lower()
-                in [".jpg", ".jpeg", ".tif", ".png", ".psd", ".cr2"]
+                if f.is_file() and f.suffix.lower() in SUPPORTED_IMAGE_EXTENSIONS
             ]
 
             if not image_files:
                 continue
 
-            # Check which files need resizing (don't have resized versions)
+            # Check which files need resizing (don't have resized versions or overwrite)
             petites_folder = folder / "petites"
             files_to_resize = []
 
@@ -268,8 +280,8 @@ def verify_and_complete_resizing(
                 output_filename = img_path.stem + ".jpg"
                 output_path = petites_folder / output_filename
 
-                # If resized file doesn't exist, add to list
-                if not output_path.exists():
+                # If resized file doesn't exist, or we're overwriting, add to list
+                if overwrite or not output_path.exists():
                     files_to_resize.append(img_path)
 
             # Skip if no files need resizing
@@ -290,7 +302,12 @@ def verify_and_complete_resizing(
                 output_path = petites_folder / output_filename
 
                 if resize_image(
-                    img_path, output_path, max_pixels, jpeg_quality, dry_run
+                    img_path,
+                    output_path,
+                    max_pixels,
+                    jpeg_quality,
+                    dry_run,
+                    overwrite,
                 ):
                     folder_files.append(output_filename)
 
@@ -394,8 +411,8 @@ def main() -> None:
         "-m",
         "--max-pixels",
         type=int,
-        default=400,
-        help="Maximum size in pixels for the resized images (default: 400)",
+        default=2000,
+        help=f"Maximum size in pixels for the resized images (default: 2000)",
     )
     parser.add_argument(
         "-q",
@@ -403,7 +420,13 @@ def main() -> None:
         type=int,
         default=80,
         choices=range(70, 101),
-        help="JPEG quality for resized images (1-100, default: 80)",
+        help="JPEG quality for resized images (70-100, default: 80)",
+    )
+    parser.add_argument(
+        "-w",
+        "--overwrite",
+        action="store_true",
+        help="Overwrite existing resized images",
     )
 
     args: argparse.Namespace = parser.parse_args()
@@ -423,6 +446,8 @@ def main() -> None:
             "No operation specified. Please use --rename, --organize, or --resize "
             "(or any combination)."
         )
+        # Show supported file extensions
+        print(f"Supported image extensions: {', '.join(SUPPORTED_IMAGE_EXTENSIONS)}")
         parser.print_help()
         return
 
@@ -478,12 +503,20 @@ def main() -> None:
     if args.resize:
         # First resize newly organized images
         resized_files: dict[str, list[str]] = resize_images_for_web(
-            args.directory, args.max_pixels, args.quality, args.dry_run
+            args.directory,
+            args.max_pixels,
+            args.quality,
+            args.dry_run,
+            args.overwrite,
         )
 
         # Then check for and complete any missing resized images in timestamp folders
         newly_resized_files: dict[str, list[str]] = verify_and_complete_resizing(
-            args.directory, args.max_pixels, args.quality, args.dry_run
+            args.directory,
+            args.max_pixels,
+            args.quality,
+            args.dry_run,
+            args.overwrite,
         )
 
         # Combine results for reporting
