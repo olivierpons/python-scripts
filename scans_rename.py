@@ -468,6 +468,46 @@ def print_file_operation(
     print(operation)
 
 
+def print_organization_summary(
+    organized_files: dict[str, list[str]],
+    dry_run: bool,
+    verbose: int,
+    file_descriptor: str = "files",
+    container_descriptor: str = "folders",
+) -> None:
+    """Print a summary of organizing operations.
+
+    Args:
+        organized_files: Dictionary mapping folder names to lists of files
+        dry_run: Whether this is a dry run
+        verbose: Verbosity level (0=quiet, 1=summary, 2=details)
+        file_descriptor: Description of the files being organized (default: "files")
+        container_descriptor: Description of the containers files are organized into (default: "folders")
+    """
+    if not organized_files:
+        print(f"No matching {file_descriptor} found to organize.")
+        return
+
+    total_files: int = sum(len(files) for files in organized_files.values())
+    operation_text = (
+        f"{'Dry run: ' if dry_run else ''}"
+        f"{'Would organize' if dry_run else 'Successfully organized'} "
+        f"{total_files} {file_descriptor} into {len(organized_files)} {container_descriptor}."
+    )
+    print(operation_text)
+
+    if verbose >= 2:
+        for folder_name, files in organized_files.items():
+            print(f"  Folder: {folder_name}")
+            for file_name in files:
+                print_file_operation(
+                    file_name,
+                    f"{folder_name}/{file_name}",
+                    dry_run,
+                    indent=4,
+                )
+
+
 def main() -> None:
     """Parse command-line arguments and execute file operations.
 
@@ -612,30 +652,17 @@ def main() -> None:
             args.directory, args.dry_run
         )
         if args.verbose >= 1:
-            if organized_numbered_files:
-                total_files: int = sum(
-                    len(files) for files in organized_numbered_files.values()
-                )
-                operation_text = (
-                    f"{'Dry run: ' if args.dry_run else ''}"
-                    f"{'Would organize' if args.dry_run else 'Successfully organized'} "
-                    f"{total_files} numbered files into {len(organized_numbered_files)} folder."
-                )
-                print(operation_text)
-
-                if args.verbose >= 2:
-                    for folder_name, files in organized_numbered_files.items():
-                        print(f"  Folder: {folder_name}")
-                        for file_name in files:
-                            print_file_operation(
-                                file_name,
-                                f"{folder_name}/{file_name}",
-                                args.dry_run,
-                                indent=4,
-                            )
-            else:
+            if not organized_numbered_files:
                 print(
                     "No matching numbered files found to organize or clipboard format is invalid."
+                )
+            else:
+                print_organization_summary(
+                    organized_numbered_files,
+                    args.dry_run,
+                    args.verbose,
+                    "numbered files",
+                    "folder",
                 )
 
     # STEP 2: Organize files into folders if requested
@@ -644,27 +671,7 @@ def main() -> None:
             args.directory, args.dry_run
         )
         if args.verbose >= 1:
-            if organized_files:
-                total_files: int = sum(len(files) for files in organized_files.values())
-                operation_text = (
-                    f"{'Dry run: ' if args.dry_run else ''}"
-                    f"{'Would organize' if args.dry_run else 'Successfully organized'} "
-                    f"{total_files} files into {len(organized_files)} folders."
-                )
-                print(operation_text)
-
-                if args.verbose >= 2:
-                    for folder_name, files in organized_files.items():
-                        print(f"  Folder: {folder_name}")
-                        for file_name in files:
-                            print_file_operation(
-                                file_name,
-                                f"{folder_name}/{file_name}",
-                                args.dry_run,
-                                indent=4,
-                            )
-            else:
-                print("No matching files found to organize.")
+            print_organization_summary(organized_files, args.dry_run, args.verbose)
 
     # STEP 3: Resize images if requested
     if args.resize:
