@@ -274,4 +274,15 @@ python scans_rename.py --directory 路徑 [--rename] [--organize] [--resize] \
 - `-d, --directory`：包含要處理檔案的目錄（默認為當前目錄）
 - `-r, --dry-run`：模擬操作而不更改任何檔案
 - `-n, --rename`：啟用檔案重命名步驟（日語'時分秒'轉為拉丁'hms'）
-- `-o, --organize`：啟用檔案整理步驟（
+- `-o, --organize`：啟用檔案整理步驟（將檔案移動到以時間戳命名的資料夾中）
+- `-z, --resize`：啟用圖像調整大小步驟（在"petites"子資料夾中創建網頁友好版本）
+- `-x, --numbered`：啟用使用剪貼簿內容整理編號檔案
+- `-m, --max-pixels`：調整大小圖像的最大尺寸（像素，默認：2000）
+- `-q, --quality`：調整大小圖像的JPEG質量（70-100，默認：80）
+- `-v, --verbose`：詳細級別：0=安靜，1=摘要，2=詳細（默認：0）
+- `-w, --overwrite`：移動或調整大小時覆蓋現有檔案
+
+### 未來計劃
+隨著時間的推移，更多的Python實用腳本將添加到此倉庫中，每個腳本都專注於有效解決特定任務。
+
+[返回頂部](#python-utility-scripts--scripts-utilitaires-python--python-ユーティリティスクリプト--python-实用脚本--python-實用腳本)
