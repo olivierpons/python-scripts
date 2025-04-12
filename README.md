@@ -221,7 +221,8 @@ python scans_rename.py --directory パス [--rename] [--organize] [--resize] \
 
 **使用方法：**
 ```bash
-python scans_rename.py --directory 路径 [--rename] [--organize] [--resize] [--numbered] [--dry-run] [--verbose 级别]
+python scans_rename.py --directory 路径 [--rename] [--organize] [--resize] \
+  [--numbered] [--dry-run] [--verbose 级别]
 ```
 
 **参数：**
@@ -265,7 +266,8 @@ python scans_rename.py --directory 路径 [--rename] [--organize] [--resize] [--
 
 **使用方法：**
 ```bash
-python scans_rename.py --directory 路徑 [--rename] [--organize] [--resize] [--numbered] [--dry-run] [--verbose 級別]
+python scans_rename.py --directory 路徑 [--rename] [--organize] [--resize] \
+  [--numbered] [--dry-run] [--verbose 級別]
 ```
 
 **參數：**
