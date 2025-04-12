@@ -4,7 +4,7 @@ import shutil
 import textwrap
 from pathlib import Path
 
-import pyperclip
+import pyperclip  # For clipboard access
 from PIL import Image
 from PIL.Image import Resampling
 
@@ -85,7 +85,7 @@ def get_folder_name_from_clipboard() -> str:
 
 
 def organize_numbered_files(
-    directory_path: Path, dry_run: bool = False
+    directory_path: Path, dry_run: bool = False, overwrite: bool = False
 ) -> dict[str, list[str]]:
     """Organizes numbered files using clipboard content.
 
@@ -96,6 +96,7 @@ def organize_numbered_files(
     Args:
         directory_path: Path to the directory containing files to organize.
         dry_run: If True, only simulate the organization without actually moving files.
+        overwrite: If True, overwrite existing files in the destination folder.
 
     Returns:
         Dictionary mapping folder names to lists of files moved into them.
@@ -136,6 +137,12 @@ def organize_numbered_files(
 
                 # Move the file to the folder
                 destination = folder_path / file_path.name
+
+                # Check if destination file exists and handle overwrite
+                if destination.exists() and not overwrite:
+                    print(f"Skipping {file_path.name}: already exists in destination")
+                    continue
+
                 shutil.move(str(file_path), str(destination))
 
     # If no files were organized, remove the empty entry
@@ -194,7 +201,7 @@ def rename_japanese_timestamp_files(
 
 
 def organize_files_into_folders(
-    directory_path: Path, dry_run: bool = False
+    directory_path: Path, dry_run: bool = False, overwrite: bool = False
 ) -> dict[str, list[str]]:
     """Organizes timestamp-named files into corresponding folders.
 
@@ -204,6 +211,7 @@ def organize_files_into_folders(
     Args:
         directory_path: Path to the directory containing files to organize.
         dry_run: If True, only simulate the organization without actually moving files.
+        overwrite: If True, overwrite existing files in the destination folder.
 
     Returns:
         Dictionary mapping folder names to lists of files moved into them.
@@ -241,6 +249,12 @@ def organize_files_into_folders(
 
                 # Move the file to the folder
                 destination = folder_path / file_path.name
+
+                # Check if destination file exists and handle overwrite
+                if destination.exists() and not overwrite:
+                    print(f"Skipping {file_path.name}: already exists in destination")
+                    continue
+
                 shutil.move(str(file_path), str(destination))
 
     return organized_files
@@ -635,7 +649,7 @@ def main() -> None:
         "-w",
         "--overwrite",
         action="store_true",
-        help="Overwrite existing resized images",
+        help="Overwrite existing files when moving or resizing",
     )
 
     args: argparse.Namespace = parser.parse_args()
@@ -689,7 +703,7 @@ def main() -> None:
     # STEP 1.5: Organize numbered files using clipboard data if requested
     if args.numbered:
         organized_numbered_files: dict[str, list[str]] = organize_numbered_files(
-            args.directory, args.dry_run
+            args.directory, args.dry_run, args.overwrite
         )
         if args.verbose >= 1:
             if not organized_numbered_files:
@@ -708,7 +722,7 @@ def main() -> None:
     # STEP 2: Organize files into folders if requested
     if args.organize:
         organized_files: dict[str, list[str]] = organize_files_into_folders(
-            args.directory, args.dry_run
+            args.directory, args.dry_run, args.overwrite
         )
         if args.verbose >= 1:
             print_organization_summary(organized_files, args.dry_run, args.verbose)
