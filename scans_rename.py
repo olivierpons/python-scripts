@@ -1,12 +1,109 @@
 import re
 import argparse
 import shutil
+import pyperclip  # For clipboard access
 from pathlib import Path
 from PIL import Image
 from PIL.Image import Resampling
+from datetime import datetime
 
 # Supported image file extensions
 SUPPORTED_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".tif", ".png", ".psd", ".cr2"]
+
+
+def get_folder_name_from_clipboard() -> str:
+    """Gets and processes clipboard content.
+
+    The expected format is "[YYYY]-[MM]-[DD] [character string]"
+
+    Returns:
+        A formatted string for folder naming (YYYYMMDD-string)
+
+    Raises:
+        ValueError: If clipboard content does not match the expected format
+    """
+    try:
+        clipboard_content = pyperclip.paste()
+        # Check for format "[YYYY]-[MM]-[DD] [character string]"
+        pattern = re.compile(r"^\[(\d{4})\]-\[(\d{2})\]-\[(\d{2})\] (.+)$")
+        match = pattern.match(clipboard_content)
+
+        if not match:
+            raise ValueError(
+                f"Clipboard content '{clipboard_content}' does not match the expected "
+                f"format '[YYYY]-[MM]-[DD] [character string]'"
+            )
+
+        year, month, day, description = match.groups()
+        # Format as YYYYMMDD-description
+        folder_name = f"{year}{month}{day}-{description}"
+        # Clean for a valid folder name
+        folder_name = re.sub(r'[\\/:*?"<>|]', "_", folder_name)
+
+        return folder_name
+    except Exception as e:
+        raise ValueError(f"Error reading clipboard: {e}")
+
+
+def organize_numbered_files(
+    directory_path: Path, dry_run: bool = False
+) -> dict[str, list[str]]:
+    """Organizes numbered files using clipboard content.
+
+    For files matching the pattern 'XXX.jpg', creates a folder
+    based on clipboard content in format "[YYYY]-[MM]-[DD] [character string]"
+    and moves the file into that folder.
+
+    Args:
+        directory_path: Path to the directory containing files to organize.
+        dry_run: If True, only simulate the organization without actually moving files.
+
+    Returns:
+        Dictionary mapping folder names to lists of files moved into them.
+    """
+    # Regular expression to match simple numbered format
+    pattern: re.Pattern[str] = re.compile(r"^(\d+)\.([^.]+)$")
+
+    # Get folder name from clipboard
+    try:
+        folder_name = get_folder_name_from_clipboard()
+    except ValueError as e:
+        print(f"Error: {e}")
+        return {}
+
+    # Keep track of which files go into which folders
+    organized_files: dict[str, list[str]] = {}
+    organized_files[folder_name] = []
+
+    # Create folder path
+    folder_path = directory_path / folder_name
+
+    # Process only files directly in the root directory (non-recursively)
+    for file_path in directory_path.iterdir():
+        # Skip directories and only process files
+        if file_path.is_dir():
+            continue
+
+        # Check if the file matches our numbered pattern
+        match = pattern.match(file_path.name)
+        if match and file_path.suffix.lower() in SUPPORTED_IMAGE_EXTENSIONS:
+            # Add file to tracking
+            organized_files[folder_name].append(file_path.name)
+
+            # Create folder and move file only if not in dry-run mode
+            if not dry_run:
+                # Create the folder if it doesn't exist
+                folder_path.mkdir(exist_ok=True)
+
+                # Move the file to the folder
+                destination = folder_path / file_path.name
+                shutil.move(str(file_path), str(destination))
+
+    # If no files were organized, remove the empty entry
+    if not organized_files[folder_name]:
+        organized_files.pop(folder_name)
+
+    return organized_files
 
 
 def rename_japanese_timestamp_files(
@@ -378,17 +475,19 @@ def main() -> None:
     1. Rename: Convert Japanese timestamp characters to Latin characters
     2. Organize: Group files into folders based on timestamp prefix
     3. Resize: Resize images for web use and check for missing resized images
+    4. Numbered: Organize numbered files using clipboard data
 
     Each operation can be enabled independently with command-line flags.
     """
     parser: argparse.ArgumentParser = argparse.ArgumentParser(
         description=(
             "Rename Japanese timestamp files, organize them into folders, and "
-            "resize for web. Three operations are available: rename, organize, "
-            "and resize. Renaming changes '時分秒' to 'hms'. Organization groups files "
+            "resize for web. Four operations are available: rename, organize, "
+            "resize, and numbered. Renaming changes '時分秒' to 'hms'. Organization groups files "
             "into folders by their timestamp prefix. Resize creates smaller versions "
             "of images for web use and checks existing timestamp folders for missing "
-            "resized images."
+            "resized images. Numbered creates a folder based on clipboard content and "
+            "moves numerically named files into it."
         )
     )
     parser.add_argument(
@@ -431,6 +530,13 @@ def main() -> None:
         help="Enable the image resizing step (including checking for missing resizes)",
     )
     parser.add_argument(
+        "-x",
+        "--numbered",
+        action="store_true",
+        help="Enable organizing numbered files using clipboard content in format "
+        "'[YYYY]-[MM]-[DD] [character string]'",
+    )
+    parser.add_argument(
         "-m",
         "--max-pixels",
         type=int,
@@ -464,15 +570,21 @@ def main() -> None:
         parser.error(f"'{args.directory}' is not a valid directory")
 
     # If no operation is specified, print help and exit
-    if not (args.rename or args.organize or args.resize):
+    if not (args.rename or args.organize or args.resize or args.numbered):
         print(
-            "No operation specified. Please use --rename, --organize, or --resize "
-            "(or any combination)."
+            "No operation specified. Please use --rename, --organize, --resize, "
+            "or --numbered (or any combination)."
         )
         # Show supported file extensions
         print(f"Supported image extensions: {', '.join(SUPPORTED_IMAGE_EXTENSIONS)}")
         parser.print_help()
         return
+
+    # Check for mutually exclusive operations
+    if args.rename and args.numbered:
+        parser.error(
+            "The --rename and --numbered operations are mutually exclusive. Please use only one."
+        )
 
     # STEP 1: Rename files if requested
     if args.rename:
@@ -493,6 +605,38 @@ def main() -> None:
                         print_file_operation(old_name, new_name, args.dry_run, indent=2)
             else:
                 print("No matching files found to rename.")
+
+    # STEP 1.5: Organize numbered files using clipboard data if requested
+    if args.numbered:
+        organized_numbered_files: dict[str, list[str]] = organize_numbered_files(
+            args.directory, args.dry_run
+        )
+        if args.verbose >= 1:
+            if organized_numbered_files:
+                total_files: int = sum(
+                    len(files) for files in organized_numbered_files.values()
+                )
+                operation_text = (
+                    f"{'Dry run: ' if args.dry_run else ''}"
+                    f"{'Would organize' if args.dry_run else 'Successfully organized'} "
+                    f"{total_files} numbered files into {len(organized_numbered_files)} folder."
+                )
+                print(operation_text)
+
+                if args.verbose >= 2:
+                    for folder_name, files in organized_numbered_files.items():
+                        print(f"  Folder: {folder_name}")
+                        for file_name in files:
+                            print_file_operation(
+                                file_name,
+                                f"{folder_name}/{file_name}",
+                                args.dry_run,
+                                indent=4,
+                            )
+            else:
+                print(
+                    "No matching numbered files found to organize or clipboard format is invalid."
+                )
 
     # STEP 2: Organize files into folders if requested
     if args.organize:
