@@ -1,48 +1,87 @@
-import re
 import argparse
+import re
 import shutil
-import pyperclip  # For clipboard access
+import textwrap
 from pathlib import Path
+
+import pyperclip
 from PIL import Image
 from PIL.Image import Resampling
-from datetime import datetime
 
 # Supported image file extensions
 SUPPORTED_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".tif", ".png", ".psd", ".cr2"]
 
 
+def format_error_message(message: str, max_width: int = 100) -> str:
+    """Format error messages to display properly even when long with line breaks.
+
+    Args:
+        message: The error message to format
+        max_width: Maximum width for each line (default: 100)
+
+    Returns:
+        Properly formatted error message
+    """
+    lines = message.splitlines()
+    formatted_lines = []
+
+    for line in lines:
+        if len(line) > max_width:
+            wrapped = textwrap.wrap(line, width=max_width)
+            formatted_lines.extend(wrapped)
+        else:
+            formatted_lines.append(line)
+    return "\n".join(formatted_lines)
+
+
 def get_folder_name_from_clipboard() -> str:
     """Gets and processes clipboard content.
 
-    The expected format is "[YYYY]-[MM]-[DD] [character string]"
+    Accepts two formats:
+    1. "[YYYY]-[MM]-[DD] [character string]" (with brackets)
+    2. "YYYY-MM-DD [character string]" (without brackets)
 
     Returns:
         A formatted string for folder naming (YYYYMMDD-string)
 
     Raises:
-        ValueError: If clipboard content does not match the expected format
+        ValueError: If clipboard content does not match any expected format
     """
     try:
         clipboard_content = pyperclip.paste()
-        # Check for format "[YYYY]-[MM]-[DD] [character string]"
-        pattern = re.compile(r"^\[(\d{4})\]-\[(\d{2})\]-\[(\d{2})\] (.+)$")
-        match = pattern.match(clipboard_content)
+
+        # First try with brackets format
+        pattern1 = re.compile(r"^\[(\d{4})]-\[(\d{2})]-\[(\d{2})] (.+)$")
+        match = pattern1.match(clipboard_content)
+
+        # If first pattern doesn't match, try without brackets
+        if not match:
+            pattern2 = re.compile(r"^(\d{4})-(\d{2})-(\d{2}) (.+)$")
+            match = pattern2.match(clipboard_content)
 
         if not match:
+            display_content = clipboard_content.replace("\n", " ").replace("\r", "")
+            if len(display_content) > 80:
+                half = 37
+                display_content = (
+                    display_content[:half] + " ... " + display_content[-half:]
+                )
+
             raise ValueError(
-                f"Clipboard content '{clipboard_content}' does not match the expected "
-                f"format '[YYYY]-[MM]-[DD] [character string]'"
+                f"Clipboard content '{display_content}' does not match expected format."
             )
 
         year, month, day, description = match.groups()
-        # Format as YYYYMMDD-description
-        folder_name = f"{year}{month}{day}-{description}"
+        # Format as YYYY-MM-DD description
+        folder_name = f"{year}-{month}-{day} {description}"
         # Clean for a valid folder name
         folder_name = re.sub(r'[\\/:*?"<>|]', "_", folder_name)
 
         return folder_name
     except Exception as e:
-        raise ValueError(f"Error reading clipboard: {e}")
+        # Format the error message before raising it
+        formatted_message = format_error_message(str(e))
+        raise ValueError(f"Error reading clipboard: {formatted_message}")
 
 
 def organize_numbered_files(
@@ -68,12 +107,12 @@ def organize_numbered_files(
     try:
         folder_name = get_folder_name_from_clipboard()
     except ValueError as e:
-        print(f"Error: {e}")
+        # Use the format_error_message function for displaying the error
+        print(f"Error: {format_error_message(str(e))}")
         return {}
 
     # Keep track of which files go into which folders
-    organized_files: dict[str, list[str]] = {}
-    organized_files[folder_name] = []
+    organized_files: dict[str, list[str]] = {folder_name: []}
 
     # Create folder path
     folder_path = directory_path / folder_name
@@ -249,7 +288,8 @@ def resize_image(
                 resized_img.save(output_path, "JPEG", quality=jpeg_quality)
         return True, False
     except Exception as e:
-        print(f"Error processing {img_path}: {e}")
+        error_msg = format_error_message(str(e))
+        print(f"Error processing {img_path}: {error_msg}")
         return False, False
 
 
