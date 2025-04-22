@@ -10,6 +10,7 @@ specific problems. Currently available:
 - [**eliminate_dups_in_csv.py**](#eliminate_dups_en): Processes CSV files to remove duplicates and saves them separately.
 - [**extract_first_column_of_csv.py**](#extract_first_column_en): Extracts the first column from a CSV file.
 - [**scans_rename.py**](#scans_rename_en): Renames and organizes files with Japanese timestamps in their filenames.
+- [**csv_transformer.py**](#csv_transformer_en): Transforms, filters, and processes CSV data with various operations.
 [More details below](#english-details)
 
 ### Français
@@ -19,6 +20,7 @@ disponible :
 - [**eliminate_dups_in_csv.py**](#eliminate_dups_fr) : Traite les fichiers CSV pour supprimer les doublons et les enregistre séparément.
 - [**extract_first_column_of_csv.py**](#extract_first_column_fr) : Extrait la première colonne d'un fichier CSV.
 - [**scans_rename.py**](#scans_rename_fr) : Renomme et organise les fichiers avec des horodatages japonais dans leurs noms.
+- [**csv_transformer.py**](#csv_transformer_fr) : Transforme, filtre et traite les données CSV avec diverses opérations.
 [Plus de détails ci-dessous](#french-details)
 
 ### 日本語
@@ -26,6 +28,7 @@ disponible :
 - [**eliminate_dups_in_csv.py**](#eliminate_dups_jp)：CSVファイルを処理して重複を削除し、別々に保存します。
 - [**extract_first_column_of_csv.py**](#extract_first_column_jp)：CSVファイルの最初の列を抽出します。
 - [**scans_rename.py**](#scans_rename_jp)：ファイル名の日本語タイムスタンプを持つファイルの名前変更と整理を行います。
+- [**csv_transformer.py**](#csv_transformer_jp)：様々な操作でCSVデータを変換、フィルタリング、処理します。
 [詳細は以下をご覧ください](#japanese-details)
 
 ### 简体中文
@@ -35,6 +38,7 @@ disponible :
 - [**eliminate_dups_in_csv.py**](#eliminate_dups_zh_cn)：处理CSV文件以删除重复项并将其单独保存。
 - [**extract_first_column_of_csv.py**](#extract_first_column_zh_cn)：从CSV文件中提取第一列。
 - [**scans_rename.py**](#scans_rename_zh_cn)：重命名并整理文件名中带有日语时间戳的文件。
+- [**csv_transformer.py**](#csv_transformer_zh_cn)：通过各种操作转换、过滤和处理CSV数据。
 
 [更多详情见下文](#chinese-simplified-details)
 
@@ -45,6 +49,7 @@ disponible :
 - [**eliminate_dups_in_csv.py**](#eliminate_dups_zh_tw)：處理CSV檔案以刪除重複項並將其單獨保存。
 - [**extract_first_column_of_csv.py**](#extract_first_column_zh_tw)：從CSV檔案中提取第一列。
 - [**scans_rename.py**](#scans_rename_zh_tw)：重新命名並整理檔案名中帶有日語時間戳的檔案。
+- [**csv_transformer.py**](#csv_transformer_zh_tw)：通過各種操作轉換、過濾和處理CSV數據。
 
 [更多詳情見下文](#chinese-traditional-details)
 
@@ -87,8 +92,27 @@ python eliminate_dups_in_csv.py input_file.csv output_file.csv duplicates_file.c
 - `--delimiter`: CSV file delimiter (default: ,)
 - `--table-format`: Format for summary table (default: fancy_grid)
 
+<a id="extract_first_column_en"></a>
+#### 2. `extract_first_column_of_csv.py` - CSV First Column Extractor
+
+This script extracts the content of the first column from a CSV file and outputs the values as a comma-separated list with each value surrounded by quotes.
+
+**Features:**
+- Extracts the first column from any CSV file
+- Outputs values in a formatted comma-separated list with quotes
+- Handles file opening errors gracefully
+- Simple and focused functionality
+
+**Usage:**
+```bash
+python extract_first_column_of_csv.py -i input_file.csv
+```
+
+**Arguments:**
+- `-i, --input`: Path to the input CSV file (required)
+
 <a id="scans_rename_en"></a>
-#### 2. `scans_rename.py` - Japanese Timestamp File Organizer
+#### 3. `scans_rename.py` - Japanese Timestamp File Organizer
 
 This script helps manage and organize scanned files with Japanese timestamps in their filenames. It was created out
 of necessity to deal with the... limitations of the 💩 Canon ImageFORMULA driver written by 🤬 🧠💀 developers that
@@ -119,25 +143,38 @@ python scans_rename.py --directory PATH [--rename] [--organize] [--resize] \
 - `-q, --quality`: JPEG quality for resized images (70-100, default: 80)
 - `-v, --verbose`: Verbosity level: 0=quiet, 1=summary, 2=details (default: 0)
 - `-w, --overwrite`: Overwrite existing files when moving or resizing
+- `-c, --current-dir`: Include images in the current directory itself when resizing
 
-<a id="extract_first_column_en"></a>
-#### 3. `extract_first_column_of_csv.py` - CSV First Column Extractor
+<a id="csv_transformer_en"></a>
+#### 4. `csv_transformer.py` - CSV Transformation Utility
 
-This script extracts the content of the first column from a CSV file and outputs the values as a comma-separated list with each value surrounded by quotes.
+This script provides comprehensive CSV transformation capabilities for data processing workflows.
 
 **Features:**
-- Extracts the first column from any CSV file
-- Outputs values in a formatted comma-separated list with quotes
-- Handles file opening errors gracefully
-- Simple and focused functionality
+- Column selection, renaming, and reordering
+- Row filtering based on conditions
+- Data transformation with custom functions
+- Aggregation and grouping operations
+- Statistical analysis and summary generation
+- Supports multiple input and output encoding formats
+- Batch processing of multiple CSV files
 
 **Usage:**
 ```bash
-python extract_first_column_of_csv.py -i input_file.csv
-Arguments:
-
--i, --input: Path to the input CSV file (required)
+python csv_transformer.py --input input.csv --output transformed.csv [options]
 ```
+
+**Arguments:**
+- `--input`: Path to the input CSV file
+- `--output`: Path to save the transformed CSV file
+- `--select`: Select specific columns (comma-separated)
+- `--rename`: Rename columns (format: old_name:new_name,old_name2:new_name2)
+- `--filter`: Filter rows using a Python expression
+- `--transform`: Apply transformations to columns
+- `--encoding`: Input/output encoding (default: utf-8)
+- `--delimiter`: CSV delimiter character (default: ,)
+- `--group-by`: Group data by specified columns
+- `--aggregate`: Aggregate function to apply to groups
 
 ### Future Plans
 More Python utility scripts will be added to this repository over time, each focused
@@ -181,8 +218,27 @@ python eliminate_dups_in_csv.py fichier_entree.csv fichier_sortie.csv fichier_do
 - `--delimiter` : Délimiteur du fichier CSV (par défaut : ,)
 - `--table-format` : Format pour le tableau récapitulatif (par défaut : fancy_grid)
 
+<a id="extract_first_column_fr"></a>
+#### 2. `extract_first_column_of_csv.py` - Extracteur de Première Colonne CSV
+
+Ce script extrait le contenu de la première colonne d'un fichier CSV et génère les valeurs sous forme de liste séparée par des virgules, chaque valeur étant entourée de guillemets.
+
+**Fonctionnalités :**
+- Extrait la première colonne de n'importe quel fichier CSV
+- Génère des valeurs dans une liste formatée séparée par des virgules avec des guillemets
+- Gère les erreurs d'ouverture de fichier avec élégance
+- Fonctionnalité simple et ciblée
+
+**Utilisation :**
+```bash
+python extract_first_column_of_csv.py -i fichier_entree.csv
+```
+
+**Arguments :**
+- `-i, --input` : Chemin vers le fichier CSV d'entrée (requis)
+
 <a id="scans_rename_fr"></a>
-#### 2. `scans_rename.py` - Organisateur de Fichiers avec Horodatage Japonais
+#### 3. `scans_rename.py` - Organisateur de Fichiers avec Horodatage Japonais
 Ce script aide à gérer et organiser les fichiers numérisés avec des horodatages japonais
 dans leurs noms de fichier. Il a été créé par nécessité pour faire face aux... 
 limitations du pilote 💩 Canon ImageFORMULA écrit par des 🤬 🧠💀 de développeurs, 
@@ -226,6 +282,38 @@ python scans_rename.py --directory CHEMIN [--rename] [--organize] [--resize] \
   (par défaut : 0)
 - `-w, --overwrite` : Écraser les fichiers existants lors du déplacement ou du 
   redimensionnement
+- `-c, --current-dir` : Inclure les images dans le répertoire courant lors du redimensionnement
+
+<a id="csv_transformer_fr"></a>
+#### 4. `csv_transformer.py` - Utilitaire de Transformation CSV
+
+Ce script fournit des capacités complètes de transformation CSV pour les flux de traitement de données.
+
+**Fonctionnalités :**
+- Sélection, renommage et réorganisation des colonnes
+- Filtrage des lignes basé sur des conditions
+- Transformation de données avec des fonctions personnalisées
+- Opérations d'agrégation et de regroupement
+- Analyse statistique et génération de résumés
+- Prend en charge plusieurs formats d'encodage d'entrée et de sortie
+- Traitement par lots de plusieurs fichiers CSV
+
+**Utilisation :**
+```bash
+python csv_transformer.py --input input.csv --output transforme.csv [options]
+```
+
+**Arguments :**
+- `--input` : Chemin vers le fichier CSV d'entrée
+- `--output` : Chemin pour enregistrer le fichier CSV transformé
+- `--select` : Sélectionner des colonnes spécifiques (séparées par des virgules)
+- `--rename` : Renommer les colonnes (format : ancien_nom:nouveau_nom,ancien_nom2:nouveau_nom2)
+- `--filter` : Filtrer les lignes en utilisant une expression Python
+- `--transform` : Appliquer des transformations aux colonnes
+- `--encoding` : Encodage d'entrée/sortie (par défaut : utf-8)
+- `--delimiter` : Caractère délimiteur CSV (par défaut : ,)
+- `--group-by` : Regrouper les données par colonnes spécifiées
+- `--aggregate` : Fonction d'agrégation à appliquer aux groupes
 
 ### Plans Futurs
 D'autres scripts utilitaires Python seront ajoutés à ce dépôt au fil du temps, chacun se
@@ -269,8 +357,27 @@ python eliminate_dups_in_csv.py 入力ファイル.csv 出力ファイル.csv �
 - `--delimiter`：CSVファイルの区切り文字（デフォルト：,）
 - `--table-format`：概要テーブルの形式（デフォルト：fancy_grid）
 
+<a id="extract_first_column_jp"></a>
+#### 2. `extract_first_column_of_csv.py` - CSV最初の列抽出ツール
+
+このスクリプトはCSVファイルの最初の列のコンテンツを抽出し、各値を引用符で囲んだコンマ区切りのリストとして出力します。
+
+**機能：**
+- 任意のCSVファイルから最初の列を抽出
+- 引用符で囲まれたフォーマット済みのコンマ区切りリストとして値を出力
+- ファイルオープンエラーを適切に処理
+- シンプルで焦点を絞った機能性
+
+**使用法：**
+```bash
+python extract_first_column_of_csv.py -i 入力ファイル.csv
+```
+
+**引数：**
+- `-i, --input`：入力CSVファイルへのパス（必須）
+
 <a id="scans_rename_jp"></a>
-#### 2. `scans_rename.py` - 日本語タイムスタンプファイル整理ツール
+#### 3. `scans_rename.py` - 日本語タイムスタンプファイル整理ツール
 このスクリプトは、ファイル名に日本語のタイムスタンプが付いたスキャンファイルの管理と整理を支援します。このスクリプトは、Canon ImageFORMULAドライバー（💩）の限界に対処するために作成されました。このドライバーは能力のない開発者（🤬 🧠💀）によって作られ、Windowsでしか正常に動作せず、適切なファイル形式を生成する機能が欠けています。
 
 **機能：**
@@ -298,6 +405,38 @@ python scans_rename.py --directory パス [--rename] [--organize] [--resize] \
 - `-q, --quality`：リサイズされた画像のJPEG品質（70-100、デフォルト：80）
 - `-v, --verbose`：詳細レベル：0=静か、1=要約、2=詳細（デフォルト：0）
 - `-w, --overwrite`：移動またはリサイズ時に既存のファイルを上書きする
+- `-c, --current-dir`：リサイズ時に現在のディレクトリ内の画像も含める
+
+<a id="csv_transformer_jp"></a>
+#### 4. `csv_transformer.py` - CSV変換ユーティリティ
+
+このスクリプトは、データ処理ワークフローのための包括的なCSV変換機能を提供します。
+
+**機能：**
+- 列の選択、名前変更、並べ替え
+- 条件に基づく行のフィルタリング
+- カスタム関数によるデータ変換
+- 集計とグループ化操作
+- 統計分析と要約の生成
+- 複数の入出力エンコーディング形式をサポート
+- 複数のCSVファイルのバッチ処理
+
+**使用法：**
+```bash
+python csv_transformer.py --input 入力.csv --output 変換済.csv [オプション]
+```
+
+**引数：**
+- `--input`：入力CSVファイルへのパス
+- `--output`：変換されたCSVファイルを保存するパス
+- `--select`：特定の列を選択（カンマ区切り）
+- `--rename`：列の名前を変更（形式：旧名:新名,旧名2:新名2）
+- `--filter`：Python式を使用して行をフィルタリング
+- `--transform`：列に変換を適用
+- `--encoding`：入力/出力エンコーディング（デフォルト：utf-8）
+- `--delimiter`：CSV区切り文字（デフォルト：,）
+- `--group-by`：指定された列でデータをグループ化
+- `--aggregate`：グループに適用する集計関数
 
 ### 将来の計画
 今後、他のPythonユーティリティスクリプトがこのリポジトリに追加される予定で、それぞれが特定のタスクを効率的に解決することに焦点を当てています。
@@ -340,8 +479,27 @@ python eliminate_dups_in_csv.py 输入文件.csv 输出文件.csv 重复项文�
 - `--delimiter`：CSV文件分隔符（默认：,）
 - `--table-format`：摘要表格的格式（默认：fancy_grid）
 
+<a id="extract_first_column_zh_cn"></a>
+#### 2. `extract_first_column_of_csv.py` - CSV第一列提取器
+
+此脚本从CSV文件中提取第一列内容，并将值作为逗号分隔的列表输出，每个值都由引号包围。
+
+**功能：**
+- 从任何CSV文件中提取第一列
+- 以带引号的格式化逗号分隔列表形式输出值
+- 优雅处理文件打开错误
+- 简单而专注的功能
+
+**使用方法：**
+```bash
+python extract_first_column_of_csv.py -i 输入文件.csv
+```
+
+**参数：**
+- `-i, --input`：输入CSV文件的路径（必需）
+
 <a id="scans_rename_zh_cn"></a>
-#### 2. `scans_rename.py` - 日语时间戳文件整理工具
+#### 3. `scans_rename.py` - 日语时间戳文件整理工具
 此脚本有助于管理和整理文件名中带有日语时间戳的扫描文件。它是为了应对Canon ImageFORMULA驱动程序（💩）的局限性而创建的，这个由无能的开发人员（🤬 🧠💀）编写的驱动程序只能在Windows下正常工作，且缺乏生成适当文件格式的能力。
 
 **功能：**
@@ -369,6 +527,38 @@ python scans_rename.py --directory 路径 [--rename] [--organize] [--resize] \
 - `-q, --quality`：调整大小图像的JPEG质量（70-100，默认：80）
 - `-v, --verbose`：详细级别：0=安静，1=摘要，2=详细（默认：0）
 - `-w, --overwrite`：移动或调整大小时覆盖现有文件
+- `-c, --current-dir`：在调整大小时包括当前目录中的图像
+
+<a id="csv_transformer_zh_cn"></a>
+#### 4. `csv_transformer.py` - CSV转换工具
+
+此脚本为数据处理工作流提供全面的CSV转换功能。
+
+**功能：**
+- 列选择、重命名和重新排序
+- 基于条件的行过滤
+- 使用自定义函数进行数据转换
+- 聚合和分组操作
+- 统计分析和摘要生成
+- 支持多种输入和输出编码格式
+- 批处理多个CSV文件
+
+**使用方法：**
+```bash
+python csv_transformer.py --input 输入.csv --output 转换后.csv [选项]
+```
+
+**参数：**
+- `--input`：输入CSV文件的路径
+- `--output`：保存转换后CSV文件的路径
+- `--select`：选择特定列（逗号分隔）
+- `--rename`：重命名列（格式：旧名称:新名称,旧名称2:新名称2）
+- `--filter`：使用Python表达式过滤行
+- `--transform`：对列应用转换
+- `--encoding`：输入/输出编码（默认：utf-8）
+- `--delimiter`：CSV分隔符（默认：,）
+- `--group-by`：按指定列对数据进行分组
+- `--aggregate`：应用于组的聚合函数
 
 ### 未来计划
 随着时间的推移，更多的Python实用脚本将添加到此仓库中，每个脚本都专注于有效解决特定任务。
@@ -404,6 +594,21 @@ python eliminate_dups_in_csv.py 輸入檔案.csv 輸出檔案.csv 重複項檔�
 ```
 
 **參數：**
+- `--input`：輸入CSV檔案的路徑
+- `--output`：保存轉換後CSV檔案的路徑
+- `--select`：選擇特定列（逗號分隔）
+- `--rename`：重命名列（格式：舊名稱:新名稱,舊名稱2:新名稱2）
+- `--filter`：使用Python表達式過濾行
+- `--transform`：對列應用轉換
+- `--encoding`：輸入/輸出編碼（默認：utf-8）
+- `--delimiter`：CSV分隔符（默認：,）
+- `--group-by`：按指定列對數據進行分組
+- `--aggregate`：應用於組的聚合函數
+
+### 未來計劃
+隨著時間的推移，更多的Python實用腳本將添加到此倉庫中，每個腳本都專注於有效解決特定任務。
+
+[返回頂部](#python-utility-scripts--scripts-utilitaires-python--python-ユーティリティスクリプト--python-实用脚本--python-實用腳本)
 - `輸入檔案`：輸入CSV檔案的路徑
 - `輸出檔案`：保存無重複項CSV檔案的路徑
 - `重複項檔案`：保存僅包含重複項的CSV檔案的路徑
@@ -411,8 +616,27 @@ python eliminate_dups_in_csv.py 輸入檔案.csv 輸出檔案.csv 重複項檔�
 - `--delimiter`：CSV檔案分隔符（默認：,）
 - `--table-format`：摘要表格的格式（默認：fancy_grid）
 
+<a id="extract_first_column_zh_tw"></a>
+#### 2. `extract_first_column_of_csv.py` - CSV第一列提取器
+
+此腳本從CSV檔案中提取第一列內容，並將值作為逗號分隔的列表輸出，每個值都由引號包圍。
+
+**功能：**
+- 從任何CSV檔案中提取第一列
+- 以帶引號的格式化逗號分隔列表形式輸出值
+- 優雅處理檔案開啟錯誤
+- 簡單而專注的功能
+
+**使用方法：**
+```bash
+python extract_first_column_of_csv.py -i 輸入檔案.csv
+```
+
+**參數：**
+- `-i, --input`：輸入CSV檔案的路徑（必需）
+
 <a id="scans_rename_zh_tw"></a>
-#### 2. `scans_rename.py` - 日語時間戳檔案整理工具
+#### 3. `scans_rename.py` - 日語時間戳檔案整理工具
 此腳本有助於管理和整理檔案名中帶有日語時間戳的掃描檔案。它是為了應對Canon ImageFORMULA驅動程序（💩）的局限性而創建的，這個由無能的開發人員（🤬 🧠💀）編寫的驅動程序只能在Windows下正常工作，且缺乏生成適當檔案格式的能力。
 
 **功能：**
@@ -440,8 +664,25 @@ python scans_rename.py --directory 路徑 [--rename] [--organize] [--resize] \
 - `-q, --quality`：調整大小圖像的JPEG質量（70-100，默認：80）
 - `-v, --verbose`：詳細級別：0=安靜，1=摘要，2=詳細（默認：0）
 - `-w, --overwrite`：移動或調整大小時覆蓋現有檔案
+- `-c, --current-dir`：在調整大小時包括當前目錄中的圖像
 
-### 未來計劃
-隨著時間的推移，更多的Python實用腳本將添加到此倉庫中，每個腳本都專注於有效解決特定任務。
+<a id="csv_transformer_zh_tw"></a>
+#### 4. `csv_transformer.py` - CSV轉換工具
 
-[返回頂部](#python-utility-scripts--scripts-utilitaires-python--python-ユーティリティスクリプト--python-实用脚本--python-實用腳本)
+此腳本為數據處理工作流提供全面的CSV轉換功能。
+
+**功能：**
+- 列選擇、重命名和重新排序
+- 基於條件的行過濾
+- 使用自定義函數進行數據轉換
+- 聚合和分組操作
+- 統計分析和摘要生成
+- 支持多種輸入和輸出編碼格式
+- 批處理多個CSV檔案
+
+**使用方法：**
+```bash
+python csv_transformer.py --input 輸入.csv --output 轉換後.csv [選項]
+```
+
+**參數：**
