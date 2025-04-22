@@ -313,11 +313,13 @@ def resize_images_for_web(
     jpeg_quality: int = 80,
     dry_run: bool = False,
     overwrite: bool = False,
+    include_current_dir: bool = False,
 ) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
     """Resizes images for web use.
 
     For each folder in the directory, creates a 'petites' subfolder and processes
     all images within the folder, resizing them while maintaining aspect ratio.
+    Can also process images directly in the current directory when include_current_dir is True.
 
     Args:
         directory_path: Path to the directory containing image folders.
@@ -325,6 +327,7 @@ def resize_images_for_web(
         jpeg_quality: Quality of the JPEG compression (0-100, higher is better).
         dry_run: If True, only simulate the resizing without actually changing files.
         overwrite: If True, replace existing resized images.
+        include_current_dir: If True, also process images in the current directory itself.
 
     Returns:
         Tuple of (resized_files, skipped_files) dictionaries mapping folder names to
@@ -336,11 +339,18 @@ def resize_images_for_web(
     # Get only directories in the specified path (after organization step)
     folders = [f for f in directory_path.iterdir() if f.is_dir()]
 
+    # Also process the current directory if requested
+    if include_current_dir:
+        folders.append(directory_path)
+
     # Process each folder
     for folder in folders:
         # Skip any 'petites' folders that might already exist
         if folder.name == "petites":
             continue
+
+        # Determine if we're processing the root directory
+        is_root_dir = folder == directory_path
 
         # Get all supported image files in the folder
         image_files = [
@@ -378,10 +388,11 @@ def resize_images_for_web(
                 folder_skipped.append(output_filename)
 
         # Add to tracking dictionaries if any files were processed or skipped
+        folder_key = "." if is_root_dir else folder.name
         if folder_files:
-            resized_files[folder.name] = folder_files
+            resized_files[folder_key] = folder_files
         if folder_skipped:
-            skipped_files[folder.name] = folder_skipped
+            skipped_files[folder_key] = folder_skipped
 
     return resized_files, skipped_files
 
@@ -624,6 +635,12 @@ def main() -> None:
         help="Enable the image resizing step (including checking for missing resizes)",
     )
     parser.add_argument(
+        "-c",
+        "--current-dir",
+        action="store_true",
+        help="Include images in the current directory itself when resizing (not just subdirectories)",
+    )
+    parser.add_argument(
         "-x",
         "--numbered",
         action="store_true",
@@ -736,6 +753,7 @@ def main() -> None:
             args.quality,
             args.dry_run,
             args.overwrite,
+            args.current_dir,  # Pass the new parameter
         )
         resized_files, skipped_files = resize_result
 
@@ -780,7 +798,12 @@ def main() -> None:
                 if args.verbose >= 2:
                     # Report on regular resize operations
                     for folder_name, files in resized_files.items():
-                        print(f"  Folder: {folder_name}")
+                        folder_display = (
+                            "Current directory"
+                            if folder_name == "."
+                            else f"Folder: {folder_name}"
+                        )
+                        print(f"  {folder_display}")
                         print(f"    {len(files)} files resized to 'petites' subfolder")
                         if args.verbose > 2:  # Extra verbose level for file details
                             for file_name in files:
@@ -793,7 +816,12 @@ def main() -> None:
 
                     # Report on verification resize operations
                     for folder_name, files in newly_resized_files.items():
-                        print(f"  Folder: {folder_name} (missing files)")
+                        folder_display = (
+                            "Current directory (missing files)"
+                            if folder_name == "."
+                            else f"Folder: {folder_name} (missing files)"
+                        )
+                        print(f"  {folder_display}")
                         print(
                             f"    {len(files)} missing files resized to 'petites' "
                             f"subfolder"
@@ -812,14 +840,19 @@ def main() -> None:
             # Report skipped files
             if total_skipped_files > 0:
                 skipped_text = (
-                    f"Skipped {total_skipped_files} existing files in"
+                    f"Skipped {total_skipped_files} existing files in "
                     f"{total_skipped_folders} folders."
                 )
                 print(skipped_text)
 
                 if args.verbose >= 2:
                     for folder_name, files in all_skipped_files.items():
-                        print(f"  Folder: {folder_name}")
+                        folder_display = (
+                            "Current directory"
+                            if folder_name == "."
+                            else f"Folder: {folder_name}"
+                        )
+                        print(f"  {folder_display}")
                         print(
                             f"    {len(files)} files already exist in 'petites' subfolder"
                         )

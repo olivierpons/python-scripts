@@ -7,6 +7,8 @@
 This repository contains a collection of small Python utility scripts designed to automate common tasks and solve
 specific problems. Currently available:
 
+- [**eliminate_dups_in_csv.py**](#eliminate_dups_en): Processes CSV files to remove duplicates and saves them separately.
+- [**extract_first_column_of_csv.py**](#extract_first_column_en): Extracts the first column from a CSV file.
 - [**scans_rename.py**](#scans_rename_en): Renames and organizes files with Japanese timestamps in their filenames.
 [More details below](#english-details)
 
@@ -14,11 +16,15 @@ specific problems. Currently available:
 Ce dépôt contient une collection de petits scripts utilitaires Python conçus pour
 automatiser des tâches courantes et résoudre des problèmes spécifiques. Actuellement 
 disponible :
+- [**eliminate_dups_in_csv.py**](#eliminate_dups_fr) : Traite les fichiers CSV pour supprimer les doublons et les enregistre séparément.
+- [**extract_first_column_of_csv.py**](#extract_first_column_fr) : Extrait la première colonne d'un fichier CSV.
 - [**scans_rename.py**](#scans_rename_fr) : Renomme et organise les fichiers avec des horodatages japonais dans leurs noms.
 [Plus de détails ci-dessous](#french-details)
 
 ### 日本語
 このリポジトリには、一般的なタスクを自動化し、特定の問題を解決するために設計された小さなPythonユーティリティスクリプトのコレクションが含まれています。現在利用可能：
+- [**eliminate_dups_in_csv.py**](#eliminate_dups_jp)：CSVファイルを処理して重複を削除し、別々に保存します。
+- [**extract_first_column_of_csv.py**](#extract_first_column_jp)：CSVファイルの最初の列を抽出します。
 - [**scans_rename.py**](#scans_rename_jp)：ファイル名の日本語タイムスタンプを持つファイルの名前変更と整理を行います。
 [詳細は以下をご覧ください](#japanese-details)
 
@@ -26,6 +32,8 @@ disponible :
 
 本仓库包含一系列小型Python实用脚本，旨在自动化常见任务并解决特定问题。目前可用：
 
+- [**eliminate_dups_in_csv.py**](#eliminate_dups_zh_cn)：处理CSV文件以删除重复项并将其单独保存。
+- [**extract_first_column_of_csv.py**](#extract_first_column_zh_cn)：从CSV文件中提取第一列。
 - [**scans_rename.py**](#scans_rename_zh_cn)：重命名并整理文件名中带有日语时间戳的文件。
 
 [更多详情见下文](#chinese-simplified-details)
@@ -34,6 +42,8 @@ disponible :
 
 本倉庫包含一系列小型Python實用腳本，旨在自動化常見任務並解決特定問題。目前可用：
 
+- [**eliminate_dups_in_csv.py**](#eliminate_dups_zh_tw)：處理CSV檔案以刪除重複項並將其單獨保存。
+- [**extract_first_column_of_csv.py**](#extract_first_column_zh_tw)：從CSV檔案中提取第一列。
 - [**scans_rename.py**](#scans_rename_zh_tw)：重新命名並整理檔案名中帶有日語時間戳的檔案。
 
 [更多詳情見下文](#chinese-traditional-details)
@@ -51,8 +61,34 @@ modify.
 
 ### Current Scripts
 
+<a id="eliminate_dups_en"></a>
+#### 1. `eliminate_dups_in_csv.py` - CSV Duplicate Remover
+
+This script processes CSV files to identify and remove duplicate entries, saving them into separate files for review.
+
+**Features:**
+- Identifies and removes duplicate entries from CSV files
+- Works with any CSV file regardless of its content or number of columns
+- Creates a clean output file without duplicates
+- Saves identified duplicates to a separate file
+- Provides a comprehensive summary of the operation
+- Customizable encoding, delimiter, and table display format
+
+**Usage:**
+```bash
+python eliminate_dups_in_csv.py input_file.csv output_file.csv duplicates_file.csv [options]
+```
+
+**Arguments:**
+- `input_file`: Path to the input CSV file
+- `output_file`: Path to save the CSV file without duplicates
+- `duplicates_file`: Path to save the CSV file containing only duplicates
+- `--encoding`: CSV file encoding (default: utf-8)
+- `--delimiter`: CSV file delimiter (default: ,)
+- `--table-format`: Format for summary table (default: fancy_grid)
+
 <a id="scans_rename_en"></a>
-#### 1. `scans_rename.py` - Japanese Timestamp File Organizer
+#### 2. `scans_rename.py` - Japanese Timestamp File Organizer
 
 This script helps manage and organize scanned files with Japanese timestamps in their filenames. It was created out
 of necessity to deal with the... limitations of the 💩 Canon ImageFORMULA driver written by 🤬 🧠💀 developers that
@@ -84,6 +120,25 @@ python scans_rename.py --directory PATH [--rename] [--organize] [--resize] \
 - `-v, --verbose`: Verbosity level: 0=quiet, 1=summary, 2=details (default: 0)
 - `-w, --overwrite`: Overwrite existing files when moving or resizing
 
+<a id="extract_first_column_en"></a>
+#### 3. `extract_first_column_of_csv.py` - CSV First Column Extractor
+
+This script extracts the content of the first column from a CSV file and outputs the values as a comma-separated list with each value surrounded by quotes.
+
+**Features:**
+- Extracts the first column from any CSV file
+- Outputs values in a formatted comma-separated list with quotes
+- Handles file opening errors gracefully
+- Simple and focused functionality
+
+**Usage:**
+```bash
+python extract_first_column_of_csv.py -i input_file.csv
+Arguments:
+
+-i, --input: Path to the input CSV file (required)
+```
+
 ### Future Plans
 More Python utility scripts will be added to this repository over time, each focused
 on solving specific tasks efficiently.
@@ -100,8 +155,34 @@ Ce dépôt contient une collection de petits scripts utilitaires Python conçus 
 
 ### Scripts Actuels
 
+<a id="eliminate_dups_fr"></a>
+#### 1. `eliminate_dups_in_csv.py` - Suppresseur de doublons CSV
+
+Ce script traite les fichiers CSV pour identifier et supprimer les entrées en double, en les enregistrant dans des fichiers séparés pour examen.
+
+**Fonctionnalités :**
+- Identifie et supprime les entrées en double des fichiers CSV
+- Fonctionne avec n'importe quel fichier CSV, quel que soit son contenu ou son nombre de colonnes
+- Crée un fichier de sortie propre sans doublons
+- Enregistre les doublons identifiés dans un fichier séparé
+- Fournit un résumé complet de l'opération
+- Format d'encodage, délimiteur et affichage de tableau personnalisables
+
+**Utilisation :**
+```bash
+python eliminate_dups_in_csv.py fichier_entree.csv fichier_sortie.csv fichier_doublons.csv [options]
+```
+
+**Arguments :**
+- `fichier_entree` : Chemin vers le fichier CSV d'entrée
+- `fichier_sortie` : Chemin pour enregistrer le fichier CSV sans doublons
+- `fichier_doublons` : Chemin pour enregistrer le fichier CSV contenant uniquement les doublons
+- `--encoding` : Encodage du fichier CSV (par défaut : utf-8)
+- `--delimiter` : Délimiteur du fichier CSV (par défaut : ,)
+- `--table-format` : Format pour le tableau récapitulatif (par défaut : fancy_grid)
+
 <a id="scans_rename_fr"></a>
-#### 1. `scans_rename.py` - Organisateur de Fichiers avec Horodatage Japonais
+#### 2. `scans_rename.py` - Organisateur de Fichiers avec Horodatage Japonais
 Ce script aide à gérer et organiser les fichiers numérisés avec des horodatages japonais
 dans leurs noms de fichier. Il a été créé par nécessité pour faire face aux... 
 limitations du pilote 💩 Canon ImageFORMULA écrit par des 🤬 🧠💀 de développeurs, 
@@ -162,8 +243,34 @@ concentrant sur la résolution efficace de tâches spécifiques.
 
 ### 現在のスクリプト
 
+<a id="eliminate_dups_jp"></a>
+#### 1. `eliminate_dups_in_csv.py` - CSV重複除去ツール
+
+このスクリプトはCSVファイルを処理して重複エントリを特定し、削除して、レビュー用に別のファイルに保存します。
+
+**機能：**
+- CSVファイルから重複エントリを特定して削除
+- コンテンツや列数に関係なく、あらゆるCSVファイルに対応
+- 重複のないクリーンな出力ファイルを作成
+- 特定された重複を別のファイルに保存
+- 操作の包括的な概要を提供
+- エンコーディング、区切り文字、テーブル表示形式のカスタマイズ可能
+
+**使用法：**
+```bash
+python eliminate_dups_in_csv.py 入力ファイル.csv 出力ファイル.csv 重複ファイル.csv [オプション]
+```
+
+**引数：**
+- `入力ファイル`：入力CSVファイルへのパス
+- `出力ファイル`：重複のないCSVファイルを保存するパス
+- `重複ファイル`：重複のみを含むCSVファイルを保存するパス
+- `--encoding`：CSVファイルのエンコーディング（デフォルト：utf-8）
+- `--delimiter`：CSVファイルの区切り文字（デフォルト：,）
+- `--table-format`：概要テーブルの形式（デフォルト：fancy_grid）
+
 <a id="scans_rename_jp"></a>
-#### 1. `scans_rename.py` - 日本語タイムスタンプファイル整理ツール
+#### 2. `scans_rename.py` - 日本語タイムスタンプファイル整理ツール
 このスクリプトは、ファイル名に日本語のタイムスタンプが付いたスキャンファイルの管理と整理を支援します。このスクリプトは、Canon ImageFORMULAドライバー（💩）の限界に対処するために作成されました。このドライバーは能力のない開発者（🤬 🧠💀）によって作られ、Windowsでしか正常に動作せず、適切なファイル形式を生成する機能が欠けています。
 
 **機能：**
@@ -207,8 +314,34 @@ python scans_rename.py --directory パス [--rename] [--organize] [--resize] \
 
 ### 当前脚本
 
+<a id="eliminate_dups_zh_cn"></a>
+#### 1. `eliminate_dups_in_csv.py` - CSV重复项删除器
+
+此脚本处理CSV文件以识别并删除重复条目，将它们保存到单独的文件中以供审查。
+
+**功能：**
+- 识别并删除CSV文件中的重复条目
+- 适用于任何CSV文件，无论其内容或列数
+- 创建不含重复项的干净输出文件
+- 将已识别的重复项保存到单独的文件中
+- 提供全面的操作摘要
+- 可自定义编码、分隔符和表格显示格式
+
+**使用方法：**
+```bash
+python eliminate_dups_in_csv.py 输入文件.csv 输出文件.csv 重复项文件.csv [选项]
+```
+
+**参数：**
+- `输入文件`：输入CSV文件的路径
+- `输出文件`：保存无重复项CSV文件的路径
+- `重复项文件`：保存仅包含重复项的CSV文件的路径
+- `--encoding`：CSV文件编码（默认：utf-8）
+- `--delimiter`：CSV文件分隔符（默认：,）
+- `--table-format`：摘要表格的格式（默认：fancy_grid）
+
 <a id="scans_rename_zh_cn"></a>
-#### 1. `scans_rename.py` - 日语时间戳文件整理工具
+#### 2. `scans_rename.py` - 日语时间戳文件整理工具
 此脚本有助于管理和整理文件名中带有日语时间戳的扫描文件。它是为了应对Canon ImageFORMULA驱动程序（💩）的局限性而创建的，这个由无能的开发人员（🤬 🧠💀）编写的驱动程序只能在Windows下正常工作，且缺乏生成适当文件格式的能力。
 
 **功能：**
@@ -252,8 +385,34 @@ python scans_rename.py --directory 路径 [--rename] [--organize] [--resize] \
 
 ### 當前腳本
 
+<a id="eliminate_dups_zh_tw"></a>
+#### 1. `eliminate_dups_in_csv.py` - CSV重複項刪除器
+
+此腳本處理CSV檔案以識別並刪除重複條目，將它們保存到單獨的檔案中以供審查。
+
+**功能：**
+- 識別並刪除CSV檔案中的重複條目
+- 適用於任何CSV檔案，無論其內容或列數
+- 創建不含重複項的乾淨輸出檔案
+- 將已識別的重複項保存到單獨的檔案中
+- 提供全面的操作摘要
+- 可自定義編碼、分隔符和表格顯示格式
+
+**使用方法：**
+```bash
+python eliminate_dups_in_csv.py 輸入檔案.csv 輸出檔案.csv 重複項檔案.csv [選項]
+```
+
+**參數：**
+- `輸入檔案`：輸入CSV檔案的路徑
+- `輸出檔案`：保存無重複項CSV檔案的路徑
+- `重複項檔案`：保存僅包含重複項的CSV檔案的路徑
+- `--encoding`：CSV檔案編碼（默認：utf-8）
+- `--delimiter`：CSV檔案分隔符（默認：,）
+- `--table-format`：摘要表格的格式（默認：fancy_grid）
+
 <a id="scans_rename_zh_tw"></a>
-#### 1. `scans_rename.py` - 日語時間戳檔案整理工具
+#### 2. `scans_rename.py` - 日語時間戳檔案整理工具
 此腳本有助於管理和整理檔案名中帶有日語時間戳的掃描檔案。它是為了應對Canon ImageFORMULA驅動程序（💩）的局限性而創建的，這個由無能的開發人員（🤬 🧠💀）編寫的驅動程序只能在Windows下正常工作，且缺乏生成適當檔案格式的能力。
 
 **功能：**
