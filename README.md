@@ -594,21 +594,6 @@ python eliminate_dups_in_csv.py 輸入檔案.csv 輸出檔案.csv 重複項檔�
 ```
 
 **參數：**
-- `--input`：輸入CSV檔案的路徑
-- `--output`：保存轉換後CSV檔案的路徑
-- `--select`：選擇特定列（逗號分隔）
-- `--rename`：重命名列（格式：舊名稱:新名稱,舊名稱2:新名稱2）
-- `--filter`：使用Python表達式過濾行
-- `--transform`：對列應用轉換
-- `--encoding`：輸入/輸出編碼（默認：utf-8）
-- `--delimiter`：CSV分隔符（默認：,）
-- `--group-by`：按指定列對數據進行分組
-- `--aggregate`：應用於組的聚合函數
-
-### 未來計劃
-隨著時間的推移，更多的Python實用腳本將添加到此倉庫中，每個腳本都專注於有效解決特定任務。
-
-[返回頂部](#python-utility-scripts--scripts-utilitaires-python--python-ユーティリティスクリプト--python-实用脚本--python-實用腳本)
 - `輸入檔案`：輸入CSV檔案的路徑
 - `輸出檔案`：保存無重複項CSV檔案的路徑
 - `重複項檔案`：保存僅包含重複項的CSV檔案的路徑
@@ -686,3 +671,18 @@ python csv_transformer.py --input 輸入.csv --output 轉換後.csv [選項]
 ```
 
 **參數：**
+- `--input`：輸入CSV檔案的路徑
+- `--output`：保存轉換後CSV檔案的路徑
+- `--select`：選擇特定列（逗號分隔）
+- `--rename`：重命名列（格式：舊名稱:新名稱,舊名稱2:新名稱2）
+- `--filter`：使用Python表達式過濾行
+- `--transform`：對列應用轉換
+- `--encoding`：輸入/輸出編碼（默認：utf-8）
+- `--delimiter`：CSV分隔符（默認：,）
+- `--group-by`：按指定列對數據進行分組
+- `--aggregate`：應用於組的聚合函數
+
+### 未來計劃
+隨著時間的推移，更多的Python實用腳本將添加到此倉庫中，每個腳本都專注於有效解決特定任務。
+
+[返回頂部](#python-utility-scripts--scripts-utilitaires-python--python-ユーティリティスクリプト--python-实用脚本--python-實用腳本)

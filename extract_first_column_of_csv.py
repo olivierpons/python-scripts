@@ -2,8 +2,8 @@
 """
 CSV First Column Extractor
 
-This script extracts the content of the first column of a CSV file and outputs the values
-as a comma-separated list with each value surrounded by quotes.
+This script extracts the content of the first column of a CSV file and outputs
+the values as a comma-separated list with each value surrounded by quotes.
 
 Example usage:
     python csv_first_column_extractor.py -i data.csv
