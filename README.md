@@ -10,7 +10,6 @@ specific problems. Each script is documented in its own README file with detaile
 - [**eliminate_dups_in_csv.py**](README_eliminate_dups_in_csv.md): Processes CSV files to remove duplicates and saves them separately.
 - [**extract_first_column_of_csv.py**](README_extract_first_column_of_csv.md): Extracts the first column from a CSV file.
 - [**scans_rename.py**](README_scans_rename.md): Renames and organizes files with Japanese timestamps in their filenames.
-- [**csv_transformer.py**](README_csv_transformer.md): Transforms, filters, and processes CSV data with various operations.
 - [**unzip_files_then_clean.py**](README_unzip_files_then_clean.md): Extracts all ZIP files in a directory and reorganizes folder structure.
 
 ### Français
@@ -21,7 +20,6 @@ automatiser des tâches courantes et résoudre des problèmes spécifiques. Chaq
 - [**eliminate_dups_in_csv.py**](README_eliminate_dups_in_csv.md) : Traite les fichiers CSV pour supprimer les doublons et les enregistre séparément.
 - [**extract_first_column_of_csv.py**](README_extract_first_column_of_csv.md) : Extrait la première colonne d'un fichier CSV.
 - [**scans_rename.py**](README_scans_rename.md) : Renomme et organise les fichiers avec des horodatages japonais dans leurs noms.
-- [**csv_transformer.py**](README_csv_transformer.md) : Transforme, filtre et traite les données CSV avec diverses opérations.
 - [**unzip_files_then_clean.py**](README_unzip_files_then_clean.md) : Extrait tous les fichiers ZIP d'un répertoire et réorganise la structure des dossiers.
 
 ### 日本語
@@ -31,7 +29,6 @@ automatiser des tâches courantes et résoudre des problèmes spécifiques. Chaq
 - [**eliminate_dups_in_csv.py**](README_eliminate_dups_in_csv.md)：CSVファイルを処理して重複を削除し、別々に保存します。
 - [**extract_first_column_of_csv.py**](README_extract_first_column_of_csv.md)：CSVファイルの最初の列を抽出します。
 - [**scans_rename.py**](README_scans_rename.md)：ファイル名の日本語タイムスタンプを持つファイルの名前変更と整理を行います。
-- [**csv_transformer.py**](README_csv_transformer.md)：様々な操作でCSVデータを変換、フィルタリング、処理します。
 - [**unzip_files_then_clean.py**](README_unzip_files_then_clean.md)：ディレクトリ内のすべてのZIPファイルを抽出し、フォルダ構造を再編成します。
 
 ### 简体中文
@@ -41,7 +38,6 @@ automatiser des tâches courantes et résoudre des problèmes spécifiques. Chaq
 - [**eliminate_dups_in_csv.py**](README_eliminate_dups_in_csv.md)：处理CSV文件以删除重复项并将其单独保存。
 - [**extract_first_column_of_csv.py**](README_extract_first_column_of_csv.md)：从CSV文件中提取第一列。
 - [**scans_rename.py**](README_scans_rename.md)：重命名并整理文件名中带有日语时间戳的文件。
-- [**csv_transformer.py**](README_csv_transformer.md)：通过各种操作转换、过滤和处理CSV数据。
 - [**unzip_files_then_clean.py**](README_unzip_files_then_clean.md)：提取目录中的所有ZIP文件并重组文件夹结构。
 
 ### 繁體中文
@@ -51,7 +47,6 @@ automatiser des tâches courantes et résoudre des problèmes spécifiques. Chaq
 - [**eliminate_dups_in_csv.py**](README_eliminate_dups_in_csv.md)：處理CSV檔案以刪除重複項並將其單獨保存。
 - [**extract_first_column_of_csv.py**](README_extract_first_column_of_csv.md)：從CSV檔案中提取第一列。
 - [**scans_rename.py**](README_scans_rename.md)：重新命名並整理檔案名中帶有日語時間戳的檔案。
-- [**csv_transformer.py**](README_csv_transformer.md)：通過各種操作轉換、過濾和處理CSV數據。
 - [**unzip_files_then_clean.py**](README_unzip_files_then_clean.md)：提取目錄中的所有ZIP檔案並重組資料夾結構。
 
 ## Plans
