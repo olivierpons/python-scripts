@@ -2,140 +2,195 @@
 
 ## English
 
-### ZIP Extraction and Directory Reorganization Tool
+### Advanced ZIP Extraction and Directory Reorganization Tool
 
-This advanced script automates the process of extracting ZIP files and cleaning up directory structures for better organization.
+This script performs three main operations with comprehensive logging and statistics:
+1. Extracts all ZIP files in a directory into corresponding subdirectories
+2. Removes Apple system files (.DS_Store, .__MACOSX folders, etc.)
+3. Reorganizes directories by moving single-child directories up one level
 
 **Features:**
-- Extracts all ZIP files in a directory to corresponding subdirectories
-- Removes Apple system files (.DS_Store, .__MACOSX folders, etc.)
-- Reorganizes directories by moving single-child directories up one level
-- Eliminates unnecessary nesting in file hierarchies
-- Detailed progress logging with configurable verbosity
-- Beautiful tabular output (with fallback to basic formatting)
+- Three verbosity levels (0=silent, 1=normal, 2=verbose)
+- Centralized output through OperationStats class
 - Comprehensive statistics collection
-- Modern Python typing and dataclasses
-- Configurable confirmation prompts for overwriting existing content
+- Modern Python typing with pipe syntax
+- Configurable confirmation prompts
+- Detailed progress logging
+- Beautiful tabular output using 'rich' library (with fallbacks to 'tabulate' or basic formatting)
 
-**Usage:**
+**Example usage:**
 ```bash
-python unzip_files_then_clean.py directory [options]
+# Default verbose mode (shows all operations)
+$ python unzip_files_then_clean.py /path/to/directory
+
+# Clean only mode with normal verbosity
+$ python unzip_files_then_clean.py /path/to/directory --clean-only -v1
+
+# Silent mode (only errors)
+$ python unzip_files_then_clean.py /path/to/directory -v0
+
+# No confirmation prompts with normal verbosity
+$ python unzip_files_then_clean.py /path/to/directory --no-confirm -v1
 ```
 
 **Arguments:**
-- `directory`: Path to the directory containing files to process
-- `--clean-only`: Only clean system files without extracting or reorganizing
-- `--no-confirm`: Skip all confirmation prompts
-- `--verbose`, `-v`: Show detailed operation logs
+- `-d`, `--directory`: Directory containing files to process
+- `-c`, `--clean-only`: Only clean system files without extracting or reorganizing
+- `-n`, `--no-confirm`: Skip all confirmation prompts
+- `-v`, `--verbosity`: Verbosity level (0=silent, 1=normal, 2=verbose)
 
 ## Français
 
-### Outil d'Extraction ZIP et de Réorganisation de Répertoires
+### Outil Avancé d'Extraction ZIP et de Réorganisation de Répertoires
 
-Ce script avancé automatise le processus d'extraction des fichiers ZIP et de nettoyage des structures de répertoires pour une meilleure organisation.
+Ce script effectue trois opérations principales avec une journalisation et des statistiques complètes :
+1. Extrait tous les fichiers ZIP d'un répertoire vers des sous-répertoires correspondants
+2. Supprime les fichiers système Apple (.DS_Store, dossiers .__MACOSX, etc.)
+3. Réorganise la structure des répertoires en remontant d'un niveau les répertoires à enfant unique
 
 **Fonctionnalités :**
-- Extrait tous les fichiers ZIP d'un répertoire vers des sous-répertoires correspondants
-- Supprime les fichiers système Apple (.DS_Store, dossiers .__MACOSX, etc.)
-- Réorganise la structure des répertoires en remontant d'un niveau les répertoires à enfant unique
-- Élimine l'imbrication inutile dans les hiérarchies de fichiers
-- Journalisation détaillée des progrès avec niveau de verbosité configurable
-- Affichage tabulaire élégant (avec repli sur un formatage basique)
+- Trois niveaux de verbosité (0=silencieux, 1=normal, 2=verbeux)
+- Sortie centralisée via la classe OperationStats
 - Collecte complète de statistiques
-- Typages Python modernes et dataclasses
-- Demandes de confirmation configurables pour l'écrasement du contenu existant
+- Typages Python modernes avec syntaxe pipe
+- Demandes de confirmation configurables
+- Journalisation détaillée des progrès
+- Affichage tabulaire élégant utilisant la bibliothèque 'rich' (avec repli sur 'tabulate' ou un formatage basique)
 
-**Utilisation :**
+**Exemples d'utilisation :**
 ```bash
-python unzip_files_then_clean.py repertoire [options]
+# Mode verbeux par défaut (affiche toutes les opérations)
+$ python unzip_files_then_clean.py /chemin/vers/repertoire
+
+# Mode nettoyage uniquement avec verbosité normale
+$ python unzip_files_then_clean.py /chemin/vers/repertoire --clean-only -v1
+
+# Mode silencieux (seulement les erreurs)
+$ python unzip_files_then_clean.py /chemin/vers/repertoire -v0
+
+# Sans demandes de confirmation avec verbosité normale
+$ python unzip_files_then_clean.py /chemin/vers/repertoire --no-confirm -v1
 ```
 
 **Arguments :**
-- `repertoire` : Chemin vers le répertoire contenant les fichiers à traiter
-- `--clean-only` : Nettoyer uniquement les fichiers système sans extraire ni réorganiser
-- `--no-confirm` : Ignorer toutes les demandes de confirmation
-- `--verbose`, `-v` : Afficher les journaux d'opération détaillés
+- `-d`, `--directory` : Répertoire contenant les fichiers à traiter
+- `-c`, `--clean-only` : Nettoyer uniquement les fichiers système sans extraire ni réorganiser
+- `-n`, `--no-confirm` : Ignorer toutes les demandes de confirmation
+- `-v`, `--verbosity` : Niveau de verbosité (0=silencieux, 1=normal, 2=verbeux)
 
 ## 日本語
 
-### ZIP抽出とディレクトリ再編成ツール
+### 高度なZIP抽出とディレクトリ再編成ツール
 
-このスクリプトは、ZIPファイルの抽出とディレクトリ構造のクリーンアップを自動化して、より良い整理を実現する高度なツールです。
+このスクリプトは、包括的なログ記録と統計を備えた3つの主要な操作を実行します：
+1. ディレクトリ内のすべてのZIPファイルを対応するサブディレクトリに抽出
+2. Appleシステムファイル（.DS_Store、.__MACOSXフォルダなど）を削除
+3. 単一の子ディレクトリを持つディレクトリ構造を上の階層に移動して再編成
 
 **機能：**
-- ディレクトリ内のすべてのZIPファイルを対応するサブディレクトリに抽出
-- Appleシステムファイル（.DS_Store、.__MACOSXフォルダなど）を削除
-- 単一の子ディレクトリを持つディレクトリ構造を上の階層に移動して再編成
-- ファイル階層における不要な入れ子構造を排除
-- 設定可能な詳細レベルでの詳細な進行ログ
-- 美しい表形式の出力（基本的な形式へのフォールバック付き）
+- 3つの詳細レベル（0=無音、1=通常、2=詳細）
+- OperationStatsクラスを通じた一元化された出力
 - 包括的な統計収集
-- モダンなPythonの型付けとデータクラス
-- 既存のコンテンツを上書きするための設定可能な確認プロンプト
+- パイプ構文を使用した現代的なPythonタイピング
+- 設定可能な確認プロンプト
+- 詳細な進行ログ
+- 'rich'ライブラリを使用した美しい表形式の出力（'tabulate'または基本的な形式へのフォールバック付き）
 
-**使用法：**
+**使用例：**
 ```bash
-python unzip_files_then_clean.py ディレクトリ [オプション]
+# デフォルトの詳細モード（すべての操作を表示）
+$ python unzip_files_then_clean.py /path/to/directory
+
+# 通常の詳細度でのクリーニングのみモード
+$ python unzip_files_then_clean.py /path/to/directory --clean-only -v1
+
+# サイレントモード（エラーのみ）
+$ python unzip_files_then_clean.py /path/to/directory -v0
+
+# 通常の詳細度での確認プロンプトなし
+$ python unzip_files_then_clean.py /path/to/directory --no-confirm -v1
 ```
 
 **引数：**
-- `ディレクトリ`：処理するファイルを含むディレクトリへのパス
-- `--clean-only`：抽出や再編成なしでシステムファイルのみをクリーンアップ
-- `--no-confirm`：すべての確認プロンプトをスキップ
-- `--verbose`, `-v`：詳細な操作ログを表示
+- `-d`, `--directory`：処理するファイルを含むディレクトリ
+- `-c`, `--clean-only`：抽出や再編成なしでシステムファイルのみを清掃
+- `-n`, `--no-confirm`：すべての確認プロンプトをスキップ
+- `-v`, `--verbosity`：詳細レベル（0=無音、1=通常、2=詳細）
 
 ## 简体中文
 
-### ZIP提取和目录重组工具
+### 高级ZIP提取和目录重组工具
 
-此高级脚本自动化了ZIP文件提取和目录结构清理的过程，以实现更好的组织。
+此脚本通过全面的日志记录和统计执行三项主要操作：
+1. 将目录中的所有ZIP文件提取到相应的子目录中
+2. 删除Apple系统文件（.DS_Store、.__MACOSX文件夹等）
+3. 通过将单一子目录上移一级来重组目录结构
 
 **功能：**
-- 将目录中的所有ZIP文件提取到相应的子目录中
-- 删除Apple系统文件（.DS_Store、.__MACOSX文件夹等）
-- 通过将单一子目录上移一级来重组目录结构
-- 消除文件层次结构中不必要的嵌套
-- 提供可配置详细级别的详细进度日志
-- 美观的表格输出（具有基本格式的后备方案）
+- 三个详细级别（0=静默，1=普通，2=详细）
+- 通过OperationStats类实现集中化输出
 - 全面的统计数据收集
-- 现代Python类型提示和数据类
-- 针对覆盖现有内容的可配置确认提示
+- 具有管道语法的现代Python类型提示
+- 可配置的确认提示
+- 详细的进度日志
+- 使用'rich'库的美观表格输出（后备为'tabulate'或基本格式）
 
-**使用方法：**
+**使用示例：**
 ```bash
-python unzip_files_then_clean.py 目录 [选项]
+# 默认详细模式（显示所有操作）
+$ python unzip_files_then_clean.py /path/to/directory
+
+# 普通详细度的仅清理模式
+$ python unzip_files_then_clean.py /path/to/directory --clean-only -v1
+
+# 静默模式（仅显示错误）
+$ python unzip_files_then_clean.py /path/to/directory -v0
+
+# 普通详细度的无确认提示
+$ python unzip_files_then_clean.py /path/to/directory --no-confirm -v1
 ```
 
 **参数：**
-- `目录`：包含要处理文件的目录路径
-- `--clean-only`：仅清理系统文件，不进行提取或重组
-- `--no-confirm`：跳过所有确认提示
-- `--verbose`, `-v`：显示详细操作日志
+- `-d`, `--directory`：包含要处理文件的目录
+- `-c`, `--clean-only`：仅清理系统文件，不进行提取或重组
+- `-n`, `--no-confirm`：跳过所有确认提示
+- `-v`, `--verbosity`：详细级别（0=静默，1=普通，2=详细）
 
 ## 繁體中文
 
-### ZIP提取和目錄重組工具
+### 高級ZIP提取和目錄重組工具
 
-此高級腳本自動化了ZIP檔案提取和目錄結構清理的過程，以實現更好的組織。
+此腳本通過全面的日誌記錄和統計執行三項主要操作：
+1. 將目錄中的所有ZIP檔案提取到相應的子目錄中
+2. 刪除Apple系統檔案（.DS_Store、.__MACOSX資料夾等）
+3. 通過將單一子目錄上移一級來重組目錄結構
 
 **功能：**
-- 將目錄中的所有ZIP檔案提取到相應的子目錄中
-- 刪除Apple系統檔案（.DS_Store、.__MACOSX資料夾等）
-- 通過將單一子目錄上移一級來重組目錄結構
-- 消除檔案層次結構中不必要的嵌套
-- 提供可配置詳細級別的詳細進度日誌
-- 美觀的表格輸出（具有基本格式的後備方案）
+- 三個詳細級別（0=靜默，1=普通，2=詳細）
+- 通過OperationStats類實現集中化輸出
 - 全面的統計數據收集
-- 現代Python類型提示和數據類
-- 針對覆蓋現有內容的可配置確認提示
+- 具有管道語法的現代Python類型提示
+- 可配置的確認提示
+- 詳細的進度日誌
+- 使用'rich'庫的美觀表格輸出（後備為'tabulate'或基本格式）
 
-**使用方法：**
+**使用示例：**
 ```bash
-python unzip_files_then_clean.py 目錄 [選項]
+# 默認詳細模式（顯示所有操作）
+$ python unzip_files_then_clean.py /path/to/directory
+
+# 普通詳細度的僅清理模式
+$ python unzip_files_then_clean.py /path/to/directory --clean-only -v1
+
+# 靜默模式（僅顯示錯誤）
+$ python unzip_files_then_clean.py /path/to/directory -v0
+
+# 普通詳細度的無確認提示
+$ python unzip_files_then_clean.py /path/to/directory --no-confirm -v1
 ```
 
 **參數：**
-- `目錄`：包含要處理檔案的目錄路徑
-- `--clean-only`：僅清理系統檔案，不進行提取或重組
-- `--no-confirm`：跳過所有確認提示
-- `--verbose`, `-v`：顯示詳細操作日誌
+- `-d`, `--directory`：包含要處理檔案的目錄
+- `-c`, `--clean-only`：僅清理系統檔案，不進行提取或重組
+- `-n`, `--no-confirm`：跳過所有確認提示
+- `-v`, `--verbosity`：詳細級別（0=靜默，1=普通，2=詳細）
