@@ -65,6 +65,7 @@ try:
     from rich.console import Console
     from rich.table import Table
     from rich import box
+
     HAS_RICH = True
 except ImportError:
     HAS_RICH = False
@@ -94,7 +95,9 @@ except ImportError:
                 table.extend(
                     [
                         "| "
-                        + " | ".join(f"{str(h):<{w}}" for h, w in zip(headers, col_widths))
+                        + " | ".join(
+                            f"{str(h):<{w}}" for h, w in zip(headers, col_widths)
+                        )
                         + " |",
                         divider,
                     ]
@@ -200,28 +203,30 @@ class OperationStats:
         self.removed_files_details.append(path)
 
     def print_summary(self, verbosity: int = 2) -> None:
-        """Print a comprehensive summary in a unified tabular format."""
+        """Print a comprehensive summary in a unified tabular format with category separators."""
         if verbosity == 0:
             return
 
         if HAS_RICH:
             console = Console()
-
-            # Création du tableau principal
             summary_table = Table(
                 title="[bold]PROCESSING SUMMARY[/bold]",
                 box=box.ROUNDED,
                 show_header=True,
                 header_style="bold magenta",
                 title_style="bold green",
+                row_styles=["", "", ""],
             )
 
-            summary_table.add_column("Category", style="cyan")
+            summary_table.add_column("Category", style="cyan", no_wrap=True)
             summary_table.add_column("Metric", style="yellow")
             summary_table.add_column("Value", style="green", justify="right")
 
-            # Ajout des données
-            summary_table.add_row("ZIP Processing", "Files Processed", str(self.total_zips))
+            summary_table.add_row(
+                "[bold]ZIP Processing[/bold]",
+                "[bold]Files Processed[/bold]",
+                str(self.total_zips),
+            )
             summary_table.add_row("", "Successful", str(self.successful_extractions))
             summary_table.add_row("", "Failed", str(self.failed_extractions))
             success_rate = (
@@ -229,13 +234,24 @@ class OperationStats:
                 if self.total_zips
                 else "N/A"
             )
-            summary_table.add_row("", "Success Rate", success_rate)
-
-            summary_table.add_row("Cleaning", "Files Removed", str(self.files_removed))
+            summary_table.add_row("", "Success Rate", success_rate, end_section=True)
+            summary_table.add_row(
+                "[bold]Cleaning[/bold]",
+                "[bold]Files Removed[/bold]",
+                str(self.files_removed),
+            )
             summary_table.add_row("", "Directories Removed", str(self.dirs_removed))
-            summary_table.add_row("", "Total Cleaned", str(self.files_removed + self.dirs_removed))
-
-            summary_table.add_row("Reorganization", "Examined", str(self.dirs_examined))
+            summary_table.add_row(
+                "",
+                "Total Cleaned",
+                str(self.files_removed + self.dirs_removed),
+                end_section=True,
+            )
+            summary_table.add_row(
+                "[bold]Reorganization[/bold]",
+                "[bold]Examined[/bold]",
+                str(self.dirs_examined),
+            )
             summary_table.add_row("", "Reorganized", str(self.dirs_reorganized))
             summary_table.add_row("", "Ignored", str(self.dirs_ignored))
             reorg_rate = (
@@ -248,9 +264,7 @@ class OperationStats:
             console.print(summary_table)
 
         else:
-            # Fallback avec tabulate (comme avant)
             summary_data = [
-                ["", "PROCESSING SUMMARY", ""],
                 ["ZIP Processing", "Files Processed", self.total_zips],
                 ["", "Successful", self.successful_extractions],
                 ["", "Failed", self.failed_extractions],
@@ -280,13 +294,12 @@ class OperationStats:
                 ],
             ]
 
-            # Print the main table
             print(
                 "\n"
                 + tabulate(
                     summary_data,
                     headers=["Category", "Metric", "Value"],
-                    tablefmt="fancy_outline",
+                    tablefmt="fancy_grid",
                     colalign=("left", "left", "right"),
                     stralign="center",
                 )
