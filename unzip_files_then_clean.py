@@ -617,6 +617,7 @@ def reorganize_directories(
                 stats.dirs_ignored += 1
                 continue
 
+            stats.add_log(f"Removing directory: '{target_path}'...", LogLevel.INFO)
             try:
                 shutil.rmtree(target_path)
             except OSError as e:
@@ -625,15 +626,26 @@ def reorganize_directories(
                 continue
 
         stats.add_log(
-            f"Moving directory: {child_dir.name} to {source_dir}", LogLevel.INFO
+            f"Moving directory: '{child_dir.name}' to parent...", LogLevel.INFO
         )
         try:
-            shutil.move(str(child_dir), str(source_dir))
+            try:
+                shutil.move(str(child_dir), str(source_dir))
+            except (OSError, shutil.Error) as e:
+                stats.add_log(f"Failed to move directory: {e}", LogLevel.ERROR)
+                stats.dirs_ignored += 1
+                continue
 
             if not any(parent_dir.iterdir()):
-                parent_dir.rmdir()
-                stats.dirs_reorganized += 1
-                stats.add_log("Reorganization successful", LogLevel.SUCCESS)
+                try:
+                    parent_dir.rmdir()
+                    stats.dirs_reorganized += 1
+                    stats.add_log("Reorganization successful", LogLevel.SUCCESS)
+                except OSError as e:
+                    stats.add_log(
+                        f"Failed to remove parent directory: {e}", LogLevel.ERROR
+                    )
+                    stats.dirs_ignored += 1
             else:
                 stats.add_log("Parent not empty after move", LogLevel.WARNING)
                 stats.dirs_ignored += 1
