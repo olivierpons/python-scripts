@@ -8,7 +8,7 @@ This script performs three main operations with comprehensive logging and statis
 3. Reorganizes directories by moving single-child directories up one level
 
 Features:
-- Detailed progress logging with --verbose option
+- Detailed progress logging with verbosity levels (0=silent, 1=normal, 2=verbose)
 - Beautiful tabular output (with fallback to basic formatting)
 - Comprehensive statistics collection
 - Modern Python typing and dataclasses
@@ -17,11 +17,32 @@ Features:
 Example usage:
     $ python unzip_files_then_clean.py /path/to/directory
     $ python unzip_files_then_clean.py /path/to/directory --clean-only
-    $ python unzip_files_then_clean.py /path/to/directory --no-confirm --verbose
+    $ python unzip_files_then_clean.py /path/to/directory --no-confirm -v
+    $ python unzip_files_then_clean.py /path/to/directory -vv  # full verbose (default)
 
-Returns:
-    0: Success
-    1: Error (directory not found or processing error)
+Detailed Examples:
+    1. Basic extraction and reorganization:
+       $ python unzip_files_then_clean.py ~/Downloads/archive
+       # Extracts all ZIP files in ~/Downloads/archive
+       # Removes Apple system files
+       # Reorganizes single-child directories
+
+    2. Clean only mode (skips extraction and reorganization):
+       $ python unzip_files_then_clean.py ~/Projects --clean-only
+       # Only removes Apple system files from ~/Projects and subdirectories
+       # Useful for cleaning up directories without modifying structure
+
+    3. No confirmation mode:
+       $ python unzip_files_then_clean.py ~/Documents -v --no-confirm
+       # Processes all files without asking for confirmation
+       # Shows normal verbosity output (errors and warnings)
+       # Useful for scripting and batch processing
+
+    4. Different verbosity levels:
+       $ python unzip_files_then_clean.py ~/Music -v     # Normal verbosity (errors and warnings)
+       $ python unzip_files_then_clean.py ~/Music -vv    # Full verbosity (all operations)
+       $ python unzip_files_then_clean.py ~/Music        # Same as -vv (default)
+       $ python unzip_files_then_clean.py ~/Music -v 0   # Silent mode (no output)
 """
 
 import argparse
@@ -32,7 +53,7 @@ import zipfile
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from pathlib import Path
-from typing import Generator, List, Literal, Optional, Set, Tuple
+from typing import Generator, List, Literal, Optional, Set, Tuple, Pattern
 
 # Try to import tabulate, with fallback to basic printing if not available
 try:
@@ -42,7 +63,6 @@ try:
 except ImportError:
     HAS_TABULATE = False
 
-    # Define a simple tabulate function as a fallback
     def tabulate(data, headers=None, *args, **kwargs):
         """Simple tabulate fallback when the package is not available."""
         if not data:
@@ -90,11 +110,6 @@ except ImportError:
         table.append(divider)
         return "\n".join(table)
 
-    print(
-        "Note: For better output formatting, install 'tabulate' "
-        "with: `pip install tabulate`"
-    )
-
 
 class LogLevel(Enum):
     """Enum for different log levels."""
@@ -113,11 +128,21 @@ class LogEntry:
     message: str
     level: LogLevel = LogLevel.INFO
     timestamp: Optional[float] = field(default=None, repr=False)
+    path: Optional[Path] = None  # Added path field to track file operations
 
 
 @dataclass
 class OperationStats:
-    """Statistics collector for all operations."""
+    """Statistics collector for all operations.
+
+    Examples:
+        >>> stats = OperationStats()
+        >>> stats.add_log("Processing started", LogLevel.INFO)
+        >>> stats.total_zips += 1
+        >>> stats.successful_extractions += 1
+        >>> output = stats.get_output(verbosity=2)  # Get complete output
+        >>> print(output)  # Print the summary and logs
+    """
 
     # Operation counters
     total_zips: int = 0
@@ -132,12 +157,75 @@ class OperationStats:
     # Detailed logging
     logs: List[LogEntry] = field(default_factory=list)
 
-    def add_log(self, message: str, level: LogLevel = LogLevel.INFO) -> None:
-        """Add a new log entry."""
-        self.logs.append(LogEntry(message, level))
+    # Store removed files for verbose output
+    removed_files: List[Path] = field(default_factory=list)
+    removed_dirs: List[Path] = field(default_factory=list)
 
-    def print_summary(self) -> None:
-        """Print a comprehensive summary of all operations."""
+    def add_log(
+        self, message: str, level: LogLevel = LogLevel.INFO, path: Optional[Path] = None
+    ) -> None:
+        """Add a new log entry.
+
+        Args:
+            message: Log message to record
+            level: Severity level of the log entry
+            path: Path object associated with this log entry
+
+        Examples:
+            >>> stats = OperationStats()
+            >>> stats.add_log("Extracted file.zip", LogLevel.SUCCESS)
+            >>> f_path = Path("/tmp/file.txt")
+            >>> stats.add_log(f"Failed to process {f_path}", LogLevel.ERROR, f_path)
+        """
+        self.logs.append(LogEntry(message, level, path=path))
+
+        # Track removed files and directories for verbose output
+        if level == LogLevel.INFO and path:
+            if "Removed Apple file" in message:
+                self.removed_files.append(path)
+            elif "Removed Apple directory" in message:
+                self.removed_dirs.append(path)
+
+    def get_output(self, verbosity: int = 2) -> str:
+        """Get all output as a single string with appropriate verbosity filtering.
+
+        Args:
+            verbosity: 0=silent, 1=normal (errors+warnings+summary), 2=verbose (all)
+
+        Returns:
+            Formatted string containing all output
+
+        Examples:
+            >>> stats = OperationStats()
+            >>> stats.add_log("Processing complete", LogLevel.SUCCESS)
+            >>> result_normal = stats.get_output(verbosity=1)  # Normal verbosity
+            >>> print(result_normal)
+            >>> result_verbose = stats.get_output(verbosity=2)  # Full verbosity
+            >>> print(result_verbose)
+        """
+        if verbosity == 0:
+            return ""
+
+        output = []
+
+        # Add summary
+        summary = self._get_summary()
+        output.append(summary)
+
+        # Add logs if verbosity is full
+        if verbosity >= 1:
+            logs = self._get_logs(verbosity)
+            if logs:
+                output.append(logs)
+
+        # Add removed files list in verbose mode
+        if verbosity >= 2 and (self.removed_files or self.removed_dirs):
+            output.append(self._get_removed_files_list())
+
+        return "\n".join(output)
+
+    def _get_summary(self) -> str:
+        """Generate summary tables for operations."""
         # Prepare summary data
         summary_data = {
             "ZIP Processing": [
@@ -173,34 +261,32 @@ class OperationStats:
             ],
         }
 
-        # Print summary header
-        print("\n" + "=" * 80)
-        print("PROCESSING SUMMARY".center(80))
-        print("=" * 80)
+        # Build summary output
+        output = ["=" * 80, "PROCESSING SUMMARY".center(80), "=" * 80]
 
         # Print each section
         for section, data in summary_data.items():
-            print(f"\n{section.upper():^80}")
-            print(tabulate(data, tablefmt="fancy"))
+            output.append(f"\n{section.upper():^80}")
+            output.append(tabulate(data, tablefmt="fancy"))
 
         # Print error summary if any
         error_logs = [log for log in self.logs if log.level == LogLevel.ERROR]
         if error_logs:
-            print("\n" + "!" * 80)
-            print(f"  {len(error_logs)} ERRORS ENCOUNTERED  ".center(80, "!"))
-            print("!" * 80)
+            output.append("\n" + "!" * 80)
+            output.append(f"  {len(error_logs)} ERRORS ENCOUNTERED  ".center(80, "!"))
+            output.append("!" * 80)
 
-    def print_logs(self, verbose: bool = False) -> None:
-        """Print all collected logs with optional filtering."""
+        return "\n".join(output)
+
+    def _get_logs(self, verbosity: int = 2) -> str:
+        """Generate log output with appropriate verbosity filtering."""
         if not self.logs:
-            return
+            return ""
 
-        print("\n" + "-" * 80)
-        print("DETAILED OPERATION LOGS".center(80))
-        print("-" * 80)
+        output = ["\n" + "-" * 80, "DETAILED OPERATION LOGS".center(80), "-" * 80]
 
         for log in self.logs:
-            if not verbose and log.level == LogLevel.INFO:
+            if verbosity == 1 and log.level not in (LogLevel.ERROR, LogLevel.WARNING):
                 continue
 
             prefix = {
@@ -211,11 +297,34 @@ class OperationStats:
                 LogLevel.OPERATION: "→",
             }.get(log.level, "")
 
-            print(f"{prefix} {log.message}")
+            output.append(f"{prefix} {log.message}")
+
+        return "\n".join(output)
+
+    def _get_removed_files_list(self) -> str:
+        """Generate a list of removed files and directories (verbose mode only)."""
+        output = []
+
+        if self.removed_files or self.removed_dirs:
+            output.append("\n" + "-" * 80)
+            output.append("REMOVED ITEMS (VERBOSE MODE)".center(80))
+            output.append("-" * 80)
+
+            if self.removed_files:
+                output.append("\nRemoved Files:")
+                for file_path in sorted(self.removed_files):
+                    output.append(f"  - {file_path}")
+
+            if self.removed_dirs:
+                output.append("\nRemoved Directories:")
+                for dir_path in sorted(self.removed_dirs):
+                    output.append(f"  - {dir_path}")
+
+        return "\n".join(output)
 
 
 # Constants for Apple system files to remove
-APPLE_SYSTEM_FILES: Set[str] = {
+APPLE_SYSTEM_FILES: Set[str | Pattern] = {
     ".DS_Store",
     "._.DS_Store",
     ".AppleDouble",
@@ -235,7 +344,22 @@ APPLE_SYSTEM_DIRS: Set[str] = {
 
 
 def is_apple_system_file(filename: str) -> bool:
-    """Check if a filename matches known Apple system file patterns."""
+    """Check if a filename matches known Apple system file patterns.
+
+    Args:
+        filename: Name of the file to check
+
+    Returns:
+        True if the file is an Apple system file, False otherwise
+
+    Examples:
+        >>> is_apple_system_file(".DS_Store")
+        True
+        >>> is_apple_system_file("._config.json")
+        True
+        >>> is_apple_system_file("document.txt")
+        False
+    """
     if filename in APPLE_SYSTEM_FILES:
         return True
 
@@ -261,6 +385,13 @@ def remove_apple_system_files(
 
     Returns:
         Tuple of (files_removed, dirs_removed)
+
+    Examples:
+        >>> operation_stats = OperationStats()
+        >>> files, dirs = remove_apple_system_files(
+        >>>     Path("~/Downloads"), operation_stats
+        >>> )
+        >>> print(f"Removed {files} files and {dirs} directories")
     """
     files_removed, dirs_removed = 0, 0
 
@@ -275,18 +406,18 @@ def remove_apple_system_files(
             try:
                 shutil.rmtree(path)
                 dirs_removed += 1
-                stats.add_log(f"Removed Apple directory: {path}", LogLevel.INFO)
+                stats.add_log(f"Removed Apple directory: {path}", LogLevel.INFO, path)
             except OSError as e:
-                stats.add_log(f"Error removing {path}: {e}", LogLevel.ERROR)
+                stats.add_log(f"Error removing {path}: {e}", LogLevel.ERROR, path)
 
         # Handle files - ONLY ACTUAL APPLE FILES
         elif path.is_file() and is_apple_system_file(path.name):
             try:
                 path.unlink()
                 files_removed += 1
-                stats.add_log(f"Removed Apple file: {path}", LogLevel.INFO)
+                stats.add_log(f"Removed Apple file: {path}", LogLevel.INFO, path)
             except OSError as e:
-                stats.add_log(f"Error removing {path}: {e}", LogLevel.ERROR)
+                stats.add_log(f"Error removing {path}: {e}", LogLevel.ERROR, path)
 
     return files_removed, dirs_removed
 
@@ -301,6 +432,11 @@ def extract_zip_files(
         source_dir: Directory containing ZIP files
         stats: OperationStats for logging and stats
         no_confirm: Skip confirmation prompts if True
+
+    Examples:
+        >>> operation_stats = OperationStats()
+        >>> extract_zip_files(Path("~/Downloads"), operation_stats)
+        >>> extract_zip_files(Path("~/Downloads"), operation_stats, no_confirm=True)
     """
     for zip_file in source_dir.glob("*.zip"):
         stats.total_zips += 1
@@ -357,7 +493,18 @@ def extract_zip_files(
 
 
 def find_single_child_dirs(root_dir: Path) -> Generator[Tuple[Path, Path], None, None]:
-    """Find directories with exactly one subdirectory and no other items."""
+    """Find directories with exactly one subdirectory and no other items.
+
+    Args:
+        root_dir: Base directory to scan
+
+    Yields:
+        Tuples of (parent_directory, child_directory)
+
+    Examples:
+        >>> for parent, child in find_single_child_dirs(Path("~/Downloads")):
+        ...     print(f"Parent: {parent}, Child: {child}")
+    """
     for parent_dir in root_dir.iterdir():
         if parent_dir.is_dir():
             children = list(parent_dir.iterdir())
@@ -371,12 +518,17 @@ def reorganize_directories(
     source_dir: Path, stats: OperationStats, no_confirm: bool = False
 ) -> None:
     """
-    Reorganize directory structure by moving single-child directories up.
+    Reorganize a directory structure by moving single-child directories up.
 
     Args:
         source_dir: Directory to reorganize
         stats: OperationStats for logging and stats
         no_confirm: Skip confirmation prompts if True
+
+    Examples:
+        >>> operation_stats = OperationStats()
+        >>> reorganize_directories(Path("~/tmp"), operation_stats)
+        >>> reorganize_directories(Path("~/tmp"), operation_stats, no_confirm=True)
     """
     for parent_dir, child_dir in find_single_child_dirs(source_dir):
         stats.dirs_examined += 1
@@ -434,6 +586,12 @@ def get_user_confirmation(prompt: str, default: bool = False) -> bool:
 
     Returns:
         True if confirmed, False otherwise
+
+    Examples:
+        >>> if get_user_confirmation("Delete this file?"):
+        ...     print("Deleting file...")
+        >>> if get_user_confirmation("Proceed with operation?", default=True):
+        ...     print("Operation confirmed")
     """
     suffix = " [Y/n]" if default else " [y/N]"
     response = input(prompt + suffix).strip().lower()
@@ -465,10 +623,10 @@ def main() -> Literal[0, 1]:
         help="Skip all confirmation prompts",
     )
     parser.add_argument(
-        "--verbose",
         "-v",
-        action="store_true",
-        help="Show detailed operation logs",
+        action="count",
+        default=2,
+        help="Verbosity level (0=silent, 1=normal, 2=verbose)",
     )
 
     args = parser.parse_args()
@@ -503,10 +661,11 @@ def main() -> Literal[0, 1]:
         stats.add_log("Starting directory reorganization", LogLevel.OPERATION)
         reorganize_directories(args.directory, stats, args.no_confirm)
 
-    # Print results
-    stats.print_summary()
-    if args.verbose:
-        stats.print_logs(verbose=True)
+    # Generate and print output based on verbosity
+    if args.v > 0:
+        output = stats.get_output(verbosity=args.v)
+        if output:
+            print(output)
 
     return 0
 
