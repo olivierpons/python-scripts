@@ -84,6 +84,69 @@ python extract_first_column_of_csv.py --input 输入文件.csv
 **参数：**
 - `-i, --input`：输入CSV文件的路径（必需）
 
+## Español
+
+### Extractor de Primera Columna CSV
+
+Este script extrae el contenido de la primera columna de un archivo CSV y genera los valores como una lista separada por comas con cada valor rodeado por comillas.
+
+**Características:**
+- Extrae la primera columna de cualquier archivo CSV
+- Genera valores en una lista formateada separada por comas con comillas
+- Maneja los errores de apertura de archivos con elegancia
+- Funcionalidad simple y enfocada
+
+**Uso:**
+```bash
+python extract_first_column_of_csv.py -i archivo_entrada.csv
+python extract_first_column_of_csv.py --input archivo_entrada.csv
+```
+
+**Argumentos:**
+- `-i, --input`: Ruta al archivo CSV de entrada (requerido)
+
+## Italiano
+
+### Estrattore Prima Colonna CSV
+
+Questo script estrae il contenuto della prima colonna da un file CSV e produce i valori come un elenco separato da virgole con ogni valore circondato da virgolette.
+
+**Funzionalità:**
+- Estrae la prima colonna da qualsiasi file CSV
+- Produce valori in un elenco formattato separato da virgole con virgolette
+- Gestisce gli errori di apertura file con eleganza
+- Funzionalità semplice e mirata
+
+**Utilizzo:**
+```bash
+python extract_first_column_of_csv.py -i file_input.csv
+python extract_first_column_of_csv.py --input file_input.csv
+```
+
+**Argomenti:**
+- `-i, --input`: Percorso del file CSV di input (richiesto)
+
+## Deutsch
+
+### CSV-Erste-Spalte-Extraktor
+
+Dieses Skript extrahiert den Inhalt der ersten Spalte aus einer CSV-Datei und gibt die Werte als kommagetrennte Liste aus, wobei jeder Wert von Anführungszeichen umgeben ist.
+
+**Funktionen:**
+- Extrahiert die erste Spalte aus jeder CSV-Datei
+- Gibt Werte in einer formatierten kommagetrennten Liste mit Anführungszeichen aus
+- Behandelt Dateifehler elegant
+- Einfache und fokussierte Funktionalität
+
+**Verwendung:**
+```bash
+python extract_first_column_of_csv.py -i eingabedatei.csv
+python extract_first_column_of_csv.py --input eingabedatei.csv
+```
+
+**Argumente:**
+- `-i, --input`: Pfad zur CSV-Eingabedatei (erforderlich)
+
 ## 繁體中文
 
 ### CSV第一列提取器

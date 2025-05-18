@@ -1,6 +1,6 @@
-# Python Utility Scripts / Scripts Utilitaires Python / Python ユーティリティスクリプト / Python 实用脚本 / Python 實用腳本
+# Python Utility Scripts / Scripts Utilitaires Python / Python ユーティリティスクリプト / Python 实用脚本 / Python 實用腳本 / Scripts de Utilidad Python / Script di Utilità Python / Python-Dienstprogrammskripte
 
-## Quick Overview / Aperçu Rapide / 概要 / 概述
+## Quick Overview / Aperçu Rapide / 概要 / 概述 / Vista Rápida / Panoramica / Kurzübersicht
 
 ### English
 
@@ -40,6 +40,33 @@ automatiser des tâches courantes et résoudre des problèmes spécifiques. Chaq
 - [**scans_rename.py**](README_scans_rename.md)：重命名并整理文件名中带有日语时间戳的文件。
 - [**unzip_files_then_clean.py**](README_unzip_files_then_clean.md)：提取目录中的所有ZIP文件并重组文件夹结构。
 
+### Español
+
+Este repositorio contiene una colección de pequeños scripts de utilidad en Python diseñados para automatizar tareas comunes y resolver problemas específicos. Cada script está documentado en su propio archivo README con información detallada:
+
+- [**eliminate_dups_in_csv.py**](README_eliminate_dups_in_csv.md): Procesa archivos CSV para eliminar duplicados y los guarda por separado.
+- [**extract_first_column_of_csv.py**](README_extract_first_column_of_csv.md): Extrae la primera columna de un archivo CSV.
+- [**scans_rename.py**](README_scans_rename.md): Renombra y organiza archivos con marcas de tiempo japonesas en sus nombres.
+- [**unzip_files_then_clean.py**](README_unzip_files_then_clean.md): Extrae todos los archivos ZIP en un directorio y reorganiza la estructura de carpetas.
+
+### Italiano
+
+Questo repository contiene una collezione di piccoli script di utilità Python progettati per automatizzare attività comuni e risolvere problemi specifici. Ogni script è documentato nel proprio file README con informazioni dettagliate:
+
+- [**eliminate_dups_in_csv.py**](README_eliminate_dups_in_csv.md): Elabora file CSV per rimuovere duplicati e li salva separatamente.
+- [**extract_first_column_of_csv.py**](README_extract_first_column_of_csv.md): Estrae la prima colonna da un file CSV.
+- [**scans_rename.py**](README_scans_rename.md): Rinomina e organizza file con timestamp giapponesi nei loro nomi.
+- [**unzip_files_then_clean.py**](README_unzip_files_then_clean.md): Estrae tutti i file ZIP in una directory e riorganizza la struttura delle cartelle.
+
+### Deutsch
+
+Dieses Repository enthält eine Sammlung kleiner Python-Dienstprogrammskripte, die entwickelt wurden, um häufige Aufgaben zu automatisieren und spezifische Probleme zu lösen. Jedes Skript ist in seiner eigenen README-Datei mit detaillierten Informationen dokumentiert:
+
+- [**eliminate_dups_in_csv.py**](README_eliminate_dups_in_csv.md): Verarbeitet CSV-Dateien, um Duplikate zu entfernen und speichert sie separat.
+- [**extract_first_column_of_csv.py**](README_extract_first_column_of_csv.md): Extrahiert die erste Spalte aus einer CSV-Datei.
+- [**scans_rename.py**](README_scans_rename.md): Benennt und organisiert Dateien mit japanischen Zeitstempeln in ihren Dateinamen.
+- [**unzip_files_then_clean.py**](README_unzip_files_then_clean.md): Extrahiert alle ZIP-Dateien in einem Verzeichnis und reorganisiert die Ordnerstruktur.
+
 ### 繁體中文
 
 本倉庫包含一系列小型Python實用腳本，旨在自動化常見任務並解決特定問題。每個腳本都在其自己的README文件中有詳細說明：
@@ -58,5 +85,11 @@ Plus de scripts utilitaires Python seront ajoutés à ce dépôt au fil du temps
 今後、他のPythonユーティリティスクリプトがこのリポジトリに追加される予定で、それぞれが特定のタスクを効率的に解決することに焦点を当てています。
 
 随着时间的推移，更多的Python实用脚本将添加到此仓库中，每个脚本都专注于有效解决特定任务。
+
+Con el tiempo, se añadirán más scripts de utilidad Python a este repositorio, cada uno enfocado en resolver tareas específicas de manera eficiente.
+
+Nel corso del tempo, verranno aggiunti a questo repository altri script di utilità Python, ognuno focalizzato sulla risoluzione efficiente di compiti specifici.
+
+Im Laufe der Zeit werden diesem Repository weitere Python-Dienstprogrammskripte hinzugefügt, die jeweils auf die effiziente Lösung spezifischer Aufgaben ausgerichtet sind.
 
 隨著時間的推移，更多的Python實用腳本將添加到此倉庫中，每個腳本都專注於有效解決特定任務。

@@ -2,7 +2,8 @@
 """
 Advanced ZIP Extraction and Directory Reorganization Tool.
 
-This script performs three main operations with comprehensive logging and statistics:
+This script performs three main operations with comprehensive logging, statistics,
+and error handling:
 1. Extracts all ZIP files in a directory into corresponding subdirectories
 2. Removes Apple system files (.DS_Store, .__MACOSX folders, etc.)
 3. Reorganizes directories by moving single-child directories up one level
@@ -30,6 +31,8 @@ Example usage:
 """
 
 import argparse
+import fcntl
+import os
 import re
 import shutil
 import sys
@@ -37,7 +40,12 @@ import zipfile
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from pathlib import Path
-from typing import Generator, List, Set, Tuple, Literal
+from typing import Generator, List, Set, Tuple, Literal, Optional
+
+# Constants
+MAX_ZIP_SIZE = 10 * 1024 * 1024 * 1024  # 10GB
+MAX_RECURSION_DEPTH = 10
+DEFAULT_VERBOSITY = 2
 
 # Try to import optional dependencies for enhanced output
 try:
@@ -131,6 +139,7 @@ class LogLevel(Enum):
     ERROR = auto()
     SUCCESS = auto()
     OPERATION = auto()
+    DEBUG = auto()
 
     def get_color(self) -> str:
         """Return the appropriate color for each log level.
@@ -146,6 +155,7 @@ class LogLevel(Enum):
             LogLevel.ERROR: Fore.RED,
             LogLevel.SUCCESS: Fore.GREEN,
             LogLevel.OPERATION: Fore.MAGENTA,
+            LogLevel.DEBUG: Fore.BLUE,
         }.get(self, "")
 
 
@@ -194,6 +204,8 @@ class OperationStats:
     dirs_ignored: int = 0
     logs: List[LogEntry] = field(default_factory=list)
     removed_files_details: List[str] = field(default_factory=list)
+    warnings: int = 0
+    errors: int = 0
 
     def add_log(self, message: str, level: LogLevel = LogLevel.INFO) -> None:
         """Add a new log entry to the collection.
@@ -202,6 +214,10 @@ class OperationStats:
             message: The log message to add
             level: Severity level of the message
         """
+        if level == LogLevel.WARNING:
+            self.warnings += 1
+        elif level == LogLevel.ERROR:
+            self.errors += 1
         self.logs.append(LogEntry(message, level))
 
     def add_removed_file_detail(self, path: str) -> None:
@@ -212,7 +228,7 @@ class OperationStats:
         """
         self.removed_files_details.append(path)
 
-    def print_summary(self, verbosity: int = 2) -> None:
+    def print_summary(self, verbosity: int = DEFAULT_VERBOSITY) -> None:
         """Print a comprehensive summary of all operations.
 
         Uses rich for display if available, falls back to tabulate or ASCII.
@@ -285,7 +301,19 @@ class OperationStats:
             if self.dirs_examined
             else "N/A"
         )
-        summary_table.add_row("", "Reorg Rate", reorg_rate)
+        summary_table.add_row("", "Reorg Rate", reorg_rate, end_section=True)
+
+        # Error/Warning section
+        warnings_color = "green" if self.warnings == 0 else "yellow"
+        errors_color = "green" if self.errors == 0 else "red"
+        summary_table.add_row(
+            "[bold]Issues[/bold]",
+            "[bold]Warnings[/bold]",
+            f"[{warnings_color}]{self.warnings}[/{warnings_color}]",
+        )
+        summary_table.add_row(
+            "", "[bold]Errors[/bold]", f"[{errors_color}]{self.errors}[/{errors_color}]"
+        )
 
         console.print(summary_table)
 
@@ -319,6 +347,8 @@ class OperationStats:
                     else "N/A"
                 ),
             ],
+            ["Issues", "Warnings", self.warnings],
+            ["", "Errors", self.errors],
         ]
 
         print(
@@ -332,7 +362,7 @@ class OperationStats:
             )
         )
 
-    def print_logs(self, verbosity: int = 2) -> None:
+    def print_logs(self, verbosity: int = DEFAULT_VERBOSITY) -> None:
         """Print all collected logs in formatted output.
 
         Args:
@@ -366,6 +396,7 @@ class OperationStats:
                 LogLevel.ERROR: "[red]ERROR[/red]",
                 LogLevel.SUCCESS: "[green]SUCCESS[/green]",
                 LogLevel.OPERATION: "[magenta]→[/magenta]",
+                LogLevel.DEBUG: "[blue]DEBUG[/blue]",
             }.get(log.level, "")
             log_table.add_row(level_style, log.message)
 
@@ -381,6 +412,7 @@ class OperationStats:
                 LogLevel.ERROR: "[ERR]",
                 LogLevel.SUCCESS: "[OK]",
                 LogLevel.OPERATION: "→",
+                LogLevel.DEBUG: "[DBG]",
             }.get(log.level, "")
             log_data.append([prefix, log.message])
 
@@ -442,8 +474,282 @@ def is_apple_system_file(filename: str) -> bool:
     return False
 
 
+def check_readable(path: Path, stats: OperationStats) -> bool:
+    """Check if a path is readable with detailed error handling.
+
+    Args:
+        path: Path object to check
+        stats: OperationStats instance for logging
+
+    Returns:
+        bool: True if readable, False otherwise with detailed error logging
+    """
+    try:
+        # Check basic readability
+        if not os.access(path, os.R_OK):
+            stats.add_log(f"Path not readable (no R_OK): {path}", LogLevel.DEBUG)
+            return False
+
+        # For directories, we also need execute permission
+        if path.is_dir() and not os.access(path, os.X_OK):
+            stats.add_log(f"Directory not executable (no X_OK): {path}", LogLevel.DEBUG)
+            return False
+
+        return True
+
+    except PermissionError as e:
+        stats.add_log(
+            f"Permission denied checking readability: {path} - {str(e)}",
+            LogLevel.WARNING,
+        )
+        return False
+    except FileNotFoundError:
+        stats.add_log(
+            f"Path not found when checking readability: {path}", LogLevel.ERROR
+        )
+        return False
+    except OSError as e:
+        stats.add_log(
+            f"OS error checking readability: {path} - {str(e)}", LogLevel.ERROR
+        )
+        return False
+    except Exception as e:
+        stats.add_log(
+            f"Unexpected error checking readability: {path} - {str(e)}", LogLevel.ERROR
+        )
+        return False
+
+
+def check_writable(path: Path, stats: OperationStats) -> bool:
+    """Check if a path is writable with comprehensive error handling.
+
+    Args:
+        path: Path object to check
+        stats: OperationStats instance for logging
+
+    Returns:
+        bool: True if writable, False otherwise with error details
+    """
+    try:
+        # First check parent directory if file doesn't exist
+        if not path.exists():
+            parent = path.parent
+            if not os.access(parent, os.W_OK):
+                stats.add_log(
+                    f"Parent directory not writable: {parent}", LogLevel.DEBUG
+                )
+                return False
+            return True
+
+        if not os.access(path, os.W_OK):
+            stats.add_log(f"Path not writable: {path}", LogLevel.DEBUG)
+            return False
+        return True
+
+    except PermissionError as e:
+        stats.add_log(
+            f"Permission denied checking writability: {path} - {str(e)}",
+            LogLevel.WARNING,
+        )
+        return False
+    except FileNotFoundError:
+        stats.add_log(
+            f"Parent directory not found when checking writability: {path}",
+            LogLevel.ERROR,
+        )
+        return False
+    except OSError as e:
+        stats.add_log(
+            f"OS error checking writability: {path} - {str(e)}", LogLevel.ERROR
+        )
+        return False
+    except Exception as e:
+        stats.add_log(
+            f"Unexpected error checking writability: {path} - {str(e)}", LogLevel.ERROR
+        )
+        return False
+
+
+def safe_path(path: Path, stats: OperationStats) -> Path:
+    """Ensure a path name uses safe encoding with proper error recovery.
+
+    Args:
+        path: Original path to sanitize
+        stats: OperationStats instance for logging
+
+    Returns:
+        Path: Safe version of the path with ASCII fallback if needed
+    """
+    try:
+        # First try UTF-8 encoding
+        path_str = str(path)
+        path_str.encode("utf-8")  # Test encoding
+        return path
+
+    except UnicodeEncodeError:
+        try:
+            # Fallback to ASCII with replacement
+            new_name = path.name.encode("ascii", errors="replace").decode("ascii")
+            stats.add_log(
+                f"Converted problematic filename: {path.name} -> {new_name}",
+                LogLevel.INFO,
+            )
+            return path.with_name(new_name)
+        except Exception as e:
+            stats.add_log(
+                f"Critical error in safe_path fallback: {str(e)}", LogLevel.ERROR
+            )
+            return path  # Return original as last resort
+    except Exception as e:
+        stats.add_log(f"Unexpected error in safe_path: {str(e)}", LogLevel.ERROR)
+        return path  # Return original on unexpected errors
+
+
+def is_network_path(path: Path, stats: OperationStats) -> bool:
+    """Check if a path is on a network location with robust error handling.
+
+    Args:
+        path: Path to check
+        stats: OperationStats instance for logging
+
+    Returns:
+        bool: True if network path, False otherwise with error details
+    """
+    try:
+        # First try modern Path method
+        if hasattr(path, "is_mount"):
+            is_mount = path.is_mount()
+            if is_mount:
+                stats.add_log(
+                    f"Network path detected (is_mount=True): {path}", LogLevel.DEBUG
+                )
+            return is_mount
+
+        # Fallback for older Python versions
+        path_str = str(path)
+        if any(part.startswith("\\\\") for part in path.parts):
+            stats.add_log(f"Network path detected (UNC path): {path}", LogLevel.DEBUG)
+            return True
+        return False
+
+    except AttributeError:
+        stats.add_log(
+            "Path.is_mount() not available - using string detection", LogLevel.DEBUG
+        )
+        try:
+            if any(part.startswith("\\\\") for part in path.parts):
+                stats.add_log(
+                    f"Network path detected (fallback): {path}", LogLevel.DEBUG
+                )
+                return True
+            return False
+        except Exception as e:
+            stats.add_log(
+                f"Error in network path fallback detection: {str(e)}", LogLevel.ERROR
+            )
+            return False
+    except Exception as e:
+        stats.add_log(
+            f"Unexpected error checking network path: {str(e)}", LogLevel.ERROR
+        )
+        return False
+
+
+def is_path_too_long(path: Path, stats: OperationStats) -> bool:
+    """Check if a path exceeds system limits with platform-specific handling.
+
+    Args:
+        path: Path to check
+        stats: OperationStats instance for logging
+
+    Returns:
+        bool: True if the path is too long, False otherwise
+    """
+    try:
+        path_str = str(path)
+
+        # Windows-specific checks
+        if os.name == "nt":
+            # 260 characters including null terminator
+            if len(path_str) > 259:
+                stats.add_log(
+                    f"Windows path too long: {len(path_str)} characters",
+                    LogLevel.WARNING,
+                )
+                return True
+
+            # Additional Windows path length rules
+            if "~" in path_str:  # Check for 8.3 compatibility
+                try:
+                    long_path = path.resolve()
+                    if len(str(long_path)) > 259:
+                        stats.add_log(
+                            f"Windows 8.3 path too long: {len(str(long_path))} characters",
+                            LogLevel.WARNING,
+                        )
+                        return True
+                except Exception as e:
+                    stats.add_log(f"Error resolving 8.3 path: {str(e)}", LogLevel.DEBUG)
+                    pass
+
+        # Unix systems generally don't have length limits
+        return False
+
+    except OSError as e:
+        stats.add_log(f"OS error checking path length: {str(e)}", LogLevel.ERROR)
+        return False
+    except Exception as e:
+        stats.add_log(
+            f"Unexpected error checking path length: {str(e)}", LogLevel.ERROR
+        )
+        return False
+
+
+def acquire_lock(filepath: Path) -> Optional[int]:
+    """Acquire a file lock to prevent concurrent modifications."""
+    try:
+        if os.name == "posix":
+            lock_file = filepath.with_suffix(".lock")
+            lock_fd = os.open(lock_file, os.O_CREAT | os.O_WRONLY)
+            fcntl.flock(lock_fd, fcntl.LOCK_EX)
+            return lock_fd
+        elif os.name == "nt":
+            import msvcrt
+
+            lock_file = filepath.with_suffix(".lock")
+            lock_fd = os.open(lock_file, os.O_CREAT | os.O_WRONLY)
+            msvcrt.locking(lock_fd, msvcrt.LK_LOCK, 1)
+            return lock_fd
+    except Exception:
+        return None
+
+
+def release_lock(lock_fd: int | None, stats: OperationStats) -> None:
+    """Release a previously acquired file lock.
+
+    Args:
+        lock_fd: File descriptor of the lock file or None
+        stats: OperationStats instance for logging
+    """
+    if lock_fd is None:
+        return
+
+    try:
+        if os.name == "posix":
+            fcntl.flock(lock_fd, fcntl.LOCK_UN)
+            os.close(lock_fd)
+        elif os.name == "nt":
+            import msvcrt
+
+            msvcrt.locking(lock_fd, msvcrt.LK_UNLCK, 1)
+            os.close(lock_fd)
+    except (OSError, AttributeError) as e:
+        # AttributeError in case msvcrt import failed on Windows
+        stats.add_log(f"Error releasing lock: {e}", LogLevel.WARNING)
+
+
 def remove_apple_system_files(
-    directory: Path, stats: OperationStats
+    directory: Path, stats: OperationStats, verbosity: int = DEFAULT_VERBOSITY
 ) -> Tuple[int, int]:
     """Recursively remove Apple system files and directories.
 
@@ -464,34 +770,62 @@ def remove_apple_system_files(
     """
     files_removed, dirs_removed = 0, 0
 
-    for path in sorted(
-        directory.glob("**/*"), key=lambda p: len(p.parts), reverse=True
-    ):
-        if not path.exists():
-            continue
+    try:
+        for path in sorted(
+            directory.glob("**/*"), key=lambda p: len(p.parts), reverse=True
+        ):
+            try:
+                if not path.exists():
+                    continue
 
-        if path.is_dir() and path.name in APPLE_SYSTEM_DIRS:
-            try:
-                shutil.rmtree(path)
-                dirs_removed += 1
-                stats.add_removed_file_detail(str(path))
-                stats.add_log(f"Removed Apple directory: {path}", LogLevel.INFO)
+                # Skip special files and links
+                if path.is_symlink():
+                    if verbosity >= 2:
+                        stats.add_log(f"Skipping symbolic link: {path}", LogLevel.DEBUG)
+                    continue
+
+                if (
+                    path.is_socket()
+                    or path.is_fifo()
+                    or path.is_char_device()
+                    or path.is_block_device()
+                ):
+                    if verbosity >= 2:
+                        stats.add_log(f"Skipping special file: {path}", LogLevel.DEBUG)
+                    continue
+
+                if path.is_dir() and path.name in APPLE_SYSTEM_DIRS:
+                    try:
+                        shutil.rmtree(path)
+                        dirs_removed += 1
+                        stats.add_removed_file_detail(str(path))
+                        stats.add_log(f"Removed Apple directory: {path}", LogLevel.INFO)
+                    except OSError as e:
+                        stats.add_log(f"Error removing {path}: {e}", LogLevel.ERROR)
+
+                elif path.is_file() and is_apple_system_file(path.name):
+                    try:
+                        path.unlink()
+                        files_removed += 1
+                        stats.add_removed_file_detail(str(path))
+                        stats.add_log(f"Removed Apple file: {path}", LogLevel.INFO)
+                    except OSError as e:
+                        stats.add_log(f"Error removing {path}: {e}", LogLevel.ERROR)
+
             except OSError as e:
-                stats.add_log(f"Error removing {path}: {e}", LogLevel.ERROR)
-        elif path.is_file() and is_apple_system_file(path.name):
-            try:
-                path.unlink()
-                files_removed += 1
-                stats.add_removed_file_detail(str(path))
-                stats.add_log(f"Removed Apple file: {path}", LogLevel.INFO)
-            except OSError as e:
-                stats.add_log(f"Error removing {path}: {e}", LogLevel.ERROR)
+                stats.add_log(f"Error processing {path}: {e}", LogLevel.ERROR)
+
+    except Exception as e:
+        stats.add_log(f"Unexpected error during cleanup: {e}", LogLevel.ERROR)
 
     return files_removed, dirs_removed
 
 
 def extract_zip_files(
-    source_dir: Path, stats: OperationStats, no_confirm: bool = False
+    source_dir: Path,
+    stats: OperationStats,
+    no_confirm: bool = False,
+    verbosity: int = DEFAULT_VERBOSITY,
 ) -> None:
     """Extract all ZIP files in the directory to corresponding subdirectories.
 
@@ -505,21 +839,50 @@ def extract_zip_files(
         source_dir: Directory containing ZIP files
         stats: OperationStats instance for logging
         no_confirm: Skip confirmation prompts if True
+        verbosity: Controls output detail (0-2)
 
     Examples:
         >>> my_stats = OperationStats()
         >>> extract_zip_files(Path("/tmp/zips"), my_stats, no_confirm=True)
     """
-    for zip_file in source_dir.glob("*.zip"):
+    for i, zip_file in enumerate(source_dir.glob("*.zip")):
         stats.total_zips += 1
         dest_dir = source_dir / zip_file.stem
 
         stats.add_log(f"Processing ZIP: {zip_file.name}", LogLevel.OPERATION)
         stats.add_log(f"Creating directory: {dest_dir}", LogLevel.INFO)
 
+        # Check for path length issues (Windows)
+        if is_path_too_long(dest_dir, stats):
+            stats.add_log(f"Path too long for Windows: {dest_dir}", LogLevel.ERROR)
+            stats.failed_extractions += 1
+            continue
+
+        # Check ZIP file size
+        try:
+            zip_size = zip_file.stat().st_size
+            if zip_size > MAX_ZIP_SIZE:
+                stats.add_log(
+                    f"ZIP file too large ({zip_size/1024/1024:.2f} MB): {zip_file}",
+                    LogLevel.WARNING,
+                )
+                if not no_confirm and not get_user_confirmation(
+                    "Proceed with large file?", default=False, stats=stats
+                ):
+                    stats.add_log("Skipped large ZIP file", LogLevel.INFO)
+                    stats.failed_extractions += 1
+                    continue
+        except OSError as e:
+            stats.add_log(f"Error checking ZIP size: {e}", LogLevel.ERROR)
+            stats.failed_extractions += 1
+            continue
+
+        # Check if the destination exists
         if dest_dir.exists():
             stats.add_log("Destination directory exists", LogLevel.WARNING)
-            if not no_confirm and not get_user_confirmation("Overwrite contents?"):
+            if not no_confirm and not get_user_confirmation(
+                "Overwrite contents?", default=False, stats=stats
+            ):
                 stats.add_log("Skipped by user", LogLevel.INFO)
                 stats.failed_extractions += 1
                 continue
@@ -532,17 +895,61 @@ def extract_zip_files(
                 stats.failed_extractions += 1
                 continue
 
+        # Create the destination directory
         try:
             dest_dir.mkdir(exist_ok=True)
+        except OSError as e:
+            stats.add_log(f"Failed to create directory: {e}", LogLevel.ERROR)
+            stats.failed_extractions += 1
+            continue
+
+        # Extract ZIP contents
+        try:
             with zipfile.ZipFile(zip_file, "r") as zip_ref:
+                # Check for corrupted files
+                corrupted = zip_ref.testzip()
+                if corrupted:
+                    stats.add_log(f"Corrupted file in ZIP: {corrupted}", LogLevel.ERROR)
+                    stats.failed_extractions += 1
+                    continue
+
+                # Check for encrypted files
+                if any(f.flag_bits & 0x1 for f in zip_ref.infolist()):
+                    stats.add_log(
+                        f"Password-protected ZIP detected: {zip_file}",
+                        LogLevel.WARNING,
+                    )
+                    if not no_confirm and not get_user_confirmation(
+                        "Attempt extraction without password?",
+                        default=False,
+                        stats=stats,
+                    ):
+                        stats.add_log("Skipped password-protected ZIP", LogLevel.INFO)
+                        stats.failed_extractions += 1
+                        continue
+
+                # Check for unsafe paths
+                for info in zip_ref.infolist():
+                    if os.path.isabs(info.filename) or "../" in info.filename:
+                        stats.add_log(
+                            f"ZIP contains unsafe paths: {info.filename}",
+                            LogLevel.ERROR,
+                        )
+                        stats.failed_extractions += 1
+                        raise zipfile.BadZipFile("Unsafe path detected")
+
+                # Perform extraction
                 zip_ref.extractall(dest_dir)
 
             # Clean Apple system files from extracted contents
-            files_removed, dirs_removed = remove_apple_system_files(dest_dir, stats)
+            files_removed, dirs_removed = remove_apple_system_files(
+                dest_dir, stats, verbosity
+            )
             stats.files_removed += files_removed
             stats.dirs_removed += dirs_removed
 
-            if any(dest_dir.rglob("*")):
+            # Check if extraction produced any content
+            if any(dest_dir.iterdir()):
                 try:
                     zip_file.unlink()
                     stats.successful_extractions += 1
@@ -554,35 +961,45 @@ def extract_zip_files(
                 stats.add_log("Empty ZIP file", LogLevel.ERROR)
                 stats.failed_extractions += 1
 
-        except (zipfile.BadZipFile, OSError) as e:
-            stats.add_log(f"Extraction failed: {e}", LogLevel.ERROR)
+        except zipfile.BadZipFile as e:
+            stats.add_log(f"Bad ZIP file: {e}", LogLevel.ERROR)
             stats.failed_extractions += 1
+            try:
+                shutil.rmtree(dest_dir)
+            except OSError as e:
+                stats.add_log(
+                    f"Failed to remove directory {dest_dir}: {e}", LogLevel.WARNING
+                )
+        except Exception as e:
+            stats.add_log(f"Unexpected error during extraction: {e}", LogLevel.ERROR)
+            stats.failed_extractions += 1
+            try:
+                shutil.rmtree(dest_dir)
+            except OSError as e:
+                stats.add_log(
+                    f"Failed to remove directory {dest_dir}: {e}", LogLevel.WARNING
+                )
 
 
 def find_single_child_dirs(root_dir: Path) -> Generator[Tuple[Path, Path], None, None]:
-    """Find directories containing exactly one subdirectory and no other items.
-
-    Args:
-        root_dir: Directory to search
-
-    Yields:
-        Tuples of (parent_dir, child_dir) pairs
-
-    Examples:
-        >>> for parent, child in find_single_child_dirs(Path("/tmp")):
-        ...     print(f"Found: {parent} -> {child}")
-    """
+    """Find directories containing exactly one subdirectory and no other items."""
     for parent_dir in root_dir.iterdir():
         if parent_dir.is_dir():
-            children = list(parent_dir.iterdir())
-            dir_children = [c for c in children if c.is_dir()]
+            try:
+                children = list(parent_dir.iterdir())
+                dir_children = [c for c in children if c.is_dir()]
 
-            if len(dir_children) == 1 and len(children) == 1:
-                yield parent_dir, dir_children[0]
+                if len(dir_children) == 1 and len(children) == 1:
+                    yield parent_dir, dir_children[0]
+            except OSError as e:
+                continue
 
 
 def reorganize_directories(
-    source_dir: Path, stats: OperationStats, no_confirm: bool = False
+    source_dir: Path,
+    stats: OperationStats,
+    no_confirm: bool = False,
+    verbosity: int = DEFAULT_VERBOSITY,
 ) -> None:
     """Reorganize a directory structure by moving single-child directories up.
 
@@ -594,6 +1011,7 @@ def reorganize_directories(
         source_dir: Directory to reorganize
         stats: OperationStats instance for logging
         no_confirm: Skip confirmation prompts if True
+        verbosity: Controls output detail (0-2)
 
     Examples:
         >>> my_stats = OperationStats()
@@ -604,15 +1022,25 @@ def reorganize_directories(
         stats.add_log(f"Processing: {parent_dir.name}", LogLevel.OPERATION)
 
         # Clean Apple system files before reorganization
-        files_removed, dirs_removed = remove_apple_system_files(parent_dir, stats)
+        files_removed, dirs_removed = remove_apple_system_files(
+            parent_dir, stats, verbosity
+        )
         stats.files_removed += files_removed
         stats.dirs_removed += dirs_removed
 
         target_path = source_dir / child_dir.name
 
+        # Check for path length issues (Windows)
+        if is_path_too_long(target_path, stats):
+            stats.add_log(f"Path too long for Windows: {target_path}", LogLevel.ERROR)
+            stats.dirs_ignored += 1
+            continue
+
         if target_path.exists() and target_path != child_dir:
             stats.add_log(f"Target exists: {target_path}", LogLevel.WARNING)
-            if not no_confirm and not get_user_confirmation("Overwrite target?"):
+            if not no_confirm and not get_user_confirmation(
+                "Overwrite target?", default=False, stats=stats
+            ):
                 stats.add_log("Skipped by user", LogLevel.INFO)
                 stats.dirs_ignored += 1
                 continue
@@ -629,33 +1057,29 @@ def reorganize_directories(
             f"Moving directory: '{child_dir.name}' to parent...", LogLevel.INFO
         )
         try:
-            try:
-                shutil.move(str(child_dir), str(source_dir))
-            except (OSError, shutil.Error) as e:
-                stats.add_log(f"Failed to move directory: {e}", LogLevel.ERROR)
-                stats.dirs_ignored += 1
-                continue
+            shutil.move(str(child_dir), str(source_dir))
+        except (OSError, shutil.Error) as e:
+            stats.add_log(f"Failed to move directory: {e}", LogLevel.ERROR)
+            stats.dirs_ignored += 1
+            continue
 
+        try:
+            # Check if the parent is now empty
             if not any(parent_dir.iterdir()):
-                try:
-                    parent_dir.rmdir()
-                    stats.dirs_reorganized += 1
-                    stats.add_log("Reorganization successful", LogLevel.SUCCESS)
-                except OSError as e:
-                    stats.add_log(
-                        f"Failed to remove parent directory: {e}", LogLevel.ERROR
-                    )
-                    stats.dirs_ignored += 1
+                parent_dir.rmdir()
+                stats.dirs_reorganized += 1
+                stats.add_log("Reorganization successful", LogLevel.SUCCESS)
             else:
                 stats.add_log("Parent not empty after move", LogLevel.WARNING)
                 stats.dirs_ignored += 1
-
         except OSError as e:
-            stats.add_log(f"Move failed: {e}", LogLevel.ERROR)
+            stats.add_log(f"Failed to remove parent directory: {e}", LogLevel.ERROR)
             stats.dirs_ignored += 1
 
 
-def get_user_confirmation(prompt: str, default: bool = False) -> bool:
+def get_user_confirmation(
+    prompt: str, default: bool = False, stats: Optional[OperationStats] = None
+) -> bool:
     """Get yes/no confirmation from user with customizable default.
 
     Args:
@@ -673,9 +1097,27 @@ def get_user_confirmation(prompt: str, default: bool = False) -> bool:
         Delete files? [y/N] n
         False
     """
+    if not sys.stdin.isatty():
+        if stats:
+            stats.add_log(
+                "No interactive terminal, using default response", LogLevel.WARNING
+            )
+        return default
+
     suffix = " [Y/n]" if default else " [y/N]"
-    response = input(prompt + suffix).strip().lower()
-    return response.startswith("y") if response else default
+    while True:
+        try:
+            response = input(prompt + suffix).strip().lower()
+            if not response:
+                return default
+            if response in ("y", "yes"):
+                return True
+            if response in ("n", "no"):
+                return False
+            print("Please enter 'y' or 'n'")
+        except (EOFError, KeyboardInterrupt):
+            print()
+            return default
 
 
 def main() -> Literal[0, 1]:
@@ -686,6 +1128,8 @@ def main() -> Literal[0, 1]:
     Returns:
         0 on success, 1 on error
     """
+    global MAX_ZIP_SIZE
+
     parser = argparse.ArgumentParser(
         description="Advanced ZIP extraction and directory reorganization tool",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -713,59 +1157,128 @@ def main() -> Literal[0, 1]:
         "--verbosity",
         type=int,
         choices=[0, 1, 2],
-        default=2,
+        default=DEFAULT_VERBOSITY,
         help="Verbosity level (0=silent, 1=normal, 2=verbose)",
+    )
+    parser.add_argument(
+        "--max-size",
+        type=int,
+        default=MAX_ZIP_SIZE,
+        help=f"Maximum ZIP file size in bytes (default: {MAX_ZIP_SIZE})",
+    )
+    parser.add_argument(
+        "--no-color",
+        action="store_true",
+        help="Disable colored output",
     )
 
     args = parser.parse_args()
-    args.directory = Path(args.directory).expanduser().resolve()
+    MAX_ZIP_SIZE = args.max_size
+
+    try:
+        args.directory = Path(args.directory).expanduser().resolve()
+    except Exception as e:
+        print(f"Error resolving directory path: {e}", file=sys.stderr)
+        return 1
+
     stats = OperationStats()
 
     # Notify about optional dependencies
-    if not HAS_COLORAMA:
+    if not HAS_COLORAMA and not args.no_color:
         stats.add_log(
-            "Note: For colored output, install 'colorama' "
-            "with: `pip install colorama`",
+            "Note: For colored output, install 'colorama' with: `pip install colorama`",
             LogLevel.INFO,
         )
     if not HAS_RICH:
         stats.add_log(
-            "Note: For better output formatting, install 'rich' "
-            "with: `pip install rich`",
+            "Note: For better output formatting, install 'rich' with: `pip install rich`",
             LogLevel.INFO,
         )
         if not HAS_TABULATE:
             stats.add_log(
-                "Note: For better output formatting, install 'tabulate' "
-                "with: `pip install tabulate`",
+                "Note: For better output formatting, install 'tabulate' with: `pip install tabulate`",
                 LogLevel.INFO,
             )
 
     # Validate directory
-    if not args.directory.is_dir():
+    if not args.directory.exists():
         stats.add_log(f"Directory not found: {args.directory}", LogLevel.ERROR)
-        stats.print_logs(verbosity=1)  # Always show errors
+        stats.print_logs(verbosity=1)
         return 1
 
-    # Execute requested operations
-    if args.clean_only:
-        stats.add_log(f"Starting clean-only mode in {args.directory}", LogLevel.INFO)
-        files, dirs = remove_apple_system_files(args.directory, stats)
-        stats.files_removed = files
-        stats.dirs_removed = dirs
-    else:
-        stats.add_log(f"Starting full processing in {args.directory}", LogLevel.INFO)
-        extract_zip_files(args.directory, stats, args.no_confirm)
-        files, dirs = remove_apple_system_files(args.directory, stats)
-        stats.files_removed += files
-        stats.dirs_removed += dirs
-        reorganize_directories(args.directory, stats, args.no_confirm)
+    if not args.directory.is_dir():
+        stats.add_log(f"Path is not a directory: {args.directory}", LogLevel.ERROR)
+        stats.print_logs(verbosity=1)
+        return 1
 
-    # Output results
-    stats.print_logs(verbosity=args.verbosity)
-    stats.print_summary(verbosity=args.verbosity)
+    if not check_readable(args.directory, stats):
+        stats.add_log(
+            f"No read permission for directory: {args.directory}", LogLevel.ERROR
+        )
+        stats.print_logs(verbosity=1)
+        return 1
 
-    return 0 if not any(log.level == LogLevel.ERROR for log in stats.logs) else 1
+    if not check_writable(args.directory, stats):
+        stats.add_log(
+            f"No write permission for directory: {args.directory}", LogLevel.ERROR
+        )
+        stats.print_logs(verbosity=1)
+        return 1
+
+    if is_network_path(args.directory, stats):
+        stats.add_log("Network path detected - operations may be slower", LogLevel.INFO)
+
+    # Acquire directory lock
+    lock_fd = acquire_lock(args.directory)
+    if lock_fd is None and not args.no_confirm:
+        stats.add_log("Warning: Could not acquire directory lock", LogLevel.WARNING)
+        if not get_user_confirmation(
+            "Continue without lock?", default=False, stats=stats
+        ):
+            return 1
+
+    try:
+        # Execute requested operations
+        if args.clean_only:
+            stats.add_log(
+                f"Starting clean-only mode in {args.directory}", LogLevel.INFO
+            )
+            files, dirs = remove_apple_system_files(
+                args.directory, stats, args.verbosity
+            )
+            stats.files_removed = files
+            stats.dirs_removed = dirs
+        else:
+            stats.add_log(
+                f"Starting full processing in {args.directory}", LogLevel.INFO
+            )
+            extract_zip_files(args.directory, stats, args.no_confirm, args.verbosity)
+            files, dirs = remove_apple_system_files(
+                args.directory, stats, args.verbosity
+            )
+            stats.files_removed += files
+            stats.dirs_removed += dirs
+            reorganize_directories(
+                args.directory, stats, args.no_confirm, args.verbosity
+            )
+
+        # Output results
+        stats.print_logs(verbosity=args.verbosity)
+        stats.print_summary(verbosity=args.verbosity)
+
+        return 0 if stats.errors == 0 else 1
+
+    except Exception as e:
+        stats.add_log(f"Unexpected error: {e}", LogLevel.ERROR)
+        if args.verbosity >= 1:
+            import traceback
+
+            stats.add_log(traceback.format_exc(), LogLevel.DEBUG)
+        stats.print_logs(verbosity=args.verbosity)
+        return 1
+
+    finally:
+        release_lock(lock_fd, stats)
 
 
 if __name__ == "__main__":

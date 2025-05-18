@@ -108,6 +108,87 @@ python eliminate_dups_in_csv.py 输入文件.csv 输出文件.csv 重复项文�
 - `--delimiter`：CSV文件分隔符（默认：,）
 - `--table-format`：摘要表格的格式（默认：fancy_grid）
 
+## Español
+
+### Eliminador de Duplicados CSV
+
+Este script procesa archivos CSV para identificar y eliminar entradas duplicadas, guardándolas en archivos separados para su revisión.
+
+**Características:**
+- Identifica y elimina entradas duplicadas de archivos CSV
+- Funciona con cualquier archivo CSV independientemente de su contenido o número de columnas
+- Crea un archivo de salida limpio sin duplicados
+- Guarda los duplicados identificados en un archivo separado
+- Proporciona un resumen completo de la operación
+- Codificación, delimitador y formato de visualización de tabla personalizables
+
+**Uso:**
+```bash
+python eliminate_dups_in_csv.py archivo_entrada.csv archivo_salida.csv archivo_duplicados.csv [opciones]
+```
+
+**Argumentos:**
+- `archivo_entrada`: Ruta al archivo CSV de entrada
+- `archivo_salida`: Ruta para guardar el archivo CSV sin duplicados
+- `archivo_duplicados`: Ruta para guardar el archivo CSV que contiene solo duplicados
+- `--encoding`: Codificación del archivo CSV (predeterminado: utf-8)
+- `--delimiter`: Delimitador del archivo CSV (predeterminado: ,)
+- `--table-format`: Formato para la tabla de resumen (predeterminado: fancy_grid)
+
+## Italiano
+
+### Rimozione Duplicati CSV
+
+Questo script elabora file CSV per identificare e rimuovere voci duplicate, salvandole in file separati per la revisione.
+
+**Funzionalità:**
+- Identifica e rimuove voci duplicate dai file CSV
+- Funziona con qualsiasi file CSV indipendentemente dal suo contenuto o numero di colonne
+- Crea un file di output pulito senza duplicati
+- Salva i duplicati identificati in un file separato
+- Fornisce un riepilogo completo dell'operazione
+- Codifica, delimitatore e formato di visualizzazione della tabella personalizzabili
+
+**Utilizzo:**
+```bash
+python eliminate_dups_in_csv.py file_input.csv file_output.csv file_duplicati.csv [opzioni]
+```
+
+**Argomenti:**
+- `file_input`: Percorso del file CSV di input
+- `file_output`: Percorso per salvare il file CSV senza duplicati
+- `file_duplicati`: Percorso per salvare il file CSV contenente solo duplicati
+- `--encoding`: Codifica del file CSV (predefinito: utf-8)
+- `--delimiter`: Delimitatore del file CSV (predefinito: ,)
+- `--table-format`: Formato per la tabella di riepilogo (predefinito: fancy_grid)
+
+## Deutsch
+
+### CSV-Duplikatentferner
+
+Dieses Skript verarbeitet CSV-Dateien, um doppelte Einträge zu identifizieren und zu entfernen, wobei diese zur Überprüfung in separaten Dateien gespeichert werden.
+
+**Funktionen:**
+- Identifiziert und entfernt doppelte Einträge aus CSV-Dateien
+- Funktioniert mit jeder CSV-Datei unabhängig von ihrem Inhalt oder ihrer Spaltenanzahl
+- Erstellt eine bereinigte Ausgabedatei ohne Duplikate
+- Speichert identifizierte Duplikate in einer separaten Datei
+- Bietet eine umfassende Zusammenfassung der Operation
+- Anpassbare Kodierung, Trennzeichen und Tabellenanzeigeformat
+
+**Verwendung:**
+```bash
+python eliminate_dups_in_csv.py eingabedatei.csv ausgabedatei.csv duplikate_datei.csv [optionen]
+```
+
+**Argumente:**
+- `eingabedatei`: Pfad zur CSV-Eingabedatei
+- `ausgabedatei`: Pfad zum Speichern der CSV-Datei ohne Duplikate
+- `duplikate_datei`: Pfad zum Speichern der CSV-Datei, die nur Duplikate enthält
+- `--encoding`: CSV-Dateikodierung (Standard: utf-8)
+- `--delimiter`: CSV-Dateitrennzeichen (Standard: ,)
+- `--table-format`: Format für die Zusammenfassungstabelle (Standard: fancy_grid)
+
 ## 繁體中文
 
 ### CSV重複項刪除器

@@ -132,6 +132,105 @@ python scans_rename.py --directory 路径 [--rename] [--organize] [--resize] \
 - `-w, --overwrite`：移动或调整大小时覆盖现有文件
 - `-c, --current-dir`：在调整大小时包括当前目录中的图像
 
+## Español
+
+### Organizador de Archivos con Marcas de Tiempo Japonesas
+
+Este script ayuda a gestionar y organizar archivos escaneados con marcas de tiempo japonesas en sus nombres de archivo. Fue creado por necesidad para lidiar con las limitaciones del controlador Canon ImageFORMULA escrito por desarrolladores, que solo funciona correctamente en Windows y carece de la capacidad de generar formatos de archivo adecuados.
+
+**Características:**
+- Renombra archivos del formato de marca de tiempo japonés (`YYYYMMDD-HH時MM分SS秒-XXX.jpg`) al formato latino (`YYYYMMDD-HHhMMmSSs-XXX.jpg`)
+- Organiza archivos en carpetas basadas en sus prefijos de marca de tiempo
+- Crea versiones redimensionadas amigables para web en subcarpetas "petites"
+- Organiza archivos numerados (ej. "1.jpg", "2.jpg") usando el contenido del portapapeles para nombrar carpetas
+- Incluye un modo de simulación para previsualizar cambios sin modificar archivos
+- Niveles de verbosidad configurables para retroalimentación detallada de operaciones
+
+**Uso:**
+```bash
+python scans_rename.py --directory RUTA [--rename] [--organize] [--resize] \
+  [--numbered] [--dry-run] [--verbose NIVEL]
+```
+
+**Argumentos:**
+- `-d, --directory`: Directorio que contiene los archivos a procesar (por defecto: directorio actual)
+- `-r, --dry-run`: Simular operaciones sin cambiar ningún archivo
+- `-n, --rename`: Habilitar el paso de renombrado de archivos (japonés '時分秒' a latino 'hms')
+- `-o, --organize`: Habilitar el paso de organización de archivos (mover archivos a carpetas nombradas según marca de tiempo)
+- `-z, --resize`: Habilitar el paso de redimensionamiento de imágenes (crear versiones amigables para web en subcarpetas "petites")
+- `-x, --numbered`: Habilitar la organización de archivos numerados usando el contenido del portapapeles
+- `-m, --max-pixels`: Tamaño máximo en píxeles para imágenes redimensionadas (por defecto: 2000)
+- `-q, --quality`: Calidad JPEG para imágenes redimensionadas (70-100, por defecto: 80)
+- `-v, --verbose`: Nivel de verbosidad: 0=silencioso, 1=resumen, 2=detalles (por defecto: 0)
+- `-w, --overwrite`: Sobrescribir archivos existentes al mover o redimensionar
+- `-c, --current-dir`: Incluir imágenes en el directorio actual al redimensionar
+
+## Italiano
+
+### Organizzatore di File con Timestamp Giapponese
+
+Questo script aiuta a gestire e organizzare file scansionati con timestamp giapponesi nei loro nomi file. È stato creato per necessità per affrontare le limitazioni del driver Canon ImageFORMULA scritto da sviluppatori, che funziona correttamente solo su Windows e manca della capacità di generare formati file appropriati.
+
+**Funzionalità:**
+- Rinomina i file dal formato timestamp giapponese (`YYYYMMDD-HH時MM分SS秒-XXX.jpg`) al formato latino (`YYYYMMDD-HHhMMmSSs-XXX.jpg`)
+- Organizza i file in cartelle basate sui loro prefissi timestamp
+- Crea versioni ridimensionate adatte al web nelle sottocartelle "petites"
+- Organizza file numerati (es. "1.jpg", "2.jpg") utilizzando il contenuto degli appunti per nominare le cartelle
+- Include una modalità di prova per visualizzare in anteprima le modifiche senza alterare i file
+- Livelli di verbosità configurabili per un feedback dettagliato delle operazioni
+
+**Utilizzo:**
+```bash
+python scans_rename.py --directory PERCORSO [--rename] [--organize] [--resize] \
+  [--numbered] [--dry-run] [--verbose LIVELLO]
+```
+
+**Argomenti:**
+- `-d, --directory`: Directory contenente i file da elaborare (predefinito: directory corrente)
+- `-r, --dry-run`: Simulare le operazioni senza modificare alcun file
+- `-n, --rename`: Abilitare la fase di ridenominazione file (giapponese '時分秒' a latino 'hms')
+- `-o, --organize`: Abilitare la fase di organizzazione file (spostare i file in cartelle denominate con timestamp)
+- `-z, --resize`: Abilitare la fase di ridimensionamento immagini (creare versioni adatte al web nelle sottocartelle "petites")
+- `-x, --numbered`: Abilitare l'organizzazione di file numerati utilizzando il contenuto degli appunti
+- `-m, --max-pixels`: Dimensione massima in pixel per le immagini ridimensionate (predefinito: 2000)
+- `-q, --quality`: Qualità JPEG per le immagini ridimensionate (70-100, predefinito: 80)
+- `-v, --verbose`: Livello di verbosità: 0=silenzioso, 1=riepilogo, 2=dettagli (predefinito: 0)
+- `-w, --overwrite`: Sovrascrivere i file esistenti durante lo spostamento o il ridimensionamento
+- `-c, --current-dir`: Includere le immagini nella directory corrente durante il ridimensionamento
+
+## Deutsch
+
+### Japanischer Zeitstempel-Datei-Organisierer
+
+Dieses Skript hilft bei der Verwaltung und Organisation von gescannten Dateien mit japanischen Zeitstempeln in ihren Dateinamen. Es wurde aus der Notwendigkeit heraus erstellt, mit den Einschränkungen des Canon ImageFORMULA-Treibers umzugehen, der von Entwicklern geschrieben wurde, nur unter Windows richtig funktioniert und nicht die Fähigkeit besitzt, geeignete Dateiformate zu generieren.
+
+**Funktionen:**
+- Benennt Dateien vom japanischen Zeitstempelformat (`YYYYMMDD-HH時MM分SS秒-XXX.jpg`) ins lateinische Format (`YYYYMMDD-HHhMMmSSs-XXX.jpg`) um
+- Organisiert Dateien in Ordnern basierend auf ihren Zeitstempelpräfixen
+- Erstellt webfreundliche, größenangepasste Versionen von Bildern in "petites"-Unterordnern
+- Organisiert nummerierte Dateien (z.B. "1.jpg", "2.jpg") mit Zwischenablageinhalt für die Ordnerbenennung
+- Enthält einen Testmodus zur Vorschau von Änderungen ohne Dateien zu modifizieren
+- Konfigurierbare Ausführlichkeitsstufen für detailliertes Operationsfeedback
+
+**Verwendung:**
+```bash
+python scans_rename.py --directory PFAD [--rename] [--organize] [--resize] \
+  [--numbered] [--dry-run] [--verbose STUFE]
+```
+
+**Argumente:**
+- `-d, --directory`: Verzeichnis mit zu verarbeitenden Dateien (Standard: aktuelles Verzeichnis)
+- `-r, --dry-run`: Simuliere Operationen ohne Dateien zu ändern
+- `-n, --rename`: Aktiviere den Dateiumbennungsschritt (japanisch '時分秒' zu lateinisch 'hms')
+- `-o, --organize`: Aktiviere den Dateiorganisationsschritt (verschiebe Dateien in nach Zeitstempel benannte Ordner)
+- `-z, --resize`: Aktiviere den Bildgrößenanpassungsschritt (erstelle webfreundliche Versionen in "petites"-Unterordnern)
+- `-x, --numbered`: Aktiviere Organisation nummerierter Dateien mit Zwischenablageinhalt
+- `-m, --max-pixels`: Maximale Größe in Pixeln für größenangepasste Bilder (Standard: 2000)
+- `-q, --quality`: JPEG-Qualität für größenangepasste Bilder (70-100, Standard: 80)
+- `-v, --verbose`: Ausführlichkeitsstufe: 0=still, 1=Zusammenfassung, 2=Details (Standard: 0)
+- `-w, --overwrite`: Überschreibe vorhandene Dateien beim Verschieben oder Größenändern
+- `-c, --current-dir`: Schließe Bilder im aktuellen Verzeichnis selbst bei der Größenänderung ein
+
 ## 繁體中文
 
 ### 日語時間戳檔案整理工具

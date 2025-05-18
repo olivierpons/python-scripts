@@ -17,6 +17,9 @@ This script performs three main operations with comprehensive logging and statis
 - Configurable confirmation prompts
 - Detailed progress logging
 - Beautiful tabular output using 'rich' library (with fallbacks to 'tabulate' or basic formatting)
+- Extensive error handling and recovery
+- File locking to prevent concurrent modifications
+- Path safety checks for network paths and long filenames
 
 **Example usage:**
 ```bash
@@ -38,6 +41,8 @@ $ python unzip_files_then_clean.py /path/to/directory --no-confirm -v1
 - `-c`, `--clean-only`: Only clean system files without extracting or reorganizing
 - `-n`, `--no-confirm`: Skip all confirmation prompts
 - `-v`, `--verbosity`: Verbosity level (0=silent, 1=normal, 2=verbose)
+- `--max-size`: Maximum ZIP file size in bytes (default: 10GB)
+- `--no-color`: Disable colored output
 
 ## Français
 
@@ -56,6 +61,9 @@ Ce script effectue trois opérations principales avec une journalisation et des 
 - Demandes de confirmation configurables
 - Journalisation détaillée des progrès
 - Affichage tabulaire élégant utilisant la bibliothèque 'rich' (avec repli sur 'tabulate' ou un formatage basique)
+- Gestion et récupération d'erreurs extensives
+- Verrouillage de fichiers pour empêcher les modifications simultanées
+- Vérifications de sécurité pour les chemins réseau et les noms de fichiers longs
 
 **Exemples d'utilisation :**
 ```bash
@@ -77,6 +85,8 @@ $ python unzip_files_then_clean.py /chemin/vers/repertoire --no-confirm -v1
 - `-c`, `--clean-only` : Nettoyer uniquement les fichiers système sans extraire ni réorganiser
 - `-n`, `--no-confirm` : Ignorer toutes les demandes de confirmation
 - `-v`, `--verbosity` : Niveau de verbosité (0=silencieux, 1=normal, 2=verbeux)
+- `--max-size` : Taille maximale des fichiers ZIP en octets (par défaut : 10Go)
+- `--no-color` : Désactiver la sortie colorée
 
 ## 日本語
 
@@ -95,6 +105,9 @@ $ python unzip_files_then_clean.py /chemin/vers/repertoire --no-confirm -v1
 - 設定可能な確認プロンプト
 - 詳細な進行ログ
 - 'rich'ライブラリを使用した美しい表形式の出力（'tabulate'または基本的な形式へのフォールバック付き）
+- 広範なエラー処理と回復
+- 同時変更を防止するためのファイルロック
+- ネットワークパスや長いファイル名のためのパス安全性チェック
 
 **使用例：**
 ```bash
@@ -116,6 +129,8 @@ $ python unzip_files_then_clean.py /path/to/directory --no-confirm -v1
 - `-c`, `--clean-only`：抽出や再編成なしでシステムファイルのみを清掃
 - `-n`, `--no-confirm`：すべての確認プロンプトをスキップ
 - `-v`, `--verbosity`：詳細レベル（0=無音、1=通常、2=詳細）
+- `--max-size`：ZIPファイルの最大サイズ（バイト単位、デフォルト：10GB）
+- `--no-color`：カラー出力を無効にする
 
 ## 简体中文
 
@@ -134,6 +149,9 @@ $ python unzip_files_then_clean.py /path/to/directory --no-confirm -v1
 - 可配置的确认提示
 - 详细的进度日志
 - 使用'rich'库的美观表格输出（后备为'tabulate'或基本格式）
+- 广泛的错误处理和恢复
+- 文件锁定以防止并发修改
+- 网络路径和长文件名的路径安全检查
 
 **使用示例：**
 ```bash
@@ -155,42 +173,137 @@ $ python unzip_files_then_clean.py /path/to/directory --no-confirm -v1
 - `-c`, `--clean-only`：仅清理系统文件，不进行提取或重组
 - `-n`, `--no-confirm`：跳过所有确认提示
 - `-v`, `--verbosity`：详细级别（0=静默，1=普通，2=详细）
+- `--max-size`：ZIP文件的最大大小（字节，默认：10GB）
+- `--no-color`：禁用彩色输出
 
-## 繁體中文
+## Español
 
-### 高級ZIP提取和目錄重組工具
+### Herramienta Avanzada de Extracción ZIP y Reorganización de Directorios
 
-此腳本通過全面的日誌記錄和統計執行三項主要操作：
-1. 將目錄中的所有ZIP檔案提取到相應的子目錄中
-2. 刪除Apple系統檔案（.DS_Store、.__MACOSX資料夾等）
-3. 通過將單一子目錄上移一級來重組目錄結構
+Este script realiza tres operaciones principales con registro y estadísticas completas:
+1. Extrae todos los archivos ZIP en un directorio a subdirectorios correspondientes
+2. Elimina archivos del sistema Apple (.DS_Store, carpetas .__MACOSX, etc.)
+3. Reorganiza directorios moviendo directorios de hijo único un nivel hacia arriba
 
-**功能：**
-- 三個詳細級別（0=靜默，1=普通，2=詳細）
-- 通過OperationStats類實現集中化輸出
-- 全面的統計數據收集
-- 具有管道語法的現代Python類型提示
-- 可配置的確認提示
-- 詳細的進度日誌
-- 使用'rich'庫的美觀表格輸出（後備為'tabulate'或基本格式）
+**Características:**
+- Tres niveles de verbosidad (0=silencioso, 1=normal, 2=detallado)
+- Salida centralizada a través de la clase OperationStats
+- Recopilación completa de estadísticas
+- Tipado moderno de Python con sintaxis de pipe
+- Mensajes de confirmación configurables
+- Registro detallado del progreso
+- Hermosa salida tabular usando la biblioteca 'rich' (con alternativas a 'tabulate' o formato básico)
+- Manejo y recuperación extensiva de errores
+- Bloqueo de archivos para prevenir modificaciones concurrentes
+- Comprobaciones de seguridad para rutas de red y nombres de archivo largos
 
-**使用示例：**
+**Ejemplos de uso:**
 ```bash
-# 默認詳細模式（顯示所有操作）
-$ python unzip_files_then_clean.py /path/to/directory
+# Modo detallado predeterminado (muestra todas las operaciones)
+$ python unzip_files_then_clean.py /ruta/al/directorio
 
-# 普通詳細度的僅清理模式
-$ python unzip_files_then_clean.py /path/to/directory --clean-only -v1
+# Modo solo limpieza con verbosidad normal
+$ python unzip_files_then_clean.py /ruta/al/directorio --clean-only -v1
 
-# 靜默模式（僅顯示錯誤）
-$ python unzip_files_then_clean.py /path/to/directory -v0
+# Modo silencioso (solo errores)
+$ python unzip_files_then_clean.py /ruta/al/directorio -v0
 
-# 普通詳細度的無確認提示
-$ python unzip_files_then_clean.py /path/to/directory --no-confirm -v1
+# Sin mensajes de confirmación con verbosidad normal
+$ python unzip_files_then_clean.py /ruta/al/directorio --no-confirm -v1
 ```
 
-**參數：**
-- `-d`, `--directory`：包含要處理檔案的目錄
-- `-c`, `--clean-only`：僅清理系統檔案，不進行提取或重組
-- `-n`, `--no-confirm`：跳過所有確認提示
-- `-v`, `--verbosity`：詳細級別（0=靜默，1=普通，2=詳細）
+**Argumentos:**
+- `-d`, `--directory`: Directorio que contiene los archivos a procesar
+- `-c`, `--clean-only`: Solo limpiar archivos del sistema sin extraer ni reorganizar
+- `-n`, `--no-confirm`: Omitir todos los mensajes de confirmación
+- `-v`, `--verbosity`: Nivel de verbosidad (0=silencioso, 1=normal, 2=detallado)
+- `--max-size`: Tamaño máximo de archivo ZIP en bytes (predeterminado: 10GB)
+- `--no-color`: Desactivar salida coloreada
+
+## Italiano
+
+### Strumento Avanzato di Estrazione ZIP e Riorganizzazione delle Directory
+
+Questo script esegue tre operazioni principali con registrazione e statistiche complete:
+1. Estrae tutti i file ZIP in una directory nelle sottodirectory corrispondenti
+2. Rimuove i file di sistema Apple (.DS_Store, cartelle .__MACOSX, ecc.)
+3. Riorganizza le directory spostando le directory con un solo figlio un livello più in alto
+
+**Funzionalità:**
+- Tre livelli di verbosità (0=silenzioso, 1=normale, 2=dettagliato)
+- Output centralizzato attraverso la classe OperationStats
+- Raccolta completa di statistiche
+- Tipizzazione Python moderna con sintassi pipe
+- Richieste di conferma configurabili
+- Registrazione dettagliata dei progressi
+- Output tabulare elegante utilizzando la libreria 'rich' (con fallback a 'tabulate' o formattazione base)
+- Gestione e recupero estensivo degli errori
+- Blocco dei file per prevenire modifiche concorrenti
+- Controlli di sicurezza per percorsi di rete e nomi di file lunghi
+
+**Esempi di utilizzo:**
+```bash
+# Modalità dettagliata predefinita (mostra tutte le operazioni)
+$ python unzip_files_then_clean.py /percorso/alla/directory
+
+# Modalità solo pulizia con verbosità normale
+$ python unzip_files_then_clean.py /percorso/alla/directory --clean-only -v1
+
+# Modalità silenziosa (solo errori)
+$ python unzip_files_then_clean.py /percorso/alla/directory -v0
+
+# Nessuna richiesta di conferma con verbosità normale
+$ python unzip_files_then_clean.py /percorso/alla/directory --no-confirm -v1
+```
+
+**Argomenti:**
+- `-d`, `--directory`: Directory contenente i file da elaborare
+- `-c`, `--clean-only`: Pulisci solo i file di sistema senza estrarre o riorganizzare
+- `-n`, `--no-confirm`: Salta tutte le richieste di conferma
+- `-v`, `--verbosity`: Livello di verbosità (0=silenzioso, 1=normale, 2=dettagliato)
+- `--max-size`: Dimensione massima del file ZIP in byte (predefinito: 10GB)
+- `--no-color`: Disabilita l'output colorato
+
+## Deutsch
+
+### Fortgeschrittenes ZIP-Extraktions- und Verzeichnis-Reorganisationstool
+
+Dieses Skript führt drei Hauptoperationen mit umfassender Protokollierung und Statistik durch:
+1. Extrahiert alle ZIP-Dateien in einem Verzeichnis in entsprechende Unterverzeichnisse
+2. Entfernt Apple-Systemdateien (.DS_Store, .__MACOSX-Ordner usw.)
+3. Reorganisiert Verzeichnisse, indem Verzeichnisse mit einem einzelnen Kind eine Ebene nach oben verschoben werden
+
+**Funktionen:**
+- Drei Ausführlichkeitsstufen (0=stumm, 1=normal, 2=ausführlich)
+- Zentralisierte Ausgabe durch die OperationStats-Klasse
+- Umfassende Statistikerfassung
+- Moderne Python-Typisierung mit Pipe-Syntax
+- Konfigurierbare Bestätigungsaufforderungen
+- Detaillierte Fortschrittsprotokollierung
+- Schöne tabellarische Ausgabe mit der 'rich'-Bibliothek (mit Fallbacks zu 'tabulate' oder Basisformatierung)
+- Umfangreiche Fehlerbehandlung und -wiederherstellung
+- Dateisperrung zur Verhinderung gleichzeitiger Änderungen
+- Sicherheitsprüfungen für Netzwerkpfade und lange Dateinamen
+
+**Verwendungsbeispiele:**
+```bash
+# Standardmäßiger ausführlicher Modus (zeigt alle Operationen)
+$ python unzip_files_then_clean.py /pfad/zum/verzeichnis
+
+# Nur-Bereinigungsmodus mit normaler Ausführlichkeit
+$ python unzip_files_then_clean.py /pfad/zum/verzeichnis --clean-only -v1
+
+# Stummer Modus (nur Fehler)
+$ python unzip_files_then_clean.py /pfad/zum/verzeichnis -v0
+
+# Keine Bestätigungsaufforderungen mit normaler Ausführlichkeit
+$ python unzip_files_then_clean.py /pfad/zum/verzeichnis --no-confirm -v1
+```
+
+**Argumente:**
+- `-d`, `--directory`: Verzeichnis mit zu verarbeitenden Dateien
+- `-c`, `--clean-only`: Nur Systemdateien bereinigen ohne Extraktion oder Reorganisation
+- `-n`, `--no-confirm`: Alle Bestätigungsaufforderungen überspringen
+- `-v`, `--verbosity`: Ausführlichkeitsstufe (0=stumm, 1=normal, 2=ausführlich)
+- `--max-size`: Maximale ZIP-Dateigröße in Bytes (Standard: 10GB)
+- `--no-color`: Farbige Ausgabe deaktivieren
