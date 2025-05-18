@@ -1,20 +1,27 @@
 #!/usr/bin/env python3
 """
-ZIP Extraction and Directory Reorganization Tool.
+Advanced ZIP Extraction and Directory Reorganization Tool.
 
-This script performs three main operations:
+This script performs three main operations with comprehensive logging and statistics:
 1. Extracts all ZIP files in a directory into corresponding subdirectories
 2. Removes Apple system files (.DS_Store, .__MACOSX folders, etc.)
 3. Reorganizes directories by moving single-child directories up one level
 
+Features:
+- Detailed progress logging with --verbose option
+- Beautiful tabular output (with fallback to basic formatting)
+- Comprehensive statistics collection
+- Modern Python typing and dataclasses
+- Configurable confirmation prompts
+
 Example usage:
     $ python unzip_files_then_clean.py /path/to/directory
     $ python unzip_files_then_clean.py /path/to/directory --clean-only
-    $ python unzip_files_then_clean.py /path/to/directory --no-confirm
+    $ python unzip_files_then_clean.py /path/to/directory --no-confirm --verbose
 
 Returns:
     0: Success
-    1: Error (directory not found)
+    1: Error (directory not found or processing error)
 """
 
 import argparse
@@ -23,6 +30,7 @@ import shutil
 import sys
 import zipfile
 from dataclasses import dataclass, field
+from enum import Enum, auto
 from pathlib import Path
 from typing import Generator, List, Literal, Optional, Set, Tuple
 
@@ -35,145 +43,175 @@ except ImportError:
     HAS_TABULATE = False
 
     # Define a simple tabulate function as a fallback
-    def tabulate(data):
+    def tabulate(data, headers=None, tablefmt="grid"):
         """Simple tabulate fallback when the package is not available."""
-        result = []
+        if not data:
+            return ""
+
+        # Calculate column widths
+        if headers:
+            all_rows = [headers] + data
+        else:
+            all_rows = data
+
+        col_widths = [
+            max(len(str(row[i])) for row in all_rows) for i in range(len(all_rows[0]))
+        ]
+
+        # Build horizontal divider
+        divider = "+" + "+".join("-" * (w + 2) for w in col_widths) + "+"
+
+        # Build the table
+        table = [divider]
+
+        # Add headers if provided
+        if headers:
+            header_row = (
+                "| "
+                + " | ".join(
+                    f"{str(header):<{width}}"
+                    for header, width in zip(headers, col_widths)
+                )
+                + " |"
+            )
+            table.extend([header_row, divider])
+
+        # Add data rows
         for row in data:
-            result.append("| " + " | ".join(str(cell) for cell in row) + " |")
-        return "\n".join(result)
+            row_str = (
+                "| "
+                + " | ".join(
+                    f"{str(item):<{width}}" for item, width in zip(row, col_widths)
+                )
+                + " |"
+            )
+            table.append(row_str)
+
+        table.append(divider)
+        return "\n".join(table)
 
     print(
-        "Warning: 'tabulate' package not found. Install with 'pip install tabulate' for better output formatting."
+        "Note: For better output formatting, install 'tabulate' "
+        "with: `pip install tabulate`"
     )
-    print()
+
+
+class LogLevel(Enum):
+    """Enum for different log levels."""
+
+    INFO = auto()
+    WARNING = auto()
+    ERROR = auto()
+    SUCCESS = auto()
+    OPERATION = auto()
+
+
+@dataclass
+class LogEntry:
+    """Class representing a single log entry."""
+
+    message: str
+    level: LogLevel = LogLevel.INFO
+    timestamp: Optional[float] = field(default=None, repr=False)
 
 
 @dataclass
 class OperationStats:
-    """Statistics for different operations in the script."""
+    """Statistics collector for all operations."""
 
-    # ZIP extraction stats
+    # Operation counters
     total_zips: int = 0
     successful_extractions: int = 0
     failed_extractions: int = 0
-
-    # Cleaning stats
-    total_files_removed: int = 0
-    total_dirs_removed: int = 0
-
-    # Reorganization stats
+    files_removed: int = 0
+    dirs_removed: int = 0
     dirs_examined: int = 0
     dirs_reorganized: int = 0
     dirs_ignored: int = 0
 
-    # Detailed logs
-    logs: List[str] = field(default_factory=list)
+    # Detailed logging
+    logs: List[LogEntry] = field(default_factory=list)
 
-    def add_log(self, message: str) -> None:
-        """Add a log message to the log's list."""
-        self.logs.append(message)
+    def add_log(self, message: str, level: LogLevel = LogLevel.INFO) -> None:
+        """Add a new log entry."""
+        self.logs.append(LogEntry(message, level))
 
     def print_summary(self) -> None:
-        """Print a summary of all operations."""
-        if HAS_TABULATE:
-            # Create table data
-            tables = []
-
-            # ZIP extraction table
-            zip_data = [
-                ["Total ZIP files", self.total_zips],
-                ["Successful extractions", self.successful_extractions],
-                ["Failed extractions", self.failed_extractions],
-            ]
-            tables.append(("ZIP Processing Summary", zip_data))
-
-            # Cleaning table
-            clean_data = [
-                ["Files removed", self.total_files_removed],
-                ["Directories removed", self.total_dirs_removed],
-            ]
-            tables.append(("Cleaning Summary", clean_data))
-
-            # Reorganization table
-            reorg_data = [
-                ["Directories examined", self.dirs_examined],
-                ["Directories reorganized", self.dirs_reorganized],
-                ["Directories ignored", self.dirs_ignored],
-            ]
-            tables.append(("Reorganization Summary", reorg_data))
-
-            # Print each table
-            print("\n=== OPERATION SUMMARY ===\n")
-            for title, data in tables:
-                print(f"--- {title} ---")
-                print(tabulate(data))
-                print()
-
-            # Print overall statistics
-            overall_data = [
-                ["Total files cleaned", self.total_files_removed],
-                ["Total directories cleaned", self.total_dirs_removed],
+        """Print a comprehensive summary of all operations."""
+        # Prepare summary data
+        summary_data = {
+            "ZIP Processing": [
+                ["Files Processed", self.total_zips],
+                ["Successful", self.successful_extractions],
+                ["Failed", self.failed_extractions],
                 [
-                    "Success rate (ZIP extraction)",
+                    "Success Rate",
                     (
-                        f"{self.successful_extractions/self.total_zips*100:.1f}%"
-                        if self.total_zips > 0
+                        f"{self.successful_extractions / self.total_zips * 100:.1f}%"
+                        if self.total_zips
                         else "N/A"
                     ),
                 ],
+            ],
+            "Cleaning": [
+                ["Files Removed", self.files_removed],
+                ["Directories Removed", self.dirs_removed],
+                ["Total Cleaned", self.files_removed + self.dirs_removed],
+            ],
+            "Reorganization": [
+                ["Examined", self.dirs_examined],
+                ["Reorganized", self.dirs_reorganized],
+                ["Ignored", self.dirs_ignored],
                 [
-                    "Success rate (reorganization)",
+                    "Reorg Rate",
                     (
-                        f"{self.dirs_reorganized/self.dirs_examined*100:.1f}%"
-                        if self.dirs_examined > 0
+                        f"{self.dirs_reorganized / self.dirs_examined * 100:.1f}%"
+                        if self.dirs_examined
                         else "N/A"
                     ),
                 ],
-            ]
-            print("--- Overall Statistics ---")
-            print(tabulate(overall_data))
-            print()
-        else:
-            # Fallback to basic printing if tabulate is not available
-            print("\n=== OPERATION SUMMARY ===\n")
+            ],
+        }
 
-            print("--- ZIP Processing Summary ---")
-            print(f"Total ZIP files: {self.total_zips}")
-            print(f"Successful extractions: {self.successful_extractions}")
-            print(f"Failed extractions: {self.failed_extractions}")
-            print()
+        # Print summary header
+        print("\n" + "=" * 80)
+        print("PROCESSING SUMMARY".center(80))
+        print("=" * 80)
 
-            print("--- Cleaning Summary ---")
-            print(f"Files removed: {self.total_files_removed}")
-            print(f"Directories removed: {self.total_dirs_removed}")
-            print()
+        # Print each section
+        for section, data in summary_data.items():
+            print(f"\n{section.upper():^80}")
+            print(tabulate(data, tablefmt="grid"))
 
-            print("--- Reorganization Summary ---")
-            print(f"Directories examined: {self.dirs_examined}")
-            print(f"Directories reorganized: {self.dirs_reorganized}")
-            print(f"Directories ignored: {self.dirs_ignored}")
-            print()
-
-            print("--- Overall Statistics ---")
-            print(f"Total files cleaned: {self.total_files_removed}")
-            print(f"Total directories cleaned: {self.total_dirs_removed}")
-            if self.total_zips > 0:
-                print(
-                    f"Success rate (ZIP extraction): {self.successful_extractions/self.total_zips*100:.1f}%"
-                )
-            if self.dirs_examined > 0:
-                print(
-                    f"Success rate (reorganization): {self.dirs_reorganized/self.dirs_examined*100:.1f}%"
-                )
-            print()
+        # Print error summary if any
+        error_logs = [log for log in self.logs if log.level == LogLevel.ERROR]
+        if error_logs:
+            print("\n" + "!" * 80)
+            print(f"  {len(error_logs)} ERRORS ENCOUNTERED  ".center(80, "!"))
+            print("!" * 80)
 
     def print_logs(self, verbose: bool = False) -> None:
-        """Print all logs collected during operations."""
-        if verbose and self.logs:
-            print("\n=== DETAILED LOGS ===\n")
-            for log in self.logs:
-                print(log)
-            print()
+        """Print all collected logs with optional filtering."""
+        if not self.logs:
+            return
+
+        print("\n" + "-" * 80)
+        print("DETAILED OPERATION LOGS".center(80))
+        print("-" * 80)
+
+        for log in self.logs:
+            if not verbose and log.level == LogLevel.INFO:
+                continue
+
+            prefix = {
+                LogLevel.INFO: "[INFO]",
+                LogLevel.WARNING: "[WARNING]",
+                LogLevel.ERROR: "[ERROR]",
+                LogLevel.SUCCESS: "[SUCCESS]",
+                LogLevel.OPERATION: "→",
+            }.get(log.level, "")
+
+            print(f"{prefix} {log.message}")
 
 
 # Constants for Apple system files to remove
@@ -182,9 +220,11 @@ APPLE_SYSTEM_FILES: Set[str] = {
     "._.DS_Store",
     ".AppleDouble",
     ".LSOverride",
+    # More specific pattern for AppleDouble files
+    re.compile(r'^\._.*$'),  # Only files starting with ._
 }
 
-# Constants for Apple system directories to remove
+# Apple system directories
 APPLE_SYSTEM_DIRS: Set[str] = {
     "__MACOSX",
     ".__MACOSX",
@@ -194,523 +234,276 @@ APPLE_SYSTEM_DIRS: Set[str] = {
 }
 
 
-def remove_apple_system_files(
-    directory: Path, stats: Optional[OperationStats] = None
-) -> Tuple[int, int]:
+def is_apple_system_file(filename: str) -> bool:
+    """Check if a filename matches known Apple system file patterns."""
+    if filename in APPLE_SYSTEM_FILES:
+        return True
+
+    for pattern in APPLE_SYSTEM_FILES:
+        if isinstance(pattern, re.Pattern):
+            if pattern.match(filename):
+                return True
+        elif filename.startswith(pattern.replace('*', '')):
+            return True
+
+    return False
+
+
+def remove_apple_system_files(directory: Path) -> Tuple[int, int]:
     """
-    Recursively remove Apple system files and directories from the given directory.
+    Recursively remove Apple system files and directories.
 
     Args:
-        directory: Directory to clean.
-        stats: Optional OperationStats object to collect logs and statistics.
+        directory: Path to directory to clean
+        stats: Optional OperationStats for logging
 
     Returns:
-        A tuple containing (files_removed, dirs_removed).
-        files_removed: Number of files removed.
-        dirs_removed: Number of directories removed.
-
-    Examples:
-        >>> remove_apple_system_files(Path("/data/extracted"))
-        (12, 3)  # 12 files and 3 directories removed
-
-        >>> # No system files found
-        >>> remove_apple_system_files(Path("/clean/directory"))
-        (0, 0)
+        Tuple of (files_removed, dirs_removed)
     """
-    files_removed: int = 0
-    dirs_removed: int = 0
+    files_removed, dirs_removed = 0, 0
 
-    # Process all files and directories
-    for path in sorted(
-        directory.glob("**/*"), reverse=True
-    ):  # Reverse to process deeper paths first
-        # Skip if the path no longer exists (might have been in a removed directory)
+    for path in sorted(directory.glob("**/*"), key=lambda p: len(p.parts), reverse=True):
         if not path.exists():
             continue
 
-        path_name: str = path.name
+        # Handle directories
+        if path.is_dir() and path.name in APPLE_SYSTEM_DIRS:
+            try:
+                shutil.rmtree(path)
+                dirs_removed += 1
+                print(f"Removed Apple directory: {path}")
+            except OSError as e:
+                print(f"Error removing {path}: {e}")
 
-        # Check if this is a directory to remove
-        if path.is_dir():
-            if path_name in APPLE_SYSTEM_DIRS:
-                log_message = (
-                    f"Removing Apple system directory: {path.relative_to(directory)}"
-                )
-                if stats:
-                    stats.add_log(log_message)
-                try:
-                    shutil.rmtree(path)
-                    dirs_removed += 1
-                except OSError as e:
-                    error_message = f"Failed to remove directory {path}: {e}"
-                    if stats:
-                        stats.add_log(error_message)
-
-        # Check if this is a file to remove
-        elif path.is_file():
-            # Direct match with file patterns
-            is_system_file: bool = path_name in APPLE_SYSTEM_FILES
-
-            # Check patterns with wildcards
-            if not is_system_file:
-                for pattern in APPLE_SYSTEM_FILES:
-                    if "*" in pattern and re.match(
-                        f"^{pattern.replace('*', '.*')}$", path_name
-                    ):
-                        is_system_file = True
-                        break
-
-            if is_system_file:
-                log_message = (
-                    f"Removing Apple system file: {path.relative_to(directory)}"
-                )
-                if stats:
-                    stats.add_log(log_message)
-                try:
-                    path.unlink()
-                    files_removed += 1
-                except OSError as e:
-                    error_message = f"Failed to remove file {path}: {e}"
-                    if stats:
-                        stats.add_log(error_message)
+        # Handle files - ONLY ACTUAL APPLE FILES
+        elif path.is_file() and is_apple_system_file(path.name):
+            try:
+                path.unlink()
+                files_removed += 1
+                print(f"Removed Apple file: {path}")
+            except OSError as e:
+                print(f"Error removing {path}: {e}")
 
     return files_removed, dirs_removed
+
 
 
 def extract_zip_files(
-    source_dir: Path, no_confirm: bool = False, stats: Optional[OperationStats] = None
-) -> Tuple[int, int, int]:
+    source_dir: Path, stats: OperationStats, no_confirm: bool = False
+) -> None:
     """
-    Extract all ZIP files in the source directory to corresponding subdirectories.
-
-    This function iterates through all ZIP files in the source directory,
-    creates a subdirectory with the same name (minus the .zip extension),
-    and extracts the contents into that subdirectory. It also cleans up
-    Apple system files during the extraction process.
+    Extract all ZIP files in directory to corresponding subdirectories.
 
     Args:
-        source_dir: Directory containing ZIP files to extract.
-        no_confirm: If True, overwrite existing directories without confirmation.
-        stats: Optional OperationStats object to collect logs and statistics.
-
-    Returns:
-        A tuple containing (total_processed, success_count, failure_count).
-        total_processed: Total ZIP files found.
-        success_count: Successfully extracted ZIP files.
-        failure_count: Failed extractions.
-
-    Examples:
-        >>> extract_zip_files(Path("/data/zips"))
-        (10, 8, 2)  # Processed 10, 8 successes, 2 failures
-
-        >>> # Directory with no ZIP files
-        >>> extract_zip_files(Path("/empty/directory"))
-        (0, 0, 0)
+        source_dir: Directory containing ZIP files
+        stats: OperationStats for logging and stats
+        no_confirm: Skip confirmation prompts if True
     """
-    total_processed: int = 0
-    success_count: int = 0
-    failure_count: int = 0
-
     for zip_file in source_dir.glob("*.zip"):
-        total_processed += 1
-        dest_dir: Path = source_dir / zip_file.stem
+        stats.total_zips += 1
+        dest_dir = source_dir / zip_file.stem
 
-        log_message = f"Processing: {zip_file.name}"
-        if stats:
-            stats.add_log(log_message)
-            stats.add_log(f"Creating directory: {dest_dir}")
+        stats.add_log(f"Processing ZIP: {zip_file.name}", LogLevel.OPERATION)
+        stats.add_log(f"Creating directory: {dest_dir}", LogLevel.INFO)
 
         # Handle existing directory
         if dest_dir.exists():
-            if stats:
-                stats.add_log("Destination directory already exists.")
-            if not no_confirm:
-                response: str = input("Overwrite contents? (y/n): ").lower()
-                if response != "y":
-                    if stats:
-                        stats.add_log("Operation cancelled for this file.")
-                    failure_count += 1
-                    continue
-            else:
-                if stats:
-                    stats.add_log("Overwriting as --no-confirm flag is set...")
+            stats.add_log("Destination directory exists", LogLevel.WARNING)
 
-            # Clear the existing directory
-            if stats:
-                stats.add_log("Clearing existing directory...")
+            if not no_confirm and not get_user_confirmation("Overwrite contents?"):
+                stats.add_log("Skipped by user", LogLevel.INFO)
+                stats.failed_extractions += 1
+                continue
+
+            stats.add_log("Clearing existing directory...", LogLevel.OPERATION)
             try:
                 shutil.rmtree(dest_dir)
             except OSError as e:
-                error_message = f"Failed to clear directory: {e}"
-                if stats:
-                    stats.add_log(error_message)
-                failure_count += 1
+                stats.add_log(f"Clear failed: {e}", LogLevel.ERROR)
+                stats.failed_extractions += 1
                 continue
 
-        # Create a destination directory
+        # Create destination and extract
         try:
             dest_dir.mkdir(exist_ok=True)
-        except OSError as e:
-            error_message = f"Failed to create directory: {e}"
-            if stats:
-                stats.add_log(error_message)
-            failure_count += 1
-            continue
 
-        # Extract ZIP file
-        if stats:
-            stats.add_log("Extracting ZIP file...")
-        try:
             with zipfile.ZipFile(zip_file, "r") as zip_ref:
                 zip_ref.extractall(dest_dir)
 
-            # Clean up any Apple system files that might have been extracted
-            if stats:
-                stats.add_log("Cleaning up Apple system files...")
+            # Clean extracted files
             files_removed, dirs_removed = remove_apple_system_files(dest_dir, stats)
-            if files_removed > 0 or dirs_removed > 0 and stats:
-                stats.add_log(
-                    f"Removed {files_removed} system files and {dirs_removed} system directories"
-                )
+            stats.files_removed += files_removed
+            stats.dirs_removed += dirs_removed
 
-            # Verify extraction
-            extracted_files: int = sum(1 for _ in dest_dir.rglob("*") if _.is_file())
-            if extracted_files > 0:
-                if stats:
-                    stats.add_log(f"{extracted_files} file(s) extracted.")
-                    stats.add_log("Removing original ZIP file...")
+            # Verify and remove original
+            if any(dest_dir.rglob("*")):
                 try:
                     zip_file.unlink()
-                    if stats:
-                        stats.add_log("ZIP file removed successfully.")
-                    success_count += 1
+                    stats.successful_extractions += 1
+                    stats.add_log("Extraction successful", LogLevel.SUCCESS)
                 except OSError as e:
-                    error_message = f"Failed to remove ZIP file: {e}"
-                    if stats:
-                        stats.add_log(error_message)
-                    failure_count += 1
+                    stats.add_log(f"Failed to remove ZIP: {e}", LogLevel.ERROR)
+                    stats.failed_extractions += 1
             else:
-                if stats:
-                    stats.add_log("No files extracted (empty or corrupt ZIP).")
-                failure_count += 1
-        except (zipfile.BadZipFile, OSError) as e:
-            error_message = f"Extraction failed: {e}"
-            if stats:
-                stats.add_log(error_message)
-            failure_count += 1
+                stats.add_log("Empty ZIP file", LogLevel.ERROR)
+                stats.failed_extractions += 1
 
-    return total_processed, success_count, failure_count
+        except (zipfile.BadZipFile, OSError) as e:
+            stats.add_log(f"Extraction failed: {e}", LogLevel.ERROR)
+            stats.failed_extractions += 1
 
 
 def find_single_child_dirs(root_dir: Path) -> Generator[Tuple[Path, Path], None, None]:
-    """
-    Find directories that contain exactly one subdirectory and no other items.
-
-    Args:
-        root_dir: Directory to search for single-child directories.
-
-    Yields:
-        Tuples of (parent_dir, child_dir) for each single-child directory found.
-
-    Examples:
-        >>> list(find_single_child_dirs(Path("/data")))
-        [(Path("/data/dir1"), Path("/data/dir1/subdir"))]
-
-        >>> # Directory with multiple subdirectories in each parent
-        >>> list(find_single_child_dirs(Path("/data/complex")))
-        []
-    """
+    """Find directories with exactly one subdirectory and no other items."""
     for parent_dir in root_dir.iterdir():
-        if not parent_dir.is_dir():
-            continue
+        if parent_dir.is_dir():
+            children = list(parent_dir.iterdir())
+            dir_children = [c for c in children if c.is_dir()]
 
-        children: List[Path] = list(parent_dir.iterdir())
-        dir_children: List[Path] = [child for child in children if child.is_dir()]
-
-        if len(dir_children) == 1 and len(children) == 1:
-            yield parent_dir, dir_children[0]
+            if len(dir_children) == 1 and len(children) == 1:
+                yield parent_dir, dir_children[0]
 
 
 def reorganize_directories(
-    source_dir: Path, no_confirm: bool = False, stats: Optional[OperationStats] = None
-) -> Tuple[int, int, int]:
+    source_dir: Path, stats: OperationStats, no_confirm: bool = False
+) -> None:
     """
-    Reorganize the directory structure by moving single-child directories up one level.
-
-    This function identifies directories that contain exactly one subdirectory
-    and no other files, then moves that subdirectory up to the parent level
-    and removes the now-empty parent directory.
+    Reorganize directory structure by moving single-child directories up.
 
     Args:
-        source_dir: Directory to reorganize.
-        no_confirm: If True, overwrite existing directories without confirmation.
-        stats: Optional OperationStats object to collect logs and statistics.
-
-    Returns:
-        A tuple containing (total_processed, reorganized_count, ignored_count).
-        total_processed: Total directories examined.
-        reorganized_count: Successfully reorganized directories.
-        ignored_count: Directories left unchanged.
-
-    Examples:
-        >>> reorganize_directories(Path("/data"))
-        (15, 8, 7)  # 15 examined, 8 reorganized, 7 ignored
-
-        >>> # Directory with no subdirectories
-        >>> reorganize_directories(Path("/flat/directory"))
-        (0, 0, 0)
+        source_dir: Directory to reorganize
+        stats: OperationStats for logging and stats
+        no_confirm: Skip confirmation prompts if True
     """
-    total_processed: int = 0
-    reorganized_count: int = 0
-    ignored_count: int = 0
+    for parent_dir, child_dir in find_single_child_dirs(source_dir):
+        stats.dirs_examined += 1
 
-    for parent_dir in source_dir.iterdir():
-        if not parent_dir.is_dir():
-            continue
+        stats.add_log(f"Processing: {parent_dir.name}", LogLevel.OPERATION)
 
-        total_processed += 1
-        if stats:
-            stats.add_log(f"Examining directory: {parent_dir.name}")
-
-        # First, clean any Apple system files in this directory
+        # Clean before reorganization
         files_removed, dirs_removed = remove_apple_system_files(parent_dir, stats)
-        if files_removed > 0 or dirs_removed > 0 and stats:
-            stats.add_log(
-                f"Removed {files_removed} system files and {dirs_removed} system directories"
-            )
+        stats.files_removed += files_removed
+        stats.dirs_removed += dirs_removed
 
-        # Now check for single child directories
-        children: List[Path] = list(parent_dir.iterdir())
-        dir_children: List[Path] = [child for child in children if child.is_dir()]
+        target_path = source_dir / child_dir.name
 
-        if stats:
-            stats.add_log(f"Subdirectories: {len(dir_children)}")
-            stats.add_log(f"Total items: {len(children)}")
+        # Handle existing target
+        if target_path.exists() and target_path != child_dir:
+            stats.add_log(f"Target exists: {target_path}", LogLevel.WARNING)
 
-        if len(dir_children) == 1 and len(children) == 1:
-            child_dir: Path = dir_children[0]
-            if stats:
-                stats.add_log(f"Contains single subdirectory: {child_dir.name}")
+            if not no_confirm and not get_user_confirmation("Overwrite target?"):
+                stats.add_log("Skipped by user", LogLevel.INFO)
+                stats.dirs_ignored += 1
+                continue
 
-            target_path: Path = source_dir / child_dir.name
-
-            # Handle existing directory
-            if target_path.exists() and target_path != child_dir:
-                if stats:
-                    stats.add_log("Directory with same name exists in target.")
-                if not no_confirm:
-                    response: str = input("Overwrite? (y/n): ").lower()
-                    if response != "y":
-                        if stats:
-                            stats.add_log("Operation cancelled for this directory.")
-                        ignored_count += 1
-                        continue
-                else:
-                    if stats:
-                        stats.add_log("Overwriting as --no-confirm flag is set...")
-
-                if stats:
-                    stats.add_log("Removing existing directory...")
-                try:
-                    shutil.rmtree(target_path)
-                except OSError as e:
-                    error_message = f"Failed to remove existing directory: {e}"
-                    if stats:
-                        stats.add_log(error_message)
-                    ignored_count += 1
-                    continue
-
-            # Move the directory
-            if stats:
-                stats.add_log(f"Moving {child_dir.name} to parent directory...")
             try:
-                shutil.move(str(child_dir), str(source_dir))
-                if stats:
-                    stats.add_log("Directory moved successfully.")
-
-                # Remove parent if empty
-                remaining_items: List[Path] = list(parent_dir.iterdir())
-                if not remaining_items:
-                    try:
-                        parent_dir.rmdir()
-                        if stats:
-                            stats.add_log("Parent directory removed (empty).")
-                        reorganized_count += 1
-                    except OSError as e:
-                        error_message = f"Failed to remove parent directory: {e}"
-                        if stats:
-                            stats.add_log(error_message)
-                        ignored_count += 1
-                else:
-                    if stats:
-                        stats.add_log(
-                            f"Parent not empty ({len(remaining_items)} items remaining)."
-                        )
-                    ignored_count += 1
+                shutil.rmtree(target_path)
             except OSError as e:
-                error_message = f"Failed to move directory: {e}"
-                if stats:
-                    stats.add_log(error_message)
-                ignored_count += 1
-        else:
-            if stats:
-                stats.add_log("No single subdirectory found - ignoring.")
-            ignored_count += 1
+                stats.add_log(f"Clear failed: {e}", LogLevel.ERROR)
+                stats.dirs_ignored += 1
+                continue
 
-    return total_processed, reorganized_count, ignored_count
+        # Perform move
+        try:
+            shutil.move(str(child_dir), str(source_dir))
 
+            # Remove parent if empty
+            if not any(parent_dir.iterdir()):
+                parent_dir.rmdir()
+                stats.dirs_reorganized += 1
+                stats.add_log("Reorganization successful", LogLevel.SUCCESS)
+            else:
+                stats.add_log("Parent not empty after move", LogLevel.WARNING)
+                stats.dirs_ignored += 1
 
-def clean_directory(
-    directory: Path, stats: Optional[OperationStats] = None
-) -> Tuple[int, int]:
-    """
-    Clean Apple system files from a directory recursively.
-
-    Args:
-        directory: Directory to clean.
-        stats: Optional OperationStats object to collect logs and statistics.
-
-    Returns:
-        A tuple containing (files_removed, dirs_removed).
-        files_removed: Number of files removed.
-        dirs_removed: Number of directories removed.
-
-    Examples:
-        >>> clean_directory(Path("/data/messy"))
-        (25, 5)  # 25 files and 5 directories removed
-
-        >>> # Already clean directory
-        >>> clean_directory(Path("/data/clean"))
-        (0, 0)
-    """
-    if stats:
-        stats.add_log(f"Cleaning Apple system files in '{directory}'")
-
-    files_removed, dirs_removed = remove_apple_system_files(directory, stats)
-
-    return files_removed, dirs_removed
+        except OSError as e:
+            stats.add_log(f"Move failed: {e}", LogLevel.ERROR)
+            stats.dirs_ignored += 1
 
 
 def get_user_confirmation(prompt: str, default: bool = False) -> bool:
     """
-    Get confirmation from the user via the command line.
+    Get confirmation from user with customizable defaults.
 
     Args:
-        prompt: Question to present to the user.
-        default: Default value if the user just presses Enter.
+        prompt: Question to ask
+        default: Default if user just hits enter
 
     Returns:
-        True if the user confirmed, False otherwise.
-
-    Examples:
-        >>> get_user_confirmation("Delete this file?")
-        Delete this file? (y/n): y
-        True
-
-        >>> get_user_confirmation("Proceed with operation?", default=True)
-        Proceed with operation? (Y/n):
-        True
+        True if confirmed, False otherwise
     """
-    default_text: str = "Y/n" if default else "y/N"
-    response: str = input(f"{prompt} ({default_text}): ").lower()
+    suffix = " [Y/n]" if default else " [y/N]"
+    response = input(prompt + suffix).strip().lower()
 
     if not response:
         return default
-
     return response.startswith("y")
 
 
 def main() -> Literal[0, 1]:
-    """
-    Main entry point for the script.
-
-    Parses command line arguments and executes the appropriate functions
-    based on user input.
-
-    Returns:
-        0 on success, 1 on error.
-
-    Examples:
-        >>> # Success case
-        >>> main()  # when valid arguments are provided
-        0
-
-        >>> # Error case
-        >>> main()  # when the directory doesn't exist
-        1
-    """
+    """Main entry point for the script."""
     parser = argparse.ArgumentParser(
-        description="Extract ZIP files, clean Apple system files, and reorganize directory structure."
+        description="Advanced ZIP extraction and directory reorganization tool",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
-        "directory", type=Path, help="Directory containing ZIP files to process"
+        "directory",
+        type=Path,
+        help="Directory containing files to process",
     )
     parser.add_argument(
         "--clean-only",
         action="store_true",
-        help="Only clean Apple system files without extracting ZIPs or reorganizing",
+        help="Only clean system files without extracting or reorganizing",
     )
     parser.add_argument(
         "--no-confirm",
         action="store_true",
-        help="Do not ask for confirmation before overwriting files",
+        help="Skip all confirmation prompts",
     )
     parser.add_argument(
         "--verbose",
         "-v",
         action="store_true",
-        help="Print detailed logs of all operations",
+        help="Show detailed operation logs",
     )
-    args = parser.parse_args()
 
-    # Create stat's object to collect information
+    args = parser.parse_args()
     stats = OperationStats()
 
-    # Check if the directory exists
+    # Validate directory
     if not args.directory.is_dir():
-        print(f"Error: Directory '{args.directory}' does not exist.")
+        print(f"Error: Directory not found: {args.directory}", file=sys.stderr)
         return 1
 
-    # Run in clean-only mode if requested
+    # Clean-only mode
     if args.clean_only:
-        files_removed, dirs_removed = clean_directory(args.directory, stats)
-        stats.total_files_removed += files_removed
-        stats.total_dirs_removed += dirs_removed
-        stats.print_summary()
-        if args.verbose:
-            stats.print_logs(args.verbose)
-        return 0
+        stats.add_log(f"Starting clean-only mode in {args.directory}", LogLevel.INFO)
+        files, dirs = remove_apple_system_files(args.directory, stats)
+        stats.files_removed = files
+        stats.dirs_removed = dirs
+    else:
+        # Full processing mode
+        stats.add_log(f"Starting full processing in {args.directory}", LogLevel.INFO)
 
-    # Process ZIP files
-    stats.add_log(f"Processing ZIP files in '{args.directory}'")
+        # Extract ZIP files
+        stats.add_log("Starting ZIP extraction", LogLevel.OPERATION)
+        extract_zip_files(args.directory, stats, args.no_confirm)
 
-    zip_total, zip_success, zip_fail = extract_zip_files(
-        args.directory, args.no_confirm, stats
-    )
-    stats.total_zips = zip_total
-    stats.successful_extractions = zip_success
-    stats.failed_extractions = zip_fail
+        # Additional cleaning
+        stats.add_log("Performing additional cleaning", LogLevel.OPERATION)
+        files, dirs = remove_apple_system_files(args.directory, stats)
+        stats.files_removed += files
+        stats.dirs_removed += dirs
 
-    # Apply standalone cleaning after ZIP extraction
-    clean_result: Tuple[int, int] = clean_directory(args.directory, stats)
-    files_cleaned, dirs_cleaned = clean_result
-    stats.total_files_removed += files_cleaned
-    stats.total_dirs_removed += dirs_cleaned
+        # Reorganization
+        stats.add_log("Starting directory reorganization", LogLevel.OPERATION)
+        reorganize_directories(args.directory, stats, args.no_confirm)
 
-    # Reorganize directories
-    stats.add_log(f"Reorganizing directories in '{args.directory}'")
-
-    dir_total, dir_reorg, dir_ignored = reorganize_directories(
-        args.directory, args.no_confirm, stats
-    )
-    stats.dirs_examined = dir_total
-    stats.dirs_reorganized = dir_reorg
-    stats.dirs_ignored = dir_ignored
-
-    # Print summary
+    # Print results
     stats.print_summary()
     if args.verbose:
-        stats.print_logs(args.verbose)
+        stats.print_logs(verbose=True)
 
     return 0
 
