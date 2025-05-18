@@ -11,6 +11,7 @@ specific problems. Currently available:
 - [**extract_first_column_of_csv.py**](#extract_first_column_en): Extracts the first column from a CSV file.
 - [**scans_rename.py**](#scans_rename_en): Renames and organizes files with Japanese timestamps in their filenames.
 - [**csv_transformer.py**](#csv_transformer_en): Transforms, filters, and processes CSV data with various operations.
+- [**unzip_files_then_clean.py**](#unzip_files_then_clean_en): Extracts all ZIP files in a directory and reorganizes folder structure.
 [More details below](#english-details)
 
 ### Français
@@ -21,6 +22,7 @@ disponible :
 - [**extract_first_column_of_csv.py**](#extract_first_column_fr) : Extrait la première colonne d'un fichier CSV.
 - [**scans_rename.py**](#scans_rename_fr) : Renomme et organise les fichiers avec des horodatages japonais dans leurs noms.
 - [**csv_transformer.py**](#csv_transformer_fr) : Transforme, filtre et traite les données CSV avec diverses opérations.
+- [**unzip_files_then_clean.py**](#unzip_files_then_clean_fr) : Extrait tous les fichiers ZIP d'un répertoire et réorganise la structure des dossiers.
 [Plus de détails ci-dessous](#french-details)
 
 ### 日本語
@@ -29,6 +31,7 @@ disponible :
 - [**extract_first_column_of_csv.py**](#extract_first_column_jp)：CSVファイルの最初の列を抽出します。
 - [**scans_rename.py**](#scans_rename_jp)：ファイル名の日本語タイムスタンプを持つファイルの名前変更と整理を行います。
 - [**csv_transformer.py**](#csv_transformer_jp)：様々な操作でCSVデータを変換、フィルタリング、処理します。
+- [**unzip_files_then_clean.py**](#unzip_files_then_clean_jp)：ディレクトリ内のすべてのZIPファイルを抽出し、フォルダ構造を再編成します。
 [詳細は以下をご覧ください](#japanese-details)
 
 ### 简体中文
@@ -39,6 +42,7 @@ disponible :
 - [**extract_first_column_of_csv.py**](#extract_first_column_zh_cn)：从CSV文件中提取第一列。
 - [**scans_rename.py**](#scans_rename_zh_cn)：重命名并整理文件名中带有日语时间戳的文件。
 - [**csv_transformer.py**](#csv_transformer_zh_cn)：通过各种操作转换、过滤和处理CSV数据。
+- [**unzip_files_then_clean.py**](#unzip_files_then_clean_zh_cn)：提取目录中的所有ZIP文件并重组文件夹结构。
 
 [更多详情见下文](#chinese-simplified-details)
 
@@ -50,6 +54,7 @@ disponible :
 - [**extract_first_column_of_csv.py**](#extract_first_column_zh_tw)：從CSV檔案中提取第一列。
 - [**scans_rename.py**](#scans_rename_zh_tw)：重新命名並整理檔案名中帶有日語時間戳的檔案。
 - [**csv_transformer.py**](#csv_transformer_zh_tw)：通過各種操作轉換、過濾和處理CSV數據。
+- [**unzip_files_then_clean.py**](#unzip_files_then_clean_zh_tw)：提取目錄中的所有ZIP檔案並重組資料夾結構。
 
 [更多詳情見下文](#chinese-traditional-details)
 
@@ -176,7 +181,29 @@ python csv_transformer.py --input input.csv --output transformed.csv [options]
 - `--group-by`: Group data by specified columns
 - `--aggregate`: Aggregate function to apply to groups
 
-### Future Plans
+<a id="unzip_files_then_clean_en"></a>
+#### 5. `unzip_files_then_clean.py` - ZIP Extraction and Directory Reorganization Tool
+
+This script automates the process of extracting ZIP files and cleaning up directory structures for better organization.
+
+**Features:**
+- Extracts all ZIP files in a directory to corresponding subdirectories
+- Automatically removes the original ZIP files after successful extraction
+- Reorganizes directory structure by moving single-child directories up one level
+- Eliminates unnecessary nesting in file hierarchies
+- Provides detailed feedback during operations
+- Includes confirmation prompts before overwriting existing files
+- Generates comprehensive operation summaries
+
+**Usage:**
+```bash
+python unzip_files_then_clean.py directory
+```
+
+**Arguments:**
+- `directory`: Path to the directory containing ZIP files to process
+
+### Plans
 More Python utility scripts will be added to this repository over time, each focused
 on solving specific tasks efficiently.
 
@@ -315,6 +342,28 @@ python csv_transformer.py --input input.csv --output transforme.csv [options]
 - `--group-by` : Regrouper les données par colonnes spécifiées
 - `--aggregate` : Fonction d'agrégation à appliquer aux groupes
 
+<a id="unzip_files_then_clean_fr"></a>
+#### 5. `unzip_files_then_clean.py` - Outil d'Extraction ZIP et de Réorganisation de Répertoires
+
+Ce script automatise le processus d'extraction des fichiers ZIP et de nettoyage des structures de répertoires pour une meilleure organisation.
+
+**Fonctionnalités :**
+- Extrait tous les fichiers ZIP d'un répertoire vers des sous-répertoires correspondants
+- Supprime automatiquement les fichiers ZIP d'origine après une extraction réussie
+- Réorganise la structure des répertoires en remontant d'un niveau les répertoires à enfant unique
+- Élimine l'imbrication inutile dans les hiérarchies de fichiers
+- Fournit des retours détaillés pendant les opérations
+- Inclut des demandes de confirmation avant d'écraser des fichiers existants
+- Génère des résumés complets des opérations effectuées
+
+**Utilisation :**
+```bash
+python unzip_files_then_clean.py repertoire
+```
+
+**Arguments :**
+- `repertoire` : Chemin vers le répertoire contenant les fichiers ZIP à traiter
+
 ### Plans Futurs
 D'autres scripts utilitaires Python seront ajoutés à ce dépôt au fil du temps, chacun se
 concentrant sur la résolution efficace de tâches spécifiques.
@@ -438,6 +487,28 @@ python csv_transformer.py --input 入力.csv --output 変換済.csv [オプシ�
 - `--group-by`：指定された列でデータをグループ化
 - `--aggregate`：グループに適用する集計関数
 
+<a id="unzip_files_then_clean_jp"></a>
+#### 5. `unzip_files_then_clean.py` - ZIP抽出とディレクトリ再編成ツール
+
+このスクリプトは、ZIPファイルの抽出とディレクトリ構造のクリーンアップを自動化して、より良い整理を実現します。
+
+**機能：**
+- ディレクトリ内のすべてのZIPファイルを対応するサブディレクトリに抽出
+- 抽出に成功した後、元のZIPファイルを自動的に削除
+- 単一の子ディレクトリを持つディレクトリ構造を上の階層に移動して再編成
+- ファイル階層における不要な入れ子構造を排除
+- 操作中に詳細なフィードバックを提供
+- 既存のファイルを上書きする前に確認プロンプトを表示
+- 包括的な操作サマリーを生成
+
+**使用法：**
+```bash
+python unzip_files_then_clean.py ディレクトリ
+```
+
+**引数：**
+- `ディレクトリ`：処理するZIPファイルを含むディレクトリへのパス
+
 ### 将来の計画
 今後、他のPythonユーティリティスクリプトがこのリポジトリに追加される予定で、それぞれが特定のタスクを効率的に解決することに焦点を当てています。
 
@@ -560,6 +631,28 @@ python csv_transformer.py --input 输入.csv --output 转换后.csv [选项]
 - `--group-by`：按指定列对数据进行分组
 - `--aggregate`：应用于组的聚合函数
 
+<a id="unzip_files_then_clean_zh_cn"></a>
+#### 5. `unzip_files_then_clean.py` - ZIP提取和目录重组工具
+
+此脚本自动化了ZIP文件提取和目录结构清理的过程，以实现更好的组织。
+
+**功能：**
+- 将目录中的所有ZIP文件提取到相应的子目录中
+- 成功提取后自动删除原始ZIP文件
+- 通过将单一子目录上移一级来重组目录结构
+- 消除文件层次结构中不必要的嵌套
+- 在操作过程中提供详细反馈
+- 在覆盖现有文件前包含确认提示
+- 生成全面的操作摘要
+
+**使用方法：**
+```bash
+python unzip_files_then_clean.py 目录
+```
+
+**参数：**
+- `目录`：包含要处理的ZIP文件的目录路径
+
 ### 未来计划
 随着时间的推移，更多的Python实用脚本将添加到此仓库中，每个脚本都专注于有效解决特定任务。
 
@@ -681,6 +774,28 @@ python csv_transformer.py --input 輸入.csv --output 轉換後.csv [選項]
 - `--delimiter`：CSV分隔符（默認：,）
 - `--group-by`：按指定列對數據進行分組
 - `--aggregate`：應用於組的聚合函數
+
+<a id="unzip_files_then_clean_zh_tw"></a>
+#### 5. `unzip_files_then_clean.py` - ZIP提取和目錄重組工具
+
+此腳本自動化了ZIP檔案提取和目錄結構清理的過程，以實現更好的組織。
+
+**功能：**
+- 將目錄中的所有ZIP檔案提取到相應的子目錄中
+- 成功提取後自動刪除原始ZIP檔案
+- 通過將單一子目錄上移一級來重組目錄結構
+- 消除檔案層次結構中不必要的嵌套
+- 在操作過程中提供詳細反饋
+- 在覆蓋現有檔案前包含確認提示
+- 生成全面的操作摘要
+
+**使用方法：**
+```bash
+python unzip_files_then_clean.py 目錄
+```
+
+**參數：**
+- `目錄`：包含要處理的ZIP檔案的目錄路徑
 
 ### 未來計劃
 隨著時間的推移，更多的Python實用腳本將添加到此倉庫中，每個腳本都專注於有效解決特定任務。
