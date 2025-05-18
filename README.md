@@ -1,6 +1,6 @@
-# Python Utility Scripts / Scripts Utilitaires Python / Python ユーティリティスクリプト / Python 实用脚本 / Python 實用腳本 / Scripts de Utilidad Python / Script di Utilità Python / Python-Dienstprogrammskripte
+# Python Utility Scripts / Scripts Utilitaires Python / Python ユーティリティスクリプト / Python 实用脚本 / Scripts de Utilidad Python / Script di Utilità Python / Python-Dienstprogrammskripte / Python 實用腳本
 
-## Quick Overview / Aperçu Rapide / 概要 / 概述 / Vista Rápida / Panoramica / Kurzübersicht
+## Quick Overview / Aperçu Rapide / 概要 / 概述 / Vista Rápida / Panoramica / Kurzübersicht / 概述
 
 ### English
 
@@ -78,18 +78,26 @@ Dieses Repository enthält eine Sammlung kleiner Python-Dienstprogrammskripte, d
 
 ## Plans
 
+### English
 More Python utility scripts will be added to this repository over time, each focused on solving specific tasks efficiently.
 
+### Français
 Plus de scripts utilitaires Python seront ajoutés à ce dépôt au fil du temps, chacun se concentrant sur la résolution efficace de tâches spécifiques.
 
+### 日本語
 今後、他のPythonユーティリティスクリプトがこのリポジトリに追加される予定で、それぞれが特定のタスクを効率的に解決することに焦点を当てています。
 
+### 简体中文
 随着时间的推移，更多的Python实用脚本将添加到此仓库中，每个脚本都专注于有效解决特定任务。
 
+### Español
 Con el tiempo, se añadirán más scripts de utilidad Python a este repositorio, cada uno enfocado en resolver tareas específicas de manera eficiente.
 
+### Italiano
 Nel corso del tempo, verranno aggiunti a questo repository altri script di utilità Python, ognuno focalizzato sulla risoluzione efficiente di compiti specifici.
 
+### Deutsch
 Im Laufe der Zeit werden diesem Repository weitere Python-Dienstprogrammskripte hinzugefügt, die jeweils auf die effiziente Lösung spezifischer Aufgaben ausgerichtet sind.
 
+### 繁體中文
 隨著時間的推移，更多的Python實用腳本將添加到此倉庫中，每個腳本都專注於有效解決特定任務。
