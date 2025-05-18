@@ -624,6 +624,9 @@ def reorganize_directories(
                 stats.dirs_ignored += 1
                 continue
 
+        stats.add_log(
+            f"Moving directory: {child_dir.name} to {source_dir}", LogLevel.INFO
+        )
         try:
             shutil.move(str(child_dir), str(source_dir))
 
