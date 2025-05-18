@@ -43,7 +43,7 @@ except ImportError:
     HAS_TABULATE = False
 
     # Define a simple tabulate function as a fallback
-    def tabulate(data, headers=None, tablefmt="grid"):
+    def tabulate(data, headers=None, *args, **kwargs):
         """Simple tabulate fallback when the package is not available."""
         if not data:
             return ""
@@ -181,7 +181,7 @@ class OperationStats:
         # Print each section
         for section, data in summary_data.items():
             print(f"\n{section.upper():^80}")
-            print(tabulate(data, tablefmt="grid"))
+            print(tabulate(data, tablefmt="fancy"))
 
         # Print error summary if any
         error_logs = [log for log in self.logs if log.level == LogLevel.ERROR]

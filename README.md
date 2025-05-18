@@ -184,24 +184,29 @@ python csv_transformer.py --input input.csv --output transformed.csv [options]
 <a id="unzip_files_then_clean_en"></a>
 #### 5. `unzip_files_then_clean.py` - ZIP Extraction and Directory Reorganization Tool
 
-This script automates the process of extracting ZIP files and cleaning up directory structures for better organization.
+This advanced script automates the process of extracting ZIP files and cleaning up directory structures for better organization.
 
 **Features:**
 - Extracts all ZIP files in a directory to corresponding subdirectories
-- Automatically removes the original ZIP files after successful extraction
-- Reorganizes directory structure by moving single-child directories up one level
+- Removes Apple system files (.DS_Store, .__MACOSX folders, etc.)
+- Reorganizes directories by moving single-child directories up one level
 - Eliminates unnecessary nesting in file hierarchies
-- Provides detailed feedback during operations
-- Includes confirmation prompts before overwriting existing files
-- Generates comprehensive operation summaries
+- Detailed progress logging with configurable verbosity
+- Beautiful tabular output (with fallback to basic formatting)
+- Comprehensive statistics collection
+- Modern Python typing and dataclasses
+- Configurable confirmation prompts for overwriting existing content
 
 **Usage:**
 ```bash
-python unzip_files_then_clean.py directory
+python unzip_files_then_clean.py directory [options]
 ```
 
 **Arguments:**
-- `directory`: Path to the directory containing ZIP files to process
+- `directory`: Path to the directory containing files to process
+- `--clean-only`: Only clean system files without extracting or reorganizing
+- `--no-confirm`: Skip all confirmation prompts
+- `--verbose`, `-v`: Show detailed operation logs
 
 ### Plans
 More Python utility scripts will be added to this repository over time, each focused
@@ -345,24 +350,29 @@ python csv_transformer.py --input input.csv --output transforme.csv [options]
 <a id="unzip_files_then_clean_fr"></a>
 #### 5. `unzip_files_then_clean.py` - Outil d'Extraction ZIP et de Réorganisation de Répertoires
 
-Ce script automatise le processus d'extraction des fichiers ZIP et de nettoyage des structures de répertoires pour une meilleure organisation.
+Ce script avancé automatise le processus d'extraction des fichiers ZIP et de nettoyage des structures de répertoires pour une meilleure organisation.
 
 **Fonctionnalités :**
 - Extrait tous les fichiers ZIP d'un répertoire vers des sous-répertoires correspondants
-- Supprime automatiquement les fichiers ZIP d'origine après une extraction réussie
+- Supprime les fichiers système Apple (.DS_Store, dossiers .__MACOSX, etc.)
 - Réorganise la structure des répertoires en remontant d'un niveau les répertoires à enfant unique
 - Élimine l'imbrication inutile dans les hiérarchies de fichiers
-- Fournit des retours détaillés pendant les opérations
-- Inclut des demandes de confirmation avant d'écraser des fichiers existants
-- Génère des résumés complets des opérations effectuées
+- Journalisation détaillée des progrès avec niveau de verbosité configurable
+- Affichage tabulaire élégant (avec repli sur un formatage basique)
+- Collecte complète de statistiques
+- Typages Python modernes et dataclasses
+- Demandes de confirmation configurables pour l'écrasement du contenu existant
 
 **Utilisation :**
 ```bash
-python unzip_files_then_clean.py repertoire
+python unzip_files_then_clean.py repertoire [options]
 ```
 
 **Arguments :**
-- `repertoire` : Chemin vers le répertoire contenant les fichiers ZIP à traiter
+- `repertoire` : Chemin vers le répertoire contenant les fichiers à traiter
+- `--clean-only` : Nettoyer uniquement les fichiers système sans extraire ni réorganiser
+- `--no-confirm` : Ignorer toutes les demandes de confirmation
+- `--verbose`, `-v` : Afficher les journaux d'opération détaillés
 
 ### Plans Futurs
 D'autres scripts utilitaires Python seront ajoutés à ce dépôt au fil du temps, chacun se
@@ -490,24 +500,29 @@ python csv_transformer.py --input 入力.csv --output 変換済.csv [オプシ�
 <a id="unzip_files_then_clean_jp"></a>
 #### 5. `unzip_files_then_clean.py` - ZIP抽出とディレクトリ再編成ツール
 
-このスクリプトは、ZIPファイルの抽出とディレクトリ構造のクリーンアップを自動化して、より良い整理を実現します。
+このスクリプトは、ZIPファイルの抽出とディレクトリ構造のクリーンアップを自動化して、より良い整理を実現する高度なツールです。
 
 **機能：**
 - ディレクトリ内のすべてのZIPファイルを対応するサブディレクトリに抽出
-- 抽出に成功した後、元のZIPファイルを自動的に削除
+- Appleシステムファイル（.DS_Store、.__MACOSXフォルダなど）を削除
 - 単一の子ディレクトリを持つディレクトリ構造を上の階層に移動して再編成
 - ファイル階層における不要な入れ子構造を排除
-- 操作中に詳細なフィードバックを提供
-- 既存のファイルを上書きする前に確認プロンプトを表示
-- 包括的な操作サマリーを生成
+- 設定可能な詳細レベルでの詳細な進行ログ
+- 美しい表形式の出力（基本的な形式へのフォールバック付き）
+- 包括的な統計収集
+- モダンなPythonの型付けとデータクラス
+- 既存のコンテンツを上書きするための設定可能な確認プロンプト
 
 **使用法：**
 ```bash
-python unzip_files_then_clean.py ディレクトリ
+python unzip_files_then_clean.py ディレクトリ [オプション]
 ```
 
 **引数：**
-- `ディレクトリ`：処理するZIPファイルを含むディレクトリへのパス
+- `ディレクトリ`：処理するファイルを含むディレクトリへのパス
+- `--clean-only`：抽出や再編成なしでシステムファイルのみをクリーンアップ
+- `--no-confirm`：すべての確認プロンプトをスキップ
+- `--verbose`, `-v`：詳細な操作ログを表示
 
 ### 将来の計画
 今後、他のPythonユーティリティスクリプトがこのリポジトリに追加される予定で、それぞれが特定のタスクを効率的に解決することに焦点を当てています。
@@ -634,24 +649,29 @@ python csv_transformer.py --input 输入.csv --output 转换后.csv [选项]
 <a id="unzip_files_then_clean_zh_cn"></a>
 #### 5. `unzip_files_then_clean.py` - ZIP提取和目录重组工具
 
-此脚本自动化了ZIP文件提取和目录结构清理的过程，以实现更好的组织。
+此高级脚本自动化了ZIP文件提取和目录结构清理的过程，以实现更好的组织。
 
 **功能：**
 - 将目录中的所有ZIP文件提取到相应的子目录中
-- 成功提取后自动删除原始ZIP文件
+- 删除Apple系统文件（.DS_Store、.__MACOSX文件夹等）
 - 通过将单一子目录上移一级来重组目录结构
 - 消除文件层次结构中不必要的嵌套
-- 在操作过程中提供详细反馈
-- 在覆盖现有文件前包含确认提示
-- 生成全面的操作摘要
+- 提供可配置详细级别的详细进度日志
+- 美观的表格输出（具有基本格式的后备方案）
+- 全面的统计数据收集
+- 现代Python类型提示和数据类
+- 针对覆盖现有内容的可配置确认提示
 
 **使用方法：**
 ```bash
-python unzip_files_then_clean.py 目录
+python unzip_files_then_clean.py 目录 [选项]
 ```
 
 **参数：**
-- `目录`：包含要处理的ZIP文件的目录路径
+- `目录`：包含要处理文件的目录路径
+- `--clean-only`：仅清理系统文件，不进行提取或重组
+- `--no-confirm`：跳过所有确认提示
+- `--verbose`, `-v`：显示详细操作日志
 
 ### 未来计划
 随着时间的推移，更多的Python实用脚本将添加到此仓库中，每个脚本都专注于有效解决特定任务。
@@ -778,24 +798,29 @@ python csv_transformer.py --input 輸入.csv --output 轉換後.csv [選項]
 <a id="unzip_files_then_clean_zh_tw"></a>
 #### 5. `unzip_files_then_clean.py` - ZIP提取和目錄重組工具
 
-此腳本自動化了ZIP檔案提取和目錄結構清理的過程，以實現更好的組織。
+此高級腳本自動化了ZIP檔案提取和目錄結構清理的過程，以實現更好的組織。
 
 **功能：**
 - 將目錄中的所有ZIP檔案提取到相應的子目錄中
-- 成功提取後自動刪除原始ZIP檔案
+- 刪除Apple系統檔案（.DS_Store、.__MACOSX資料夾等）
 - 通過將單一子目錄上移一級來重組目錄結構
 - 消除檔案層次結構中不必要的嵌套
-- 在操作過程中提供詳細反饋
-- 在覆蓋現有檔案前包含確認提示
-- 生成全面的操作摘要
+- 提供可配置詳細級別的詳細進度日誌
+- 美觀的表格輸出（具有基本格式的後備方案）
+- 全面的統計數據收集
+- 現代Python類型提示和數據類
+- 針對覆蓋現有內容的可配置確認提示
 
 **使用方法：**
 ```bash
-python unzip_files_then_clean.py 目錄
+python unzip_files_then_clean.py 目錄 [選項]
 ```
 
 **參數：**
-- `目錄`：包含要處理的ZIP檔案的目錄路徑
+- `目錄`：包含要處理檔案的目錄路徑
+- `--clean-only`：僅清理系統檔案，不進行提取或重組
+- `--no-confirm`：跳過所有確認提示
+- `--verbose`, `-v`：顯示詳細操作日誌
 
 ### 未來計劃
 隨著時間的推移，更多的Python實用腳本將添加到此倉庫中，每個腳本都專注於有效解決特定任務。
