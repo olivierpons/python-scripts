@@ -62,43 +62,51 @@ except ImportError:
 
 
 try:
-    from tabulate import tabulate
-
-    HAS_TABULATE = True
+    from rich.console import Console
+    from rich.table import Table
+    from rich import box
+    HAS_RICH = True
 except ImportError:
-    HAS_TABULATE = False
+    HAS_RICH = False
+    # Tabulate fallback:
+    try:
+        from tabulate import tabulate
 
-    def tabulate(data, headers=None, *args, **kwargs):
-        """Simple tabulate fallback when the package is not available."""
-        if not data:
-            return ""
-        # Calculate column widths for each column across all rows
-        col_widths = []
-        for i in range(len(data[0])):
-            max_width = max(len(str(row[i])) for row in data)
+        HAS_TABULATE = True
+    except ImportError:
+        HAS_TABULATE = False
+
+        def tabulate(data, headers=None, *args, **kwargs):
+            """Simple tabulate fallback when the package is not available."""
+            if not data:
+                return ""
+            # Calculate column widths for each column across all rows
+            col_widths = []
+            for i in range(len(data[0])):
+                max_width = max(len(str(row[i])) for row in data)
+                if headers:
+                    max_width = max(max_width, len(str(headers[i])))
+                col_widths.append(max_width)
+
+            divider = "+" + "+".join("-" * (w + 2) for w in col_widths) + "+"
+            table = [divider]
             if headers:
-                max_width = max(max_width, len(str(headers[i])))
-            col_widths.append(max_width)
-
-        divider = "+" + "+".join("-" * (w + 2) for w in col_widths) + "+"
-        table = [divider]
-        if headers:
-            table.extend(
-                [
+                table.extend(
+                    [
+                        "| "
+                        + " | ".join(f"{str(h):<{w}}" for h, w in zip(headers, col_widths))
+                        + " |",
+                        divider,
+                    ]
+                )
+            for row in data:
+                table.append(
                     "| "
-                    + " | ".join(f"{str(h):<{w}}" for h, w in zip(headers, col_widths))
-                    + " |",
-                    divider,
-                ]
-            )
-        for row in data:
-            table.append(
-                "| "
-                + " | ".join(f"{str(i):<{w}}" for i, w in zip(row, col_widths))
-                + " |"
-            )
-        table.append(divider)
-        return "\n".join(table)
+                    + " | ".join(f"{str(i):<{w}}" for i, w in zip(row, col_widths))
+                    + " |"
+                )
+            table.append(divider)
+            return "\n".join(table)
 
 
 class LogLevel(Enum):
@@ -196,49 +204,93 @@ class OperationStats:
         if verbosity == 0:
             return
 
-        # Prepare data with section headers
-        summary_data = [
-            ["", "PROCESSING SUMMARY", ""],
-            ["ZIP Processing", "Files Processed", self.total_zips],
-            ["", "Successful", self.successful_extractions],
-            ["", "Failed", self.failed_extractions],
-            [
-                "",
-                "Success Rate",
-                (
-                    f"{self.successful_extractions / self.total_zips * 100:.1f}%"
-                    if self.total_zips
-                    else "N/A"
-                ),
-            ],
-            ["Cleaning", "Files Removed", self.files_removed],
-            ["", "Directories Removed", self.dirs_removed],
-            ["", "Total Cleaned", self.files_removed + self.dirs_removed],
-            ["Reorganization", "Examined", self.dirs_examined],
-            ["", "Reorganized", self.dirs_reorganized],
-            ["", "Ignored", self.dirs_ignored],
-            [
-                "",
-                "Reorg Rate",
-                (
-                    f"{self.dirs_reorganized / self.dirs_examined * 100:.1f}%"
-                    if self.dirs_examined
-                    else "N/A"
-                ),
-            ],
-        ]
+        if HAS_RICH:
+            console = Console()
 
-        # Print the main table
-        print(
-            "\n"
-            + tabulate(
-                summary_data,
-                headers=["Category", "Metric", "Value"],
-                tablefmt="fancy_outline",
-                colalign=("left", "left", "right"),
-                stralign="center",
+            # Création du tableau principal
+            summary_table = Table(
+                title="[bold]PROCESSING SUMMARY[/bold]",
+                box=box.ROUNDED,
+                show_header=True,
+                header_style="bold magenta",
+                title_style="bold green",
             )
-        )
+
+            summary_table.add_column("Category", style="cyan")
+            summary_table.add_column("Metric", style="yellow")
+            summary_table.add_column("Value", style="green", justify="right")
+
+            # Ajout des données
+            summary_table.add_row("ZIP Processing", "Files Processed", str(self.total_zips))
+            summary_table.add_row("", "Successful", str(self.successful_extractions))
+            summary_table.add_row("", "Failed", str(self.failed_extractions))
+            success_rate = (
+                f"[green]{self.successful_extractions / self.total_zips * 100:.1f}%[/green]"
+                if self.total_zips
+                else "N/A"
+            )
+            summary_table.add_row("", "Success Rate", success_rate)
+
+            summary_table.add_row("Cleaning", "Files Removed", str(self.files_removed))
+            summary_table.add_row("", "Directories Removed", str(self.dirs_removed))
+            summary_table.add_row("", "Total Cleaned", str(self.files_removed + self.dirs_removed))
+
+            summary_table.add_row("Reorganization", "Examined", str(self.dirs_examined))
+            summary_table.add_row("", "Reorganized", str(self.dirs_reorganized))
+            summary_table.add_row("", "Ignored", str(self.dirs_ignored))
+            reorg_rate = (
+                f"[green]{self.dirs_reorganized / self.dirs_examined * 100:.1f}%[/green]"
+                if self.dirs_examined
+                else "N/A"
+            )
+            summary_table.add_row("", "Reorg Rate", reorg_rate)
+
+            console.print(summary_table)
+
+        else:
+            # Fallback avec tabulate (comme avant)
+            summary_data = [
+                ["", "PROCESSING SUMMARY", ""],
+                ["ZIP Processing", "Files Processed", self.total_zips],
+                ["", "Successful", self.successful_extractions],
+                ["", "Failed", self.failed_extractions],
+                [
+                    "",
+                    "Success Rate",
+                    (
+                        f"{self.successful_extractions / self.total_zips * 100:.1f}%"
+                        if self.total_zips
+                        else "N/A"
+                    ),
+                ],
+                ["Cleaning", "Files Removed", self.files_removed],
+                ["", "Directories Removed", self.dirs_removed],
+                ["", "Total Cleaned", self.files_removed + self.dirs_removed],
+                ["Reorganization", "Examined", self.dirs_examined],
+                ["", "Reorganized", self.dirs_reorganized],
+                ["", "Ignored", self.dirs_ignored],
+                [
+                    "",
+                    "Reorg Rate",
+                    (
+                        f"{self.dirs_reorganized / self.dirs_examined * 100:.1f}%"
+                        if self.dirs_examined
+                        else "N/A"
+                    ),
+                ],
+            ]
+
+            # Print the main table
+            print(
+                "\n"
+                + tabulate(
+                    summary_data,
+                    headers=["Category", "Metric", "Value"],
+                    tablefmt="fancy_outline",
+                    colalign=("left", "left", "right"),
+                    stralign="center",
+                )
+            )
 
         # Error summary if any errors (show even in verbosity=1)
         error_logs = [log for log in self.logs if log.level == LogLevel.ERROR]
@@ -248,25 +300,51 @@ class OperationStats:
     def print_logs(self, verbosity: int = 2) -> None:
         """Print logs in a separate table when in verbose mode."""
         if verbosity == 2 and self.logs:
-            log_data = []
-            for log in self.logs:
-                prefix = {
-                    LogLevel.INFO: "[INFO]",
-                    LogLevel.WARNING: "[WARN]",
-                    LogLevel.ERROR: "[ERR]",
-                    LogLevel.SUCCESS: "[OK]",
-                    LogLevel.OPERATION: "→",
-                }.get(log.level, "")
-                log_data.append([prefix, log.message])
-
-            print(
-                tabulate(
-                    log_data,
-                    headers=["Level", "Message"],
-                    tablefmt="fancy_outline",
-                    colalign=("center", "left"),
+            if HAS_RICH:
+                console = Console()
+                log_table = Table(
+                    title="[bold]PROCESS LOGS[/bold]",
+                    box=box.SIMPLE_HEAVY,
+                    show_header=True,
+                    header_style="bold blue",
                 )
-            )
+
+                log_table.add_column("Level", style="cyan", width=8)
+                log_table.add_column("Message", style="white")
+
+                for log in self.logs:
+                    level_style = {
+                        LogLevel.INFO: "[cyan]INFO[/cyan]",
+                        LogLevel.WARNING: "[yellow]WARN[/yellow]",
+                        LogLevel.ERROR: "[red]ERROR[/red]",
+                        LogLevel.SUCCESS: "[green]SUCCESS[/green]",
+                        LogLevel.OPERATION: "[magenta]→[/magenta]",
+                    }.get(log.level, "")
+
+                    log_table.add_row(level_style, log.message)
+
+                console.print(log_table)
+            else:
+                # tabulate fallback:
+                log_data = []
+                for log in self.logs:
+                    prefix = {
+                        LogLevel.INFO: "[INFO]",
+                        LogLevel.WARNING: "[WARN]",
+                        LogLevel.ERROR: "[ERR]",
+                        LogLevel.SUCCESS: "[OK]",
+                        LogLevel.OPERATION: "→",
+                    }.get(log.level, "")
+                    log_data.append([prefix, log.message])
+
+                print(
+                    tabulate(
+                        log_data,
+                        headers=["Level", "Message"],
+                        tablefmt="fancy_outline",
+                        colalign=("center", "left"),
+                    )
+                )
 
 
 # Constants for Apple system files to remove
@@ -573,12 +651,18 @@ def main() -> Literal[0, 1]:
             "with: `pip install colorama`",
             LogLevel.INFO,
         )
-    if not HAS_TABULATE:
+    if not HAS_RICH:
         stats.add_log(
-            "Note: For better output formatting, install 'tabulate' "
-            "with: `pip install tabulate`",
+            "Note: For better output formatting, install 'rich' "
+            "with: `pip install rich`",
             LogLevel.INFO,
         )
+        if not HAS_TABULATE:
+            stats.add_log(
+                "Note: For better output formatting, install 'tabulate' "
+                "with: `pip install tabulate`",
+                LogLevel.INFO,
+            )
 
     if not args.directory.is_dir():
         stats.add_log(f"Directory not found: {args.directory}", LogLevel.ERROR)
@@ -598,8 +682,8 @@ def main() -> Literal[0, 1]:
         stats.dirs_removed += dirs
         reorganize_directories(args.directory, stats, args.no_confirm)
 
-    stats.print_summary(verbosity=args.verbosity)
     stats.print_logs(verbosity=args.verbosity)
+    stats.print_summary(verbosity=args.verbosity)
 
     return 0 if not any(log.level == LogLevel.ERROR for log in stats.logs) else 1
 
