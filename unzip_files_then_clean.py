@@ -192,118 +192,81 @@ class OperationStats:
         self.removed_files_details.append(path)
 
     def print_summary(self, verbosity: int = 2) -> None:
-        """Print a comprehensive summary of all operations in a grouped table format.
-
-        Args:
-            verbosity: Output detail level (0-2).
-        """
+        """Print a comprehensive summary in a unified tabular format."""
         if verbosity == 0:
             return
 
-        # Prepare grouped summary data
-        grouped_data = {
-            "ZIP PROCESSING": [
-                ["Files Processed", self.total_zips],
-                ["Successful", self.successful_extractions],
-                ["Failed", self.failed_extractions],
-                [
-                    "Success Rate",
-                    (
-                        f"{self.successful_extractions / self.total_zips * 100:.1f}%"
-                        if self.total_zips
-                        else "N/A"
-                    ),
-                ],
+        # Prepare data with section headers
+        summary_data = [
+            ["", "PROCESSING SUMMARY", ""],
+            ["ZIP Processing", "Files Processed", self.total_zips],
+            ["", "Successful", self.successful_extractions],
+            ["", "Failed", self.failed_extractions],
+            [
+                "",
+                "Success Rate",
+                (
+                    f"{self.successful_extractions / self.total_zips * 100:.1f}%"
+                    if self.total_zips
+                    else "N/A"
+                ),
             ],
-            "CLEANING": [
-                ["Files Removed", self.files_removed],
-                ["Directories Removed", self.dirs_removed],
-                ["Total Cleaned", self.files_removed + self.dirs_removed],
+            ["Cleaning", "Files Removed", self.files_removed],
+            ["", "Directories Removed", self.dirs_removed],
+            ["", "Total Cleaned", self.files_removed + self.dirs_removed],
+            ["Reorganization", "Examined", self.dirs_examined],
+            ["", "Reorganized", self.dirs_reorganized],
+            ["", "Ignored", self.dirs_ignored],
+            [
+                "",
+                "Reorg Rate",
+                (
+                    f"{self.dirs_reorganized / self.dirs_examined * 100:.1f}%"
+                    if self.dirs_examined
+                    else "N/A"
+                ),
             ],
-            "REORGANIZATION": [
-                ["Examined", self.dirs_examined],
-                ["Reorganized", self.dirs_reorganized],
-                ["Ignored", self.dirs_ignored],
-                [
-                    "Reorg Rate",
-                    (
-                        f"{self.dirs_reorganized / self.dirs_examined * 100:.1f}%"
-                        if self.dirs_examined
-                        else "N/A"
-                    ),
-                ],
-            ],
-        }
-
-        # Build the formatted table
-        table_lines = []
-        for category, metrics in grouped_data.items():
-            # Add category header
-            table_lines.append(f"\n╒{'═' * 25}╕")
-            table_lines.append(f"│ {category.upper():<23} │")
-            table_lines.append(f"╞{'═' * 25}╡")
-
-            # Add metrics
-            for metric, value in metrics:
-                table_lines.append(f"│ {metric:<20} {value:>3} │")
-
-            table_lines.append(f"╘{'═' * 25}╛")
-
-        # Build the complete output
-        output = [
-            "\n" + "=" * 80,
-            "PROCESSING SUMMARY".center(80),
-            "=" * 80,
-            *table_lines,
         ]
 
-        # Add removed files details if verbose mode
-        if self.removed_files_details and verbosity == 2:
-            output.extend(
-                [
-                    "\nREMOVED FILES DETAILS:",
-                    *[f"- {f}" for f in self.removed_files_details],
-                ]
+        # Print the main table
+        print(
+            "\n"
+            + tabulate(
+                summary_data,
+                headers=["Category", "Metric", "Value"],
+                tablefmt="fancy_outline",
+                colalign=("left", "left", "right"),
+                stralign="center",
             )
+        )
 
-        # Add error summary if any errors
+        # Error summary if any errors (show even in verbosity=1)
         error_logs = [log for log in self.logs if log.level == LogLevel.ERROR]
         if error_logs:
-            output.extend(
-                [
-                    "\n" + "!" * 80,
-                    f"  {len(error_logs)} ERRORS ENCOUNTERED  ".center(80, "!"),
-                    "!" * 80,
-                ]
-            )
-
-        print("\n".join(output))
+            print("\n" + f" {len(error_logs)} ERRORS ENCOUNTERED ".center(80, "!"))
 
     def print_logs(self, verbosity: int = 2) -> None:
-        """Print all collected logs with verbosity filtering."""
-        if not self.logs or verbosity == 0:
-            return
-
-        output = ["\n" + "-" * 80, "DETAILED OPERATION LOGS".center(80), "-" * 80]
-
-        for log in self.logs:
-            if verbosity == 1 and log.level not in (LogLevel.ERROR, LogLevel.WARNING):
-                continue
-
-            if HAS_COLORAMA:
-                output.append(f"{log.level.get_color()} {log.message}{Style.RESET_ALL}")
-            else:
-                # Fallback without colorama
+        """Print logs in a separate table when in verbose mode."""
+        if verbosity == 2 and self.logs:
+            log_data = []
+            for log in self.logs:
                 prefix = {
                     LogLevel.INFO: "[INFO]",
-                    LogLevel.WARNING: "[WARNING]",
-                    LogLevel.ERROR: "[ERROR]",
-                    LogLevel.SUCCESS: "[SUCCESS]",
+                    LogLevel.WARNING: "[WARN]",
+                    LogLevel.ERROR: "[ERR]",
+                    LogLevel.SUCCESS: "[OK]",
                     LogLevel.OPERATION: "→",
                 }.get(log.level, "")
-                output.append(f"{prefix} {log.message}")
+                log_data.append([prefix, log.message])
 
-        print("\n".join(output))
+            print(
+                tabulate(
+                    log_data,
+                    headers=["Level", "Message"],
+                    tablefmt="fancy_outline",
+                    colalign=("center", "left"),
+                )
+            )
 
 
 # Constants for Apple system files to remove
