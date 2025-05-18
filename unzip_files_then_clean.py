@@ -39,7 +39,28 @@ from enum import Enum, auto
 from pathlib import Path
 from typing import Generator, List, Set, Tuple, Literal
 
-# Try to import tabulate, with fallback to basic printing if not available
+try:
+    from colorama import init, Fore, Back, Style
+
+    init(autoreset=True)
+    HAS_COLORAMA = True
+except ImportError:
+    HAS_COLORAMA = False
+
+    def init(*args, **kwargs):
+        """Stub function for Colorama import fallback."""
+        pass
+
+    class Fore:
+        BLACK = RED = GREEN = YELLOW = BLUE = MAGENTA = CYAN = WHITE = RESET = ""
+
+    class Back:
+        BLACK = RED = GREEN = YELLOW = BLUE = MAGENTA = CYAN = WHITE = RESET = ""
+
+    class Style:
+        DIM = NORMAL = BRIGHT = RESET_ALL = ""
+
+
 try:
     from tabulate import tabulate
 
@@ -88,6 +109,18 @@ class LogLevel(Enum):
     ERROR = auto()
     SUCCESS = auto()
     OPERATION = auto()
+
+    def get_color(self) -> str:
+        """Return the appropriate color for each log level."""
+        if not HAS_COLORAMA:
+            return ""
+        return {
+            LogLevel.INFO: Fore.CYAN,
+            LogLevel.WARNING: Fore.YELLOW,
+            LogLevel.ERROR: Fore.RED,
+            LogLevel.SUCCESS: Fore.GREEN,
+            LogLevel.OPERATION: Fore.MAGENTA,
+        }.get(self, "")
 
 
 @dataclass
@@ -159,20 +192,17 @@ class OperationStats:
         self.removed_files_details.append(path)
 
     def print_summary(self, verbosity: int = 2) -> None:
-        """Print a comprehensive summary of all operations.
+        """Print a comprehensive summary of all operations in a grouped table format.
 
         Args:
             verbosity: Output detail level (0-2).
-
-        Example:
-            >>> stats = OperationStats()
-            >>> stats.print_summary(verbosity=1)  # Normal output
         """
         if verbosity == 0:
             return
 
-        summary_data = {
-            "ZIP Processing": [
+        # Prepare grouped summary data
+        grouped_data = {
+            "ZIP PROCESSING": [
                 ["Files Processed", self.total_zips],
                 ["Successful", self.successful_extractions],
                 ["Failed", self.failed_extractions],
@@ -185,12 +215,12 @@ class OperationStats:
                     ),
                 ],
             ],
-            "Cleaning": [
+            "CLEANING": [
                 ["Files Removed", self.files_removed],
                 ["Directories Removed", self.dirs_removed],
                 ["Total Cleaned", self.files_removed + self.dirs_removed],
             ],
-            "Reorganization": [
+            "REORGANIZATION": [
                 ["Examined", self.dirs_examined],
                 ["Reorganized", self.dirs_reorganized],
                 ["Ignored", self.dirs_ignored],
@@ -205,13 +235,29 @@ class OperationStats:
             ],
         }
 
-        output = ["\n" + "=" * 80, "PROCESSING SUMMARY".center(80), "=" * 80]
+        # Build the formatted table
+        table_lines = []
+        for category, metrics in grouped_data.items():
+            # Add category header
+            table_lines.append(f"\n╒{'═' * 25}╕")
+            table_lines.append(f"│ {category.upper():<23} │")
+            table_lines.append(f"╞{'═' * 25}╡")
 
-        for section, data in summary_data.items():
-            output.extend(
-                [f"\n{section.upper():^80}", tabulate(data, tablefmt="fancy")]
-            )
+            # Add metrics
+            for metric, value in metrics:
+                table_lines.append(f"│ {metric:<20} {value:>3} │")
 
+            table_lines.append(f"╘{'═' * 25}╛")
+
+        # Build the complete output
+        output = [
+            "\n" + "=" * 80,
+            "PROCESSING SUMMARY".center(80),
+            "=" * 80,
+            *table_lines,
+        ]
+
+        # Add removed files details if verbose mode
         if self.removed_files_details and verbosity == 2:
             output.extend(
                 [
@@ -220,6 +266,7 @@ class OperationStats:
                 ]
             )
 
+        # Add error summary if any errors
         error_logs = [log for log in self.logs if log.level == LogLevel.ERROR]
         if error_logs:
             output.extend(
@@ -233,15 +280,7 @@ class OperationStats:
         print("\n".join(output))
 
     def print_logs(self, verbosity: int = 2) -> None:
-        """Print all collected logs with verbosity filtering.
-
-        Args:
-            verbosity: 0=silent, 1=normal (errors+warnings), 2=verbose (all)
-
-        Example:
-            >>> stats = OperationStats()
-            >>> stats.print_logs(verbosity=1)  # Show only warnings and errors
-        """
+        """Print all collected logs with verbosity filtering."""
         if not self.logs or verbosity == 0:
             return
 
@@ -251,15 +290,18 @@ class OperationStats:
             if verbosity == 1 and log.level not in (LogLevel.ERROR, LogLevel.WARNING):
                 continue
 
-            prefix = {
-                LogLevel.INFO: "[INFO]",
-                LogLevel.WARNING: "[WARNING]",
-                LogLevel.ERROR: "[ERROR]",
-                LogLevel.SUCCESS: "[SUCCESS]",
-                LogLevel.OPERATION: "→",
-            }.get(log.level, "")
-
-            output.append(f"{prefix} {log.message}")
+            if HAS_COLORAMA:
+                output.append(f"{log.level.get_color()} {log.message}{Style.RESET_ALL}")
+            else:
+                # Fallback without colorama
+                prefix = {
+                    LogLevel.INFO: "[INFO]",
+                    LogLevel.WARNING: "[WARNING]",
+                    LogLevel.ERROR: "[ERROR]",
+                    LogLevel.SUCCESS: "[SUCCESS]",
+                    LogLevel.OPERATION: "→",
+                }.get(log.level, "")
+                output.append(f"{prefix} {log.message}")
 
         print("\n".join(output))
 
@@ -532,29 +574,48 @@ def main() -> Literal[0, 1]:
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
-        "directory",
+        "-d",
+        "--directory",
         type=Path,
         help="Directory containing files to process",
     )
     parser.add_argument(
+        "-c",
         "--clean-only",
         action="store_true",
         help="Only clean system files without extracting or reorganizing",
     )
     parser.add_argument(
+        "-n",
         "--no-confirm",
         action="store_true",
         help="Skip all confirmation prompts",
     )
     parser.add_argument(
         "-v",
-        action="count",
+        "--verbosity",
+        type=int,
+        choices=[0, 1, 2],
         default=2,
         help="Verbosity level (0=silent, 1=normal, 2=verbose)",
     )
 
     args = parser.parse_args()
+    args.directory = Path(args.directory).expanduser()
     stats = OperationStats()
+
+    if not HAS_COLORAMA:
+        stats.add_log(
+            "Note: For better output, install 'colorama' "
+            "with: `pip install colorama`",
+            LogLevel.INFO,
+        )
+    if not HAS_TABULATE:
+        stats.add_log(
+            "Note: For better output formatting, install 'tabulate' "
+            "with: `pip install tabulate`",
+            LogLevel.INFO,
+        )
 
     if not args.directory.is_dir():
         stats.add_log(f"Directory not found: {args.directory}", LogLevel.ERROR)
@@ -574,8 +635,8 @@ def main() -> Literal[0, 1]:
         stats.dirs_removed += dirs
         reorganize_directories(args.directory, stats, args.no_confirm)
 
-    stats.print_summary(verbosity=args.v)
-    stats.print_logs(verbosity=args.v)
+    stats.print_summary(verbosity=args.verbosity)
+    stats.print_logs(verbosity=args.verbosity)
 
     return 0 if not any(log.level == LogLevel.ERROR for log in stats.logs) else 1
 
