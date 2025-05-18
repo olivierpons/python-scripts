@@ -8,8 +8,8 @@ This script performs three main operations:
 3. Reorganizes directories by moving single-child directories up one level
 
 Example usage:
-    $ python zip_reorganizer.py /path/to/directory
-    $ python zip_reorganizer.py /path/to/directory --clean-only
+    $ python unzip_files_then_clean.py /path/to/directory
+    $ python unzip_files_then_clean.py /path/to/directory --clean-only
 
 Returns:
     0: Success
@@ -17,13 +17,12 @@ Returns:
 """
 
 import argparse
-import os
 import re
 import shutil
 import sys
 import zipfile
 from pathlib import Path
-from typing import Dict, Generator, List, Literal, Optional, Set, Tuple, Union
+from typing import Generator, List, Literal, Set, Tuple
 
 # Constants for Apple system files to remove
 APPLE_SYSTEM_FILES: Set[str] = {
@@ -160,7 +159,7 @@ def extract_zip_files(source_dir: Path) -> Tuple[int, int, int]:
                 print()
                 continue
 
-            # Clear existing directory
+            # Clear the existing directory
             print("  → Clearing existing directory...")
             try:
                 shutil.rmtree(dest_dir)
@@ -170,7 +169,7 @@ def extract_zip_files(source_dir: Path) -> Tuple[int, int, int]:
                 print()
                 continue
 
-        # Create destination directory
+        # Create a destination directory
         try:
             dest_dir.mkdir(exist_ok=True)
         except OSError as e:
@@ -409,8 +408,8 @@ def get_user_confirmation(prompt: str, default: bool = False) -> bool:
         Proceed with operation? (Y/n):
         True
     """
-    default_text = "Y/n" if default else "y/N"
-    response = input(f"{prompt} ({default_text}): ").lower()
+    default_text: str = "Y/n" if default else "y/N"
+    response: str = input(f"{prompt} ({default_text}): ").lower()
 
     if not response:
         return default
@@ -427,6 +426,15 @@ def main() -> Literal[0, 1]:
 
     Returns:
         0 on success, 1 on error.
+
+    Examples:
+        >>> # Success case
+        >>> main()  # when valid arguments are provided
+        0
+
+        >>> # Error case
+        >>> main()  # when the directory doesn't exist
+        1
     """
     parser = argparse.ArgumentParser(
         description="Extract ZIP files, clean Apple system files, and reorganize directory structure."
@@ -468,7 +476,11 @@ def main() -> Literal[0, 1]:
     print()
 
     # Apply standalone cleaning after ZIP extraction
-    files_removed, dirs_removed = clean_directory(args.directory)
+    clean_result: Tuple[int, int] = clean_directory(args.directory)
+    files_cleaned, dirs_cleaned = clean_result
+
+    print(f"Total cleanup: {files_cleaned} files and {dirs_cleaned} directories removed")
+    print()
 
     # Reorganize directories
     print(f"=== Reorganizing directories in '{args.directory}' ===")
