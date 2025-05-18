@@ -18,13 +18,13 @@ Features:
 Example usage:
     # Default verbose mode (shows all operations)
     $ python unzip_files_then_clean.py /path/to/directory
-    
+
     # Clean only mode with normal verbosity
     $ python unzip_files_then_clean.py /path/to/directory --clean-only -v1
-    
+
     # Silent mode (only errors)
     $ python unzip_files_then_clean.py /path/to/directory -v0
-    
+
     # No confirmation prompts with normal verbosity
     $ python unzip_files_then_clean.py /path/to/directory --no-confirm -v1
 """
@@ -39,6 +39,7 @@ from enum import Enum, auto
 from pathlib import Path
 from typing import Generator, List, Set, Tuple, Literal
 
+# Try to import optional dependencies for enhanced output
 try:
     from colorama import init, Fore, Back, Style
 
@@ -51,6 +52,7 @@ except ImportError:
         """Stub function for Colorama import fallback."""
         pass
 
+    # Fallback color definitions if colorama is not available
     class Fore:
         BLACK = RED = GREEN = YELLOW = BLUE = MAGENTA = CYAN = WHITE = RESET = ""
 
@@ -67,9 +69,10 @@ try:
     from rich import box
 
     HAS_RICH = True
+    HAS_TABULATE = False
 except ImportError:
     HAS_RICH = False
-    # Tabulate fallback:
+    # Fallback to 'tabulate' if 'rich' is not available
     try:
         from tabulate import tabulate
 
@@ -78,10 +81,11 @@ except ImportError:
         HAS_TABULATE = False
 
         def tabulate(data, headers=None, *args, **kwargs):
-            """Simple tabulate fallback when the package is not available."""
+            """Simple tabulate fallback when neither rich nor tabulate is available."""
             if not data:
                 return ""
-            # Calculate column widths for each column across all rows
+
+            # Calculate column widths
             col_widths = []
             for i in range(len(data[0])):
                 max_width = max(len(str(row[i])) for row in data)
@@ -89,19 +93,18 @@ except ImportError:
                     max_width = max(max_width, len(str(headers[i])))
                 col_widths.append(max_width)
 
+            # Create an ASCII table
             divider = "+" + "+".join("-" * (w + 2) for w in col_widths) + "+"
             table = [divider]
+
             if headers:
-                table.extend(
-                    [
-                        "| "
-                        + " | ".join(
-                            f"{str(h):<{w}}" for h, w in zip(headers, col_widths)
-                        )
-                        + " |",
-                        divider,
-                    ]
+                header_row = (
+                    "| "
+                    + " | ".join(f"{str(h):<{w}}" for h, w in zip(headers, col_widths))
+                    + " |"
                 )
+                table.extend([header_row, divider])
+
             for row in data:
                 table.append(
                     "| "
@@ -113,7 +116,15 @@ except ImportError:
 
 
 class LogLevel(Enum):
-    """Enum for different log levels."""
+    """Enumeration of log levels with associated colors.
+
+    Attributes:
+        INFO: General informational messages
+        WARNING: Potential issues that don't prevent execution
+        ERROR: Critical errors that may affect results
+        SUCCESS: Successful operations
+        OPERATION: Main operation indicators
+    """
 
     INFO = auto()
     WARNING = auto()
@@ -122,7 +133,11 @@ class LogLevel(Enum):
     OPERATION = auto()
 
     def get_color(self) -> str:
-        """Return the appropriate color for each log level."""
+        """Return the appropriate color for each log level.
+
+        Returns:
+            ANSI color code string or empty string if colorama not available.
+        """
         if not HAS_COLORAMA:
             return ""
         return {
@@ -136,12 +151,12 @@ class LogLevel(Enum):
 
 @dataclass
 class LogEntry:
-    """Class representing a single log entry.
+    """Represents a single log entry with metadata.
 
     Attributes:
-        message (str): The log message content.
-        level (LogLevel): Severity level of the message.
-        timestamp (float|None): Optional timestamp for the log entry.
+        message: The log message content
+        level: Severity level of the message
+        timestamp: Optional timestamp (not currently used)
     """
 
     message: str
@@ -151,19 +166,22 @@ class LogEntry:
 
 @dataclass
 class OperationStats:
-    """Statistics collector for all operations with centralized output.
+    """Collects and reports statistics for all operations.
+
+    Tracks count for various operations and stores detailed logs.
+    Provides formatted output for both console and rich displays.
 
     Attributes:
-        total_zips (int): Total ZIP files processed.
-        successful_extractions (int): Successfully extracted ZIPs.
-        failed_extractions (int): Failed extractions.
-        files_removed (int): Apple system files removed.
-        dirs_removed (int): Apple system directories removed.
-        dirs_examined (int): Directories examined for reorganization.
-        dirs_reorganized (int): Directories successfully reorganized.
-        dirs_ignored (int): Directories skipped during reorganization.
-        logs (List[LogEntry]): Collection of all log entries.
-        removed_files_details (List[str]): Detailed list of removed files (for verbosity=2).
+        total_zips: Total ZIP files processed
+        successful_extractions: Successfully extracted ZIPs
+        failed_extractions: Failed extractions
+        files_removed: Apple system files removed
+        dirs_removed: Apple system directories removed
+        dirs_examined: Directories examined for reorganization
+        dirs_reorganized: Directories successfully reorganized
+        dirs_ignored: Directories skipped during reorganization
+        logs: Collection of all log entries
+        removed_files_details: Detailed list of removed files/dirs
     """
 
     total_zips: int = 0
@@ -178,195 +196,211 @@ class OperationStats:
     removed_files_details: List[str] = field(default_factory=list)
 
     def add_log(self, message: str, level: LogLevel = LogLevel.INFO) -> None:
-        """Add a new log entry.
+        """Add a new log entry to the collection.
 
         Args:
-            message: The log message to add.
-            level: Severity level of the message.
-
-        Example:
-            >>> stats = OperationStats()
-            >>> stats.add_log("Processing started", LogLevel.INFO)
+            message: The log message to add
+            level: Severity level of the message
         """
         self.logs.append(LogEntry(message, level))
 
     def add_removed_file_detail(self, path: str) -> None:
-        """Add details of a removed file for verbose output.
+        """Add details of a removed file/directory for verbose output.
 
         Args:
-            path: Path of the removed file/directory.
-
-        Example:
-            >>> stats = OperationStats()
-            >>> stats.add_removed_file_detail("/path/to/.DS_Store")
+            path: Path of the removed file/directory
         """
         self.removed_files_details.append(path)
 
     def print_summary(self, verbosity: int = 2) -> None:
-        """Print a comprehensive summary in a unified tabular format with category separators."""
+        """Print a comprehensive summary of all operations.
+
+        Uses rich for display if available, falls back to tabulate or ASCII.
+
+        Args:
+            verbosity: Controls output detail (0-2)
+        """
         if verbosity == 0:
             return
 
         if HAS_RICH:
-            console = Console()
-            summary_table = Table(
-                title="[bold]PROCESSING SUMMARY[/bold]",
-                box=box.ROUNDED,
-                show_header=True,
-                header_style="bold magenta",
-                title_style="bold green",
-                row_styles=["", "", ""],
-            )
-
-            summary_table.add_column("Category", style="cyan", no_wrap=True)
-            summary_table.add_column("Metric", style="yellow")
-            summary_table.add_column("Value", style="green", justify="right")
-
-            summary_table.add_row(
-                "[bold]ZIP Processing[/bold]",
-                "[bold]Files Processed[/bold]",
-                str(self.total_zips),
-            )
-            summary_table.add_row("", "Successful", str(self.successful_extractions))
-            summary_table.add_row("", "Failed", str(self.failed_extractions))
-            success_rate = (
-                f"[green]{self.successful_extractions / self.total_zips * 100:.1f}%[/green]"
-                if self.total_zips
-                else "N/A"
-            )
-            summary_table.add_row("", "Success Rate", success_rate, end_section=True)
-            summary_table.add_row(
-                "[bold]Cleaning[/bold]",
-                "[bold]Files Removed[/bold]",
-                str(self.files_removed),
-            )
-            summary_table.add_row("", "Directories Removed", str(self.dirs_removed))
-            summary_table.add_row(
-                "",
-                "Total Cleaned",
-                str(self.files_removed + self.dirs_removed),
-                end_section=True,
-            )
-            summary_table.add_row(
-                "[bold]Reorganization[/bold]",
-                "[bold]Examined[/bold]",
-                str(self.dirs_examined),
-            )
-            summary_table.add_row("", "Reorganized", str(self.dirs_reorganized))
-            summary_table.add_row("", "Ignored", str(self.dirs_ignored))
-            reorg_rate = (
-                f"[green]{self.dirs_reorganized / self.dirs_examined * 100:.1f}%[/green]"
-                if self.dirs_examined
-                else "N/A"
-            )
-            summary_table.add_row("", "Reorg Rate", reorg_rate)
-
-            console.print(summary_table)
-
+            self._print_rich_summary()
         else:
-            summary_data = [
-                ["ZIP Processing", "Files Processed", self.total_zips],
-                ["", "Successful", self.successful_extractions],
-                ["", "Failed", self.failed_extractions],
-                [
-                    "",
-                    "Success Rate",
-                    (
-                        f"{self.successful_extractions / self.total_zips * 100:.1f}%"
-                        if self.total_zips
-                        else "N/A"
-                    ),
-                ],
-                ["Cleaning", "Files Removed", self.files_removed],
-                ["", "Directories Removed", self.dirs_removed],
-                ["", "Total Cleaned", self.files_removed + self.dirs_removed],
-                ["Reorganization", "Examined", self.dirs_examined],
-                ["", "Reorganized", self.dirs_reorganized],
-                ["", "Ignored", self.dirs_ignored],
-                [
-                    "",
-                    "Reorg Rate",
-                    (
-                        f"{self.dirs_reorganized / self.dirs_examined * 100:.1f}%"
-                        if self.dirs_examined
-                        else "N/A"
-                    ),
-                ],
-            ]
+            self._print_basic_summary()
 
-            print(
-                "\n"
-                + tabulate(
-                    summary_data,
-                    headers=["Category", "Metric", "Value"],
-                    tablefmt="fancy_grid",
-                    colalign=("left", "left", "right"),
-                    stralign="center",
-                )
+    def _print_rich_summary(self) -> None:
+        """Generate and print a rich formatted summary table."""
+        console = Console()
+        summary_table = Table(
+            title="[bold]PROCESSING SUMMARY[/bold]",
+            box=box.ROUNDED,
+            show_header=True,
+            header_style="bold magenta",
+            title_style="bold green",
+        )
+
+        summary_table.add_column("Category", style="cyan", no_wrap=True)
+        summary_table.add_column("Metric", style="yellow")
+        summary_table.add_column("Value", style="green", justify="right")
+
+        # ZIP Processing section
+        summary_table.add_row(
+            "[bold]ZIP Processing[/bold]",
+            "[bold]Files Processed[/bold]",
+            str(self.total_zips),
+        )
+        summary_table.add_row("", "Successful", str(self.successful_extractions))
+        summary_table.add_row("", "Failed", str(self.failed_extractions))
+        success_rate = (
+            f"[green]{self.successful_extractions / self.total_zips * 100:.1f}%[/green]"
+            if self.total_zips
+            else "N/A"
+        )
+        summary_table.add_row("", "Success Rate", success_rate, end_section=True)
+
+        # Cleaning section
+        summary_table.add_row(
+            "[bold]Cleaning[/bold]",
+            "[bold]Files Removed[/bold]",
+            str(self.files_removed),
+        )
+        summary_table.add_row("", "Directories Removed", str(self.dirs_removed))
+        summary_table.add_row(
+            "",
+            "Total Cleaned",
+            str(self.files_removed + self.dirs_removed),
+            end_section=True,
+        )
+
+        # Reorganization section
+        summary_table.add_row(
+            "[bold]Reorganization[/bold]",
+            "[bold]Examined[/bold]",
+            str(self.dirs_examined),
+        )
+        summary_table.add_row("", "Reorganized", str(self.dirs_reorganized))
+        summary_table.add_row("", "Ignored", str(self.dirs_ignored))
+        reorg_rate = (
+            f"[green]{self.dirs_reorganized / self.dirs_examined * 100:.1f}%[/green]"
+            if self.dirs_examined
+            else "N/A"
+        )
+        summary_table.add_row("", "Reorg Rate", reorg_rate)
+
+        console.print(summary_table)
+
+    def _print_basic_summary(self) -> None:
+        """Generate and print a basic ASCII-formatted summary table."""
+        summary_data = [
+            ["ZIP Processing", "Files Processed", self.total_zips],
+            ["", "Successful", self.successful_extractions],
+            ["", "Failed", self.failed_extractions],
+            [
+                "",
+                "Success Rate",
+                (
+                    f"{self.successful_extractions / self.total_zips * 100:.1f}%"
+                    if self.total_zips
+                    else "N/A"
+                ),
+            ],
+            ["Cleaning", "Files Removed", self.files_removed],
+            ["", "Directories Removed", self.dirs_removed],
+            ["", "Total Cleaned", self.files_removed + self.dirs_removed],
+            ["Reorganization", "Examined", self.dirs_examined],
+            ["", "Reorganized", self.dirs_reorganized],
+            ["", "Ignored", self.dirs_ignored],
+            [
+                "",
+                "Reorg Rate",
+                (
+                    f"{self.dirs_reorganized / self.dirs_examined * 100:.1f}%"
+                    if self.dirs_examined
+                    else "N/A"
+                ),
+            ],
+        ]
+
+        print(
+            "\n"
+            + tabulate(
+                summary_data,
+                headers=["Category", "Metric", "Value"],
+                tablefmt="fancy_grid",
+                colalign=("left", "left", "right"),
+                stralign="center",
             )
-
-        # Error summary if any errors (show even in verbosity=1)
-        error_logs = [log for log in self.logs if log.level == LogLevel.ERROR]
-        if error_logs:
-            print("\n" + f" {len(error_logs)} ERRORS ENCOUNTERED ".center(80, "!"))
+        )
 
     def print_logs(self, verbosity: int = 2) -> None:
-        """Print logs in a separate table when in verbose mode."""
-        if verbosity == 2 and self.logs:
-            if HAS_RICH:
-                console = Console()
-                log_table = Table(
-                    title="[bold]PROCESS LOGS[/bold]",
-                    box=box.SIMPLE_HEAVY,
-                    show_header=True,
-                    header_style="bold blue",
-                )
+        """Print all collected logs in formatted output.
 
-                log_table.add_column("Level", style="cyan", width=8)
-                log_table.add_column("Message", style="white")
+        Args:
+            verbosity: Controls output detail (0-2)
+        """
+        if verbosity < 2 or not self.logs:
+            return
 
-                for log in self.logs:
-                    level_style = {
-                        LogLevel.INFO: "[cyan]INFO[/cyan]",
-                        LogLevel.WARNING: "[yellow]WARN[/yellow]",
-                        LogLevel.ERROR: "[red]ERROR[/red]",
-                        LogLevel.SUCCESS: "[green]SUCCESS[/green]",
-                        LogLevel.OPERATION: "[magenta]→[/magenta]",
-                    }.get(log.level, "")
+        if HAS_RICH:
+            self._print_rich_logs()
+        else:
+            self._print_basic_logs()
 
-                    log_table.add_row(level_style, log.message)
+    def _print_rich_logs(self) -> None:
+        """Print logs using rich formatting."""
+        console = Console()
+        log_table = Table(
+            title="[bold]PROCESS LOGS[/bold]",
+            box=box.SIMPLE_HEAVY,
+            show_header=True,
+            header_style="bold blue",
+        )
 
-                console.print(log_table)
-            else:
-                # tabulate fallback:
-                log_data = []
-                for log in self.logs:
-                    prefix = {
-                        LogLevel.INFO: "[INFO]",
-                        LogLevel.WARNING: "[WARN]",
-                        LogLevel.ERROR: "[ERR]",
-                        LogLevel.SUCCESS: "[OK]",
-                        LogLevel.OPERATION: "→",
-                    }.get(log.level, "")
-                    log_data.append([prefix, log.message])
+        log_table.add_column("Level", style="cyan", width=8)
+        log_table.add_column("Message", style="white")
 
-                print(
-                    tabulate(
-                        log_data,
-                        headers=["Level", "Message"],
-                        tablefmt="fancy_outline",
-                        colalign=("center", "left"),
-                    )
-                )
+        for log in self.logs:
+            level_style = {
+                LogLevel.INFO: "[cyan]INFO[/cyan]",
+                LogLevel.WARNING: "[yellow]WARN[/yellow]",
+                LogLevel.ERROR: "[red]ERROR[/red]",
+                LogLevel.SUCCESS: "[green]SUCCESS[/green]",
+                LogLevel.OPERATION: "[magenta]→[/magenta]",
+            }.get(log.level, "")
+            log_table.add_row(level_style, log.message)
+
+        console.print(log_table)
+
+    def _print_basic_logs(self) -> None:
+        """Print logs using basic ASCII formatting."""
+        log_data = []
+        for log in self.logs:
+            prefix = {
+                LogLevel.INFO: "[INFO]",
+                LogLevel.WARNING: "[WARN]",
+                LogLevel.ERROR: "[ERR]",
+                LogLevel.SUCCESS: "[OK]",
+                LogLevel.OPERATION: "→",
+            }.get(log.level, "")
+            log_data.append([prefix, log.message])
+
+        print(
+            tabulate(
+                log_data,
+                headers=["Level", "Message"],
+                tablefmt="fancy_outline",
+                colalign=("center", "left"),
+            )
+        )
 
 
-# Constants for Apple system files to remove
+# Constants for Apple system files/directories to remove
 APPLE_SYSTEM_FILES: Set[str] = {
     ".DS_Store",
     "._.DS_Store",
     ".AppleDouble",
     ".LSOverride",
-    re.compile(r"^\._.*$"),  # Only files starting with ._
+    re.compile(r"^\._.*$"),  # Files starting with ._
 }
 
 APPLE_SYSTEM_DIRS: Set[str] = {
@@ -382,18 +416,18 @@ def is_apple_system_file(filename: str) -> bool:
     """Check if a filename matches known Apple system file patterns.
 
     Args:
-        filename: The filename to check.
+        filename: The filename to check
 
     Returns:
-        True if the file is an Apple system file, False otherwise.
+        True if the file is an Apple system file, False otherwise
 
     Examples:
         >>> is_apple_system_file(".DS_Store")
         True
-        >>> is_apple_system_file("normal_file.txt")
-        False
         >>> is_apple_system_file("._hidden_file")
         True
+        >>> is_apple_system_file("normal_file.txt")
+        False
     """
     if filename in APPLE_SYSTEM_FILES:
         return True
@@ -413,17 +447,20 @@ def remove_apple_system_files(
 ) -> Tuple[int, int]:
     """Recursively remove Apple system files and directories.
 
+    Walks through a directory tree and removes any files/directories
+    that match known Apple system file patterns.
+
     Args:
-        directory: Path to directory to clean.
-        stats: OperationStats instance for logging.
+        directory: Root directory to clean
+        stats: OperationStats instance for logging
 
     Returns:
-        Tuple of (files_removed, dirs_removed) counts.
+        Tuple of (files_removed, dirs_removed) counts
 
     Examples:
         >>> my_stats = OperationStats()
         >>> remove_apple_system_files(Path("/tmp"), my_stats)
-        (3, 1)  # Example return value
+        (3, 1)  # Example return values
     """
     files_removed, dirs_removed = 0, 0
 
@@ -441,7 +478,6 @@ def remove_apple_system_files(
                 stats.add_log(f"Removed Apple directory: {path}", LogLevel.INFO)
             except OSError as e:
                 stats.add_log(f"Error removing {path}: {e}", LogLevel.ERROR)
-
         elif path.is_file() and is_apple_system_file(path.name):
             try:
                 path.unlink()
@@ -459,15 +495,20 @@ def extract_zip_files(
 ) -> None:
     """Extract all ZIP files in the directory to corresponding subdirectories.
 
+    For each ZIP file found:
+    1. Creates a subdirectory with the ZIP's basename
+    2. Extracts contents into the subdirectory
+    3. Removes Apple system files from extracted contents
+    4. Deletes the original ZIP if extraction succeeds
+
     Args:
-        source_dir: Directory containing ZIP files.
-        stats: OperationStats instance for logging.
-        no_confirm: Skip confirmation prompts if True.
+        source_dir: Directory containing ZIP files
+        stats: OperationStats instance for logging
+        no_confirm: Skip confirmation prompts if True
 
     Examples:
         >>> my_stats = OperationStats()
         >>> extract_zip_files(Path("/tmp/zips"), my_stats, no_confirm=True)
-        # Processes all ZIP files in /tmp/zips without confirmation prompts
     """
     for zip_file in source_dir.glob("*.zip"):
         stats.total_zips += 1
@@ -483,9 +524,9 @@ def extract_zip_files(
                 stats.failed_extractions += 1
                 continue
 
-            stats.add_log("Clearing existing directory...", LogLevel.OPERATION)
             try:
                 shutil.rmtree(dest_dir)
+                stats.add_log("Cleared existing directory", LogLevel.OPERATION)
             except OSError as e:
                 stats.add_log(f"Clear failed: {e}", LogLevel.ERROR)
                 stats.failed_extractions += 1
@@ -496,6 +537,7 @@ def extract_zip_files(
             with zipfile.ZipFile(zip_file, "r") as zip_ref:
                 zip_ref.extractall(dest_dir)
 
+            # Clean Apple system files from extracted contents
             files_removed, dirs_removed = remove_apple_system_files(dest_dir, stats)
             stats.files_removed += files_removed
             stats.dirs_removed += dirs_removed
@@ -518,13 +560,13 @@ def extract_zip_files(
 
 
 def find_single_child_dirs(root_dir: Path) -> Generator[Tuple[Path, Path], None, None]:
-    """Find directories with exactly one subdirectory and no other items.
+    """Find directories containing exactly one subdirectory and no other items.
 
     Args:
-        root_dir: Directory to search for single-child directories.
+        root_dir: Directory to search
 
     Yields:
-        Tuples of (parent_dir, child_dir) pairs.
+        Tuples of (parent_dir, child_dir) pairs
 
     Examples:
         >>> for parent, child in find_single_child_dirs(Path("/tmp")):
@@ -544,20 +586,24 @@ def reorganize_directories(
 ) -> None:
     """Reorganize a directory structure by moving single-child directories up.
 
+    For each directory containing exactly one subdirectory:
+    1. Moves the child directory up one level
+    2. Removes the now-empty parent directory (which is now empty)
+
     Args:
-        source_dir: Directory to reorganize.
-        stats: OperationStats instance for logging.
-        no_confirm: Skip confirmation prompts if True.
+        source_dir: Directory to reorganize
+        stats: OperationStats instance for logging
+        no_confirm: Skip confirmation prompts if True
 
     Examples:
         >>> my_stats = OperationStats()
         >>> reorganize_directories(Path("/tmp"), my_stats, no_confirm=True)
-        # Reorganizes directories without confirmation prompts
     """
     for parent_dir, child_dir in find_single_child_dirs(source_dir):
         stats.dirs_examined += 1
         stats.add_log(f"Processing: {parent_dir.name}", LogLevel.OPERATION)
 
+        # Clean Apple system files before reorganization
         files_removed, dirs_removed = remove_apple_system_files(parent_dir, stats)
         stats.files_removed += files_removed
         stats.dirs_removed += dirs_removed
@@ -595,14 +641,14 @@ def reorganize_directories(
 
 
 def get_user_confirmation(prompt: str, default: bool = False) -> bool:
-    """Get confirmation from user with customizable defaults.
+    """Get yes/no confirmation from user with customizable default.
 
     Args:
-        prompt: Question to ask the user.
-        default: Default response if user just hits enter.
+        prompt: Question to present to user
+        default: Default response if user just hits enter
 
     Returns:
-        True if user confirmed, False otherwise.
+        True if user confirmed, False otherwise
 
     Examples:
         >>> get_user_confirmation("Continue?", default=True)
@@ -620,8 +666,10 @@ def get_user_confirmation(prompt: str, default: bool = False) -> bool:
 def main() -> Literal[0, 1]:
     """Main entry point for the script.
 
+    Handles argument parsing and coordinates all operations.
+
     Returns:
-        0 on success, 1 on error.
+        0 on success, 1 on error
     """
     parser = argparse.ArgumentParser(
         description="Advanced ZIP extraction and directory reorganization tool",
@@ -655,12 +703,13 @@ def main() -> Literal[0, 1]:
     )
 
     args = parser.parse_args()
-    args.directory = Path(args.directory).expanduser()
+    args.directory = Path(args.directory).expanduser().resolve()
     stats = OperationStats()
 
+    # Notify about optional dependencies
     if not HAS_COLORAMA:
         stats.add_log(
-            "Note: For better output, install 'colorama' "
+            "Note: For colored output, install 'colorama' "
             "with: `pip install colorama`",
             LogLevel.INFO,
         )
@@ -677,11 +726,13 @@ def main() -> Literal[0, 1]:
                 LogLevel.INFO,
             )
 
+    # Validate directory
     if not args.directory.is_dir():
         stats.add_log(f"Directory not found: {args.directory}", LogLevel.ERROR)
         stats.print_logs(verbosity=1)  # Always show errors
         return 1
 
+    # Execute requested operations
     if args.clean_only:
         stats.add_log(f"Starting clean-only mode in {args.directory}", LogLevel.INFO)
         files, dirs = remove_apple_system_files(args.directory, stats)
@@ -695,6 +746,7 @@ def main() -> Literal[0, 1]:
         stats.dirs_removed += dirs
         reorganize_directories(args.directory, stats, args.no_confirm)
 
+    # Output results
     stats.print_logs(verbosity=args.verbosity)
     stats.print_summary(verbosity=args.verbosity)
 
