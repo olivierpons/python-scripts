@@ -221,7 +221,7 @@ APPLE_SYSTEM_FILES: Set[str] = {
     ".AppleDouble",
     ".LSOverride",
     # More specific pattern for AppleDouble files
-    re.compile(r'^\._.*$'),  # Only files starting with ._
+    re.compile(r"^\._.*$"),  # Only files starting with ._
 }
 
 # Apple system directories
@@ -243,26 +243,30 @@ def is_apple_system_file(filename: str) -> bool:
         if isinstance(pattern, re.Pattern):
             if pattern.match(filename):
                 return True
-        elif filename.startswith(pattern.replace('*', '')):
+        elif filename.startswith(pattern.replace("*", "")):
             return True
 
     return False
 
 
-def remove_apple_system_files(directory: Path) -> Tuple[int, int]:
+def remove_apple_system_files(
+    directory: Path, stats: OperationStats
+) -> Tuple[int, int]:
     """
     Recursively remove Apple system files and directories.
 
     Args:
         directory: Path to directory to clean
-        stats: Optional OperationStats for logging
+        stats: OperationStats for logging and stats
 
     Returns:
         Tuple of (files_removed, dirs_removed)
     """
     files_removed, dirs_removed = 0, 0
 
-    for path in sorted(directory.glob("**/*"), key=lambda p: len(p.parts), reverse=True):
+    for path in sorted(
+        directory.glob("**/*"), key=lambda p: len(p.parts), reverse=True
+    ):
         if not path.exists():
             continue
 
@@ -271,21 +275,20 @@ def remove_apple_system_files(directory: Path) -> Tuple[int, int]:
             try:
                 shutil.rmtree(path)
                 dirs_removed += 1
-                print(f"Removed Apple directory: {path}")
+                stats.add_log(f"Removed Apple directory: {path}", LogLevel.INFO)
             except OSError as e:
-                print(f"Error removing {path}: {e}")
+                stats.add_log(f"Error removing {path}: {e}", LogLevel.ERROR)
 
         # Handle files - ONLY ACTUAL APPLE FILES
         elif path.is_file() and is_apple_system_file(path.name):
             try:
                 path.unlink()
                 files_removed += 1
-                print(f"Removed Apple file: {path}")
+                stats.add_log(f"Removed Apple file: {path}", LogLevel.INFO)
             except OSError as e:
-                print(f"Error removing {path}: {e}")
+                stats.add_log(f"Error removing {path}: {e}", LogLevel.ERROR)
 
     return files_removed, dirs_removed
-
 
 
 def extract_zip_files(
