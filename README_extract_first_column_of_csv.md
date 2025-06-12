@@ -102,6 +102,31 @@ python extract_first_column_of_csv.py --input 输入文件.csv
 
 - `-i, --input`：输入CSV文件的路径（必需）
 
+## 繁體中文
+
+### CSV第一列提取程式
+
+此腳本從CSV檔案中提取第一列內容，並將值作為逗號分隔的列表輸出，每個值都
+由引號包圍。
+
+**功能：**
+
+- 從任何CSV檔案中提取第一列
+- 以帶引號的格式化逗號分隔列表形式輸出值
+- 優雅處理檔案開啟錯誤
+- 簡單而專注的功能
+
+**使用方法：**
+
+```bash
+python extract_first_column_of_csv.py -i 輸入檔案.csv
+python extract_first_column_of_csv.py --input 輸入檔案.csv
+```
+
+**參數：**
+
+- `-i, --input`：輸入CSV檔案的路徑（必需）
+
 ## Español
 
 ### Extractor de Primera Columna CSV
@@ -179,28 +204,3 @@ python extract_first_column_of_csv.py --input eingabedatei.csv
 **Argumente:**
 
 - `-i, --input`: Pfad zur CSV-Eingabedatei (erforderlich)
-
-## 繁體中文
-
-### CSV第一列提取器
-
-此腳本從CSV檔案中提取第一列內容，並將值作為逗號分隔的列表輸出，每個值都
-由引號包圍。
-
-**功能：**
-
-- 從任何CSV檔案中提取第一列
-- 以帶引號的格式化逗號分隔列表形式輸出值
-- 優雅處理檔案開啟錯誤
-- 簡單而專注的功能
-
-**使用方法：**
-
-```bash
-python extract_first_column_of_csv.py -i 輸入檔案.csv
-python extract_first_column_of_csv.py --input 輸入檔案.csv
-```
-
-**參數：**
-
-- `-i, --input`：輸入CSV檔案的路徑（必需）

@@ -20,8 +20,9 @@ size, colors, cross thickness, and output format are all customizable.
 **Usage:**
 
 ```bash
-python square_image_with_centered_cross_generator.py --size <SIZE> --cross-color <COLOR> \
-    --bg-color <COLOR> [--format <FORMAT>] [--thickness <THICKNESS>]
+python square_image_with_centered_cross_generator.py \
+    --size <SIZE> --cross-color <COLOR> --bg-color <COLOR> \
+    [--format <FORMAT>] [--thickness <THICKNESS>]
 ```
 
 **Arguments:**
@@ -45,7 +46,7 @@ personnalisables.
 
 - Génère une image carrée de n'importe quelle taille impaire spécifiée pour un
   centrage parfait.
-- Dessine une croix perfectly centrée sur l'image.
+- Dessine une croix parfaitement centrée sur l'image.
 - Couleurs personnalisables pour la croix et l'arrière-plan.
 - Prend en charge plusieurs formats de couleur : RVB (`255,0,0`), HEX
   (`#ff0000`), et un entier unique pour les niveaux de gris (`128`).
@@ -55,8 +56,9 @@ personnalisables.
 **Utilisation :**
 
 ```bash
-python square_image_with_centered_cross_generator.py --size <TAILLE> --cross-color <COULEUR> \
-    --bg-color <COULEUR> [--format <FORMAT>] [--thickness <ÉPAISSEUR>]
+python square_image_with_centered_cross_generator.py \
+    --size <TAILLE> --cross-color <COULEUR> --bg-color <COULEUR> \
+    [--format <FORMAT>] [--thickness <ÉPAISSEUR>]
 ```
 
 **Arguments :**
@@ -89,8 +91,9 @@ python square_image_with_centered_cross_generator.py --size <TAILLE> --cross-col
 **使用法：**
 
 ```bash
-python square_image_with_centered_cross_generator.py --size <サイズ> --cross-color <色> \
-    --bg-color <色> [--format <フォーマット>] [--thickness <太さ>]
+python square_image_with_centered_cross_generator.py \
+    --size <サイズ> --cross-color <色> --bg-color <色> \
+    [--format <フォーマット>] [--thickness <太さ>]
 ```
 
 **引数：**
@@ -122,8 +125,9 @@ python square_image_with_centered_cross_generator.py --size <サイズ> --cross-
 **使用方法：**
 
 ```bash
-python square_image_with_centered_cross_generator.py --size <尺寸> --cross-color <颜色> \
-    --bg-color <颜色> [--format <格式>] [--thickness <厚度>]
+python square_image_with_centered_cross_generator.py \
+    --size <尺寸> --cross-color <颜色> --bg-color <颜色> \
+    [--format <格式>] [--thickness <厚度>]
 ```
 
 **参数：**
@@ -133,6 +137,39 @@ python square_image_with_centered_cross_generator.py --size <尺寸> --cross-col
 - `-b, --bg-color`: 背景的颜色（格式与十字颜色相同）。
 - `-f, --format`: 输出图像格式（'png' 或 'webp'，默认：'png'）。
 - `-t, --thickness`: 十字的厚度（像素）（默认：自动计算）。
+
+## 繁體中文
+
+### 帶居中十字的正方形圖像生成器
+
+此腳本創建一個帶有完美居中十字的正方形圖像。圖像大小、顏色、十字厚度和輸出
+格式均可自訂。
+
+**功能：**
+
+- 生成任何指定的奇數尺寸的方形圖像，以實現完美居中。
+- 在圖像上繪製一個完美居中的十字。
+- 可自訂十字和背景的顏色。
+- 支援多種顏色格式：RGB (`255,0,0`)、HEX (`#ff0000`) 和用於灰階的單個整數
+  (`128`)。
+- 允許自訂十字的厚度。
+- 可以將輸出圖像儲存為PNG或WEBP格式。
+
+**使用方法：**
+
+```bash
+python square_image_with_centered_cross_generator.py \
+    --size <尺寸> --cross-color <顏色> --bg-color <顏色> \
+    [--format <格式>] [--thickness <厚度>]
+```
+
+**參數：**
+
+- `-s, --size`: 圖像的寬度/高度（必須是奇數）。
+- `-c, --cross-color`: 十字的顏色（例如：'255,0,0', '#ff0000', '128'）。
+- `-b, --bg-color`: 背景的顏色（格式與十字顏色相同）。
+- `-f, --format`: 輸出圖像格式（'png' 或 'webp'，預設：'png'）。
+- `-t, --thickness`: 十字的厚度（像素）（預設：自動計算）。
 
 ## Español
 
@@ -156,8 +193,9 @@ todos personalizables.
 **Uso:**
 
 ```bash
-python square_image_with_centered_cross_generator.py --size <TAMAÑO> --cross-color <COLOR> \
-    --bg-color <COLOR> [--format <FORMATO>] [--thickness <GROSOR>]
+python square_image_with_centered_cross_generator.py \
+    --size <TAMAÑO> --cross-color <COLOR> --bg-color <COLOR> \
+    [--format <FORMATO>] [--thickness <GROSOR>]
 ```
 
 **Argumentos:**
@@ -192,8 +230,9 @@ output sono tutti personalizzabili.
 **Utilizzo:**
 
 ```bash
-python square_image_with_centered_cross_generator.py --size <DIMENSIONE> --cross-color <COLORE> \
-    --bg-color <COLORE> [--format <FORMATO>] [--thickness <SPESSORE>]
+python square_image_with_centered_cross_generator.py \
+    --size <DIMENSIONE> --cross-color <COLORE> --bg-color <COLORE> \
+    [--format <FORMATO>] [--thickness <SPESSORE>]
 ```
 
 **Argomenti:**
@@ -204,7 +243,7 @@ python square_image_with_centered_cross_generator.py --size <DIMENSIONE> --cross
 - `-f, --format`: Formato dell'immagine di output ('png' o 'webp', predefinito:
   'png').
 - `-t, --thickness`: Spessore della croce in pixel (predefinito: calcolato
-  automatticamente).
+  automaticamente).
 
 ## Deutsch
 
@@ -227,8 +266,9 @@ Bildgröße, Farben, Kreuzdicke und Ausgabeformat sind alle anpassbar.
 **Verwendung:**
 
 ```bash
-python square_image_with_centered_cross_generator.py --size <GRÖSSE> --cross-color <FARBE> \
-    --bg-color <FARBE> [--format <FORMAT>] [--thickness <DICKE>]
+python square_image_with_centered_cross_generator.py \
+    --size <GRÖSSE> --cross-color <FARBE> --bg-color <FARBE> \
+    [--format <FORMAT>] [--thickness <DICKE>]
 ```
 
 **Argumente:**
@@ -239,35 +279,3 @@ python square_image_with_centered_cross_generator.py --size <GRÖSSE> --cross-co
 - `-f, --format`: Ausgabebildformat ('png' oder 'webp', Standard: 'png').
 - `-t, --thickness`: Dicke des Kreuzes in Pixeln (Standard: automatisch
   berechnet).
-
-## 繁體中文
-
-### 帶居中十字的正方形圖像生成器
-
-此腳本創建一個帶有完美居中十字的正方形圖像。圖像大小、顏色、十字厚度和輸出
-格式均可自訂。
-
-**功能：**
-
-- 生成任何指定的奇數尺寸的方形圖像，以實現完美居中。
-- 在圖像上繪製一個完美居中的十字。
-- 可自訂十字和背景的顏色。
-- 支援多種顏色格式：RGB (`255,0,0`)、HEX (`#ff0000`) 和用於灰階的單個整數
-  (`128`)。
-- 允許自訂十字的厚度。
-- 可以將輸出圖像儲存為PNG或WEBP格式。
-
-**使用方法：**
-
-```bash
-python square_image_with_centered_cross_generator.py --size <尺寸> --cross-color <顏色> \
-    --bg-color <顏色> [--format <格式>] [--thickness <厚度>]
-```
-
-**參數：**
-
-- `-s, --size`: 圖像的寬度/高度（必須是奇數）。
-- `-c, --cross-color`: 十字的顏色（例如：'255,0,0', '#ff0000', '128'）。
-- `-b, --bg-color`: 背景的顏色（格式與十字顏色相同）。
-- `-f, --format`: 輸出圖像格式（'png' 或 'webp'，預設：'png'）。
-- `-t, --thickness`: 十字的厚度（像素）（預設：自動計算）。

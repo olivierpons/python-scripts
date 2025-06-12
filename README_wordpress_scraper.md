@@ -25,7 +25,8 @@ configurable via a YAML file or command-line arguments.
 python wordpress_scraper.py --config config.yaml
 
 # Using command-line arguments
-python wordpress_scraper.py --url <URL> --username <USER> --password <PASS> --target-url <TARGET_URL>
+python wordpress_scraper.py --url <URL> --username <USER> --password <PASS> \
+    --target-url <TARGET_URL>
 ```
 
 **Arguments:**
@@ -65,7 +66,8 @@ commande.
 python wordpress_scraper.py --config config.yaml
 
 # Avec des arguments en ligne de commande
-python wordpress_scraper.py --url <URL> --username <USER> --password <PASS> --target-url <URL_CIBLE>
+python wordpress_scraper.py --url <URL> --username <USER> --password <PASS> \
+    --target-url <URL_CIBLE>
 ```
 
 **Arguments :**
@@ -103,7 +105,8 @@ python wordpress_scraper.py --url <URL> --username <USER> --password <PASS> --ta
 python wordpress_scraper.py --config config.yaml
 
 # コマンドライン引数を使用
-python wordpress_scraper.py --url <URL> --username <ユーザー> --password <パスワード> --target-url <ターゲットURL>
+python wordpress_scraper.py --url <URL> --username <ユーザー> \
+    --password <パスワード> --target-url <ターゲットURL>
 ```
 
 **引数：**
@@ -138,7 +141,8 @@ python wordpress_scraper.py --url <URL> --username <ユーザー> --password <�
 python wordpress_scraper.py --config config.yaml
 
 # 使用命令行参数
-python wordpress_scraper.py --url <网址> --username <用户名> --password <密码> --target-url <目标网址>
+python wordpress_scraper.py --url <网址> --username <用户名> \
+    --password <密码> --target-url <目标网址>
 ```
 
 **参数：**
@@ -149,6 +153,42 @@ python wordpress_scraper.py --url <网址> --username <用户名> --password <�
 - `--password`: 登录密码。
 - `-t, --target-url`: 要抓取的受保护页面的完整URL。
 - `-v, --verbosity`: 详细级别：0=静默，1=正常，2=详细。
+
+## 繁體中文
+
+### WordPress認證頁面擷取器
+
+此腳本連接到網站，處理帶有CSRF權杖的複雜登入表單，並擷取受保護頁面的HTML
+原始碼。它可通過YAML檔案或命令列參數進行高度配置。
+
+**功能：**
+
+- 在具有複雜登入表單的網站（如WordPress）上進行身份驗證。
+- 通過解析登入頁面自動處理CSRF權杖。
+- 可通過YAML檔案、命令列參數或兩者的混合方式提供配置。
+- 允许隨請求發送自訂HTTP標頭。
+- 對各種網路問題（超時、SSL錯誤等）進行穩健的錯誤處理。
+- 提供詳細級別的日誌記錄以跟踪過程。
+
+**使用方法：**
+
+```bash
+# 使用設定檔
+python wordpress_scraper.py --config config.yaml
+
+# 使用命令列參數
+python wordpress_scraper.py --url <網址> --username <使用者名稱> \
+    --password <密碼> --target-url <目標網址>
+```
+
+**參數：**
+
+- `-c, --config`: YAML設定檔的路徑。
+- `-u, --url`: 網站的基礎URL。
+- `--username`: 登入使用者名稱。
+- `--password`: 登入密碼。
+- `-t, --target-url`: 要擷取的受保護頁面的完整URL。
+- `-v, --verbosity`: 詳細級別：0=靜默，1=正常，2=詳細。
 
 ## Español
 
@@ -179,7 +219,8 @@ de línea de comandos.
 python wordpress_scraper.py --config config.yaml
 
 # Usando argumentos de línea de comandos
-python wordpress_scraper.py --url <URL> --username <USUARIO> --password <CONTRASEÑA> --target-url <URL_OBJETIVO>
+python wordpress_scraper.py --url <URL> --username <USUARIO> \
+    --password <CONTRASEÑA> --target-url <URL_OBJETIVO>
 ```
 
 **Argumentos:**
@@ -217,7 +258,8 @@ altamente configurabile tramite un file YAML o argomenti da riga di comando.
 python wordpress_scraper.py --config config.yaml
 
 # Usando argomenti da riga di comando
-python wordpress_scraper.py --url <URL> --username <UTENTE> --password <PASSWORD> --target-url <URL_TARGET>
+python wordpress_scraper.py --url <URL> --username <UTENTE> \
+    --password <PASSWORD> --target-url <URL_TARGET>
 ```
 
 **Argomenti:**
@@ -257,7 +299,8 @@ konfigurierbar.
 python wordpress_scraper.py --config config.yaml
 
 # Verwendung von Befehlszeilenargumenten
-python wordpress_scraper.py --url <URL> --username <BENUTZER> --password <PASSWORT> --target-url <ZIEL_URL>
+python wordpress_scraper.py --url <URL> --username <BENUTZER> \
+    --password <PASSWORT> --target-url <ZIEL_URL>
 ```
 
 **Argumente:**
@@ -269,38 +312,3 @@ python wordpress_scraper.py --url <URL> --username <BENUTZER> --password <PASSWO
 - `-t, --target-url`: Vollständige URL der geschützten Seite, die abgerufen
   werden soll.
 - `-v, --verbosity`: Ausführlichkeitsstufe: 0=leise, 1=normal, 2=ausführlich.
-
-## 繁體中文
-
-### WordPress認證頁面擷取器
-
-此腳本連接到網站，處理帶有CSRF權杖的複雜登入表單，並擷取受保護頁面的HTML
-原始碼。它可通過YAML檔案或命令列參數進行高度配置。
-
-**功能：**
-
-- 在具有複雜登入表單的網站（如WordPress）上進行身份驗證。
-- 通過解析登入頁面自動處理CSRF權杖。
-- 可通過YAML檔案、命令列參數或兩者的混合方式提供配置。
-- 允許隨請求發送自訂HTTP標頭。
-- 對各種網路問題（超時、SSL錯誤等）進行穩健的錯誤處理。
-- 提供詳細級別的日誌記錄以跟踪過程。
-
-**使用方法：**
-
-```bash
-# 使用設定檔
-python wordpress_scraper.py --config config.yaml
-
-# 使用命令列參數
-python wordpress_scraper.py --url <網址> --username <使用者名稱> --password <密碼> --target-url <目標網址>
-```
-
-**參數：**
-
-- `-c, --config`: YAML設定檔的路徑。
-- `-u, --url`: 網站的基礎URL。
-- `--username`: 登入使用者名稱。
-- `--password`: 登入密碼。
-- `-t, --target-url`: 要擷取的受保護頁面的完整URL。
-- `-v, --verbosity`: 詳細級別：0=靜默，1=正常，2=詳細。

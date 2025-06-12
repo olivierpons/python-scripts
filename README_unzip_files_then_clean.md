@@ -4,7 +4,8 @@
 
 ### Advanced ZIP Extraction and Directory Reorganization Tool
 
-This script performs three main operations with comprehensive logging and statistics:
+This script performs three main operations with comprehensive logging and
+statistics:
 
 1. Extracts all ZIP files in a directory into corresponding subdirectories
 2. Removes Apple system files (.DS_Store, .__MACOSX folders, etc.)
@@ -18,8 +19,8 @@ This script performs three main operations with comprehensive logging and statis
 - Modern Python typing with pipe syntax
 - Configurable confirmation prompts
 - Detailed progress logging
-- Beautiful tabular output using 'rich' library (with fallbacks to 'tabulate'
-  or basic formatting)
+- Beautiful tabular output using 'rich' library (with fallbacks to
+  'tabulate' or basic formatting)
 - Extensive error handling and recovery
 - File locking to prevent concurrent modifications
 - Path safety checks for network paths and long filenames
@@ -75,7 +76,8 @@ statistiques complètes :
   'tabulate' ou un formatage basique)
 - Gestion et récupération d'erreurs extensives
 - Verrouillage de fichiers pour empêcher les modifications simultanées
-- Vérifications de sécurité pour les chemins réseau et les noms de fichiers longs
+- Vérifications de sécurité pour les chemins réseau et les noms de fichiers
+  longs
 
 **Exemples d'utilisation :**
 
@@ -121,8 +123,8 @@ $ python unzip_files_then_clean.py /chemin/vers/repertoire --no-confirm -v1
 - パイプ構文を使用した現代的なPythonタイピング
 - 設定可能な確認プロンプト
 - 詳細な進行ログ
-- 'rich'ライブラリを使用した美しい表形式の出力（'tabulate'または基本的な形式
-  へのフォールバック付き）
+- 'rich'ライブラリを使用した美しい表形式の出力（'tabulate'または基本的な
+  形式へのフォールバック付き）
 - 広範なエラー処理と回復
 - 同時変更を防止するためのファイルロック
 - ネットワークパスや長いファイル名のためのパス安全性チェック
@@ -200,6 +202,54 @@ $ python unzip_files_then_clean.py /path/to/directory --no-confirm -v1
 - `--max-size`：ZIP文件的最大大小（字节，默认：10GB）
 - `--no-color`：禁用彩色输出
 
+## 繁體中文
+
+### 高級ZIP提取和目錄重組工具
+
+此腳本通過全面的日誌記錄和統計執行三項主要操作：
+
+1. 將目錄中的所有ZIP檔案提取到相應的子目錄中
+2. 刪除Apple系統檔案（.DS_Store、.__MACOSX資料夾等）
+3. 通過將單一子目錄上移一級來重組目錄結構
+
+**功能：**
+
+- 三個詳細級別（0=靜默，1=普通，2=詳細）
+- 通過OperationStats類實現集中化輸出
+- 全面的統計數據收集
+- 具有管道語法的現代Python類型提示
+- 可配置的確認提示
+- 詳細的進度日誌
+- 使用'rich'庫的美觀表格輸出（後備為'tabulate'或基本格式）
+- 廣泛的錯誤處理和恢復
+- 檔案鎖定以防止並發修改
+- 網路路徑和長檔名的路徑安全檢查
+
+**使用範例：**
+
+```bash
+# 預設詳細模式（顯示所有操作）
+$ python unzip_files_then_clean.py /path/to/directory
+
+# 普通詳細度的僅清理模式
+$ python unzip_files_then_clean.py /path/to/directory --clean-only -v1
+
+# 靜默模式（僅顯示錯誤）
+$ python unzip_files_then_clean.py /path/to/directory -v0
+
+# 普通詳細度的無確認提示
+$ python unzip_files_then_clean.py /path/to/directory --no-confirm -v1
+```
+
+**參數：**
+
+- `-d`, `--directory`：包含要處理檔案的目錄
+- `-c`, `--clean-only`：僅清理系統檔案，不進行提取或重組
+- `-n`, `--no-confirm`：跳過所有確認提示
+- `-v`, `--verbosity`：詳細級別（0=靜默，1=普通，2=詳細）
+- `--max-size`：ZIP檔案的最大大小（位元組，預設：10GB）
+- `--no-color`：禁用彩色輸出
+
 ## Español
 
 ### Herramienta Avanzada de Extracción ZIP y Reorganización de Directorios
@@ -207,9 +257,11 @@ $ python unzip_files_then_clean.py /path/to/directory --no-confirm -v1
 Este script realiza tres operaciones principales con registro y estadísticas
 completas:
 
-1. Extrae todos los archivos ZIP en un directorio a subdirectorios correspondientes
+1. Extrae todos los archivos ZIP en un directorio a subdirectorios
+   correspondientes
 2. Elimina archivos del sistema Apple (.DS_Store, carpetas .__MACOSX, etc.)
-3. Reorganiza directorios moviendo directorios de hijo único un nivel hacia arriba
+3. Reorganiza directorios moviendo directorios de hijo único un nivel hacia
+   arriba
 
 **Características:**
 
@@ -258,10 +310,11 @@ $ python unzip_files_then_clean.py /ruta/al/directorio --no-confirm -v1
 Questo script esegue tre operazioni principali con registrazione e statistiche
 complete:
 
-1. Estrae tutti i file ZIP in una directory nelle sottodirectory corrispondenti
+1. Estrae tutti i file ZIP in una directory nelle sottodirectory
+   corrispondenti
 2. Rimuove i file di sistema Apple (.DS_Store, cartelle .__MACOSX, ecc.)
-3. Riorganizza le directory spostando le directory con un solo figlio un livello
-   più in alto
+3. Riorganizza le directory spostando le directory con un solo figlio un
+   livello più in alto
 
 **Funzionalità:**
 
@@ -314,8 +367,8 @@ Statistik durch:
 1. Extrahiert alle ZIP-Dateien in einem Verzeichnis in entsprechende
    Unterverzeichnisse
 2. Entfernt Apple-Systemdateien (.DS_Store, .__MACOSX-Ordner usw.)
-3. Reorganisiert Verzeichnisse, indem Verzeichnisse mit einem einzelnen Kind eine
-   Ebene nach oben verschoben werden
+3. Reorganisiert Verzeichnisse, indem Verzeichnisse mit einem einzelnen Kind
+   eine Ebene nach oben verschoben werden
 
 **Funktionen:**
 
@@ -353,6 +406,7 @@ $ python unzip_files_then_clean.py /pfad/zum/verzeichnis --no-confirm -v1
 - `-c`, `--clean-only`: Nur Systemdateien bereinigen ohne Extraktion oder
   Reorganisation
 - `-n`, `--no-confirm`: Alle Bestätigungsaufforderungen überspringen
-- `-v`, `--verbosity`: Ausführlichkeitsstufe (0=stumm, 1=normal, 2=ausführlich)
+- `-v`, `--verbosity`: Ausführlichkeitsstufe (0=stumm, 1=normal,
+  2=ausführlich)
 - `--max-size`: Maximale ZIP-Dateigröße in Bytes (Standard: 10GB)
 - `--no-color`: Farbige Ausgabe deaktivieren

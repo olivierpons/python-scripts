@@ -19,7 +19,8 @@ them into separate files for review.
 **Usage:**
 
 ```bash
-python eliminate_dups_in_csv.py input_file.csv output_file.csv duplicates_file.csv [options]
+python eliminate_dups_in_csv.py input_file.csv output_file.csv \
+    duplicates_file.csv [options]
 ```
 
 **Arguments:**
@@ -51,7 +52,8 @@ en double, en les enregistrant dans des fichiers séparés pour examen.
 **Utilisation :**
 
 ```bash
-python eliminate_dups_in_csv.py fichier_entree.csv fichier_sortie.csv fichier_doublons.csv [options]
+python eliminate_dups_in_csv.py fichier_entree.csv fichier_sortie.csv \
+    fichier_doublons.csv [options]
 ```
 
 **Arguments :**
@@ -125,6 +127,36 @@ python eliminate_dups_in_csv.py 输入文件.csv 输出文件.csv 重复项文�
 - `--delimiter`：CSV文件分隔符（默认：,）
 - `--table-format`：摘要表格的格式（默认：fancy_grid）
 
+## 繁體中文
+
+### CSV重複項刪除器
+
+此腳本處理CSV檔案以識別並刪除重複條目，將它們保存到單獨的檔案中以供審查。
+
+**功能：**
+
+- 識別並刪除CSV檔案中的重複條目
+- 適用於任何CSV檔案，無論其內容或列數
+- 創建不含重複項的乾淨輸出檔案
+- 將已識別的重複項保存到單獨的檔案中
+- 提供全面的操作摘要
+- 可自定義編碼、分隔符和表格顯示格式
+
+**使用方法：**
+
+```bash
+python eliminate_dups_in_csv.py 輸入檔案.csv 輸出檔案.csv 重複項檔案.csv [選項]
+```
+
+**參數：**
+
+- `輸入檔案`：輸入CSV檔案的路徑
+- `輸出檔案`：保存無重複項CSV檔案的路徑
+- `重複項檔案`：保存僅包含重複項的CSV檔案的路徑
+- `--encoding`：CSV檔案編碼（默認：utf-8）
+- `--delimiter`：CSV檔案分隔符（默認：,）
+- `--table-format`：摘要表格的格式（默認：fancy_grid）
+
 ## Español
 
 ### Eliminador de Duplicados CSV
@@ -145,7 +177,8 @@ guardándolas en archivos separados para su revisión.
 **Uso:**
 
 ```bash
-python eliminate_dups_in_csv.py archivo_entrada.csv archivo_salida.csv archivo_duplicados.csv [opciones]
+python eliminate_dups_in_csv.py archivo_entrada.csv archivo_salida.csv \
+    archivo_duplicados.csv [opciones]
 ```
 
 **Argumentos:**
@@ -178,7 +211,8 @@ salvandole in file separati per la revisione.
 **Utilizzo:**
 
 ```bash
-python eliminate_dups_in_csv.py file_input.csv file_output.csv file_duplicati.csv [opzioni]
+python eliminate_dups_in_csv.py file_input.csv file_output.csv \
+    file_duplicati.csv [opzioni]
 ```
 
 **Argomenti:**
@@ -211,7 +245,8 @@ werden.
 **Verwendung:**
 
 ```bash
-python eliminate_dups_in_csv.py eingabedatei.csv ausgabedatei.csv duplikate_datei.csv [optionen]
+python eliminate_dups_in_csv.py eingabedatei.csv ausgabedatei.csv \
+    duplikate_datei.csv [optionen]
 ```
 
 **Argumente:**
@@ -222,33 +257,3 @@ python eliminate_dups_in_csv.py eingabedatei.csv ausgabedatei.csv duplikate_date
 - `--encoding`: CSV-Dateikodierung (Standard: utf-8)
 - `--delimiter`: CSV-Dateitrennzeichen (Standard: ,)
 - `--table-format`: Format für die Zusammenfassungstabelle (Standard: fancy_grid)
-
-## 繁體中文
-
-### CSV重複項刪除器
-
-此腳本處理CSV檔案以識別並刪除重複條目，將它們保存到單獨的檔案中以供審查。
-
-**功能：**
-
-- 識別並刪除CSV檔案中的重複條目
-- 適用於任何CSV檔案，無論其內容或列數
-- 創建不含重複項的乾淨輸出檔案
-- 將已識別的重複項保存到單獨的檔案中
-- 提供全面的操作摘要
-- 可自定義編碼、分隔符和表格顯示格式
-
-**使用方法：**
-
-```bash
-python eliminate_dups_in_csv.py 輸入檔案.csv 輸出檔案.csv 重複項檔案.csv [選項]
-```
-
-**參數：**
-
-- `輸入檔案`：輸入CSV檔案的路徑
-- `輸出檔案`：保存無重複項CSV檔案的路徑
-- `重複項檔案`：保存僅包含重複項的CSV檔案的路徑
-- `--encoding`：CSV檔案編碼（默認：utf-8）
-- `--delimiter`：CSV檔案分隔符（默認：,）
-- `--table-format`：摘要表格的格式（默認：fancy_grid）

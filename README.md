@@ -88,6 +88,24 @@ détaillées :
 - [**wordpress_scraper.py**](README_wordpress_scraper.md):
   在通过复杂的登录表单（支持CSRF）进行身份验证后，获取受保護的网页。
 
+### 繁體中文
+
+本倉庫包含一系列小型Python實用腳本，旨在自動化常見任務並解決特定問題。
+每個腳本都在其自己的README文件中有詳細說明：
+
+- [**eliminate_dups_in_csv.py**](README_eliminate_dups_in_csv.md)：處理CSV檔案以
+  刪除重複項並將其單獨保存。
+- [**extract_first_column_of_csv.py**](README_extract_first_column_of_csv.md)：
+  從CSV檔案中提取第一列。
+- [**scans_rename.py**](README_scans_rename.md)：重新命名並整理檔案名中帶有
+  日語時間戳的檔案。
+- [**square_image_with_centered_cross_generator.py**](README_square_image_with_centered_cross_generator.md):
+  生成一個帶有居中十字的正方形圖像，尺寸和顏色可自訂。
+- [**unzip_files_then_clean.py**](README_unzip_files_then_clean.md)：提取目錄中
+  的所有ZIP檔案並重組資料夾結構。
+- [**wordpress_scraper.py**](README_wordpress_scraper.md):
+  在通過複雜的登錄表單（支援CSRF）進行身份驗證後，獲取受保護的網頁。
+
 ### Español
 
 Este repositorio contiene una colección de pequeños scripts de utilidad en Python
@@ -152,24 +170,6 @@ detaillierten Informationen dokumentiert:
   Webseite ab, nachdem eine Authentifizierung über ein komplexes Anmeldeformular
   (unterstützt CSRF) erfolgt ist.
 
-### 繁體中文
-
-本倉庫包含一系列小型Python實用腳本，旨在自動化常見任務並解決特定問題。
-每個腳本都在其自己的README文件中有詳細說明：
-
-- [**eliminate_dups_in_csv.py**](README_eliminate_dups_in_csv.md)：處理CSV檔案以
-  刪除重複項並將其單獨保存。
-- [**extract_first_column_of_csv.py**](README_extract_first_column_of_csv.md)：
-  從CSV檔案中提取第一列。
-- [**scans_rename.py**](README_scans_rename.md)：重新命名並整理檔案名中帶有
-  日語時間戳的檔案。
-- [**square_image_with_centered_cross_generator.py**](README_square_image_with_centered_cross_generator.md):
-  生成一個帶有居中十字的正方形圖像，尺寸和顏色可自訂。
-- [**unzip_files_then_clean.py**](README_unzip_files_then_clean.md)：提取目錄中
-  的所有ZIP檔案並重組資料夾結構。
-- [**wordpress_scraper.py**](README_wordpress_scraper.md):
-  在通過複雜的登錄表單（支援CSRF）進行身份驗證後，獲取受保護的網頁。
-
 ## Plans
 
 - **English**: More Python utility scripts will be added to this repository
@@ -181,6 +181,8 @@ detaillierten Informationen dokumentiert:
   それぞれが特定のタスクを効率的に解決することに焦点を当てています。
 - **简体中文**: 随着时间的推移，更多的Python实用脚本将添加到此仓库中，每个脚本都专注于
   有效解决特定任务。
+- **繁體中文**: 隨著時間的推移，更多的Python實用腳本將添加到此倉庫中，每個腳本都專注於
+  有效解決特定任務。
 - **Español**: Con el tiempo, se añadirán más scripts de utilidad Python a este
   repositorio, cada uno enfocado en resolver tareas específicas de manera
   eficiente.
@@ -190,5 +192,3 @@ detaillierten Informationen dokumentiert:
 - **Deutsch**: Im Laufe der Zeit werden diesem Repository weitere
   Python-Dienstprogrammskripte hinzugefügt, die jeweils auf die effiziente
   Lösung spezifischer Aufgaben ausgerichtet sind.
-- **繁體中文**: 隨著時間的推移，更多的Python實用腳本將添加到此倉庫中，每個腳本都專注於
-  有效解決特定任務。

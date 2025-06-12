@@ -190,6 +190,47 @@ python scans_rename.py --directory 路径 [--rename] [--organize] [--resize] \
 - `-w, --overwrite`：移动或调整大小时覆盖现有文件
 - `-c, --current-dir`：在调整大小时包括当前目录中的图像
 
+## 繁體中文
+
+### 日語時間戳檔案整理工具
+
+此腳本有助於管理和整理檔案名中帶有日語時間戳的掃描檔案。它是為了應對
+Canon ImageFORMULA驅動程序的局限性而創建的，這個由開發人員編寫的驅動
+程序只能在Windows下正常工作，且缺乏生成適當檔案格式的能力。
+
+**功能：**
+
+- 將檔案從日語時間戳格式（`YYYYMMDD-HH時MM分SS秒-XXX.jpg`）重新命名為
+  拉丁格式（`YYYYMMDD-HHhMMmSSs-XXX.jpg`）
+- 根據時間戳前綴將檔案整理到資料夾中
+- 在"petites"子資料夾中創建適合網頁使用的調整大小版本圖像
+- 使用剪貼簿內容整理編號檔案（例如："1.jpg"、"2.jpg"）
+- 包含預覽模式，可在不修改檔案的情況下預覽更改
+- 可配置的詳細級別，提供詳細的操作反饋
+
+**使用方法：**
+
+```bash
+python scans_rename.py --directory 路徑 [--rename] [--organize] [--resize] \
+  [--numbered] [--dry-run] [--verbose 級別]
+```
+
+**參數：**
+
+- `-d, --directory`：包含要處理檔案的目錄（默認為當前目錄）
+- `-r, --dry-run`：模擬操作而不更改任何檔案
+- `-n, --rename`：啟用檔案重命名步驟（日語'時分秒'轉為拉丁'hms'）
+- `-o, --organize`：啟用檔案整理步驟
+  （將檔案移動到以時間戳命名的資料夾中）
+- `-z, --resize`：啟用圖像調整大小步驟
+  （在"petites"子資料夾中創建網頁友好版本）
+- `-x, --numbered`：啟用使用剪貼簿內容整理編號檔案
+- `-m, --max-pixels`：調整大小圖像的最大尺寸（像素，默認：2000）
+- `-q, --quality`：調整大小圖像的JPEG質量（70-100，默認：80）
+- `-v, --verbose`：詳細級別：0=安靜，1=摘要，2=詳細（默認：0）
+- `-w, --overwrite`：移動或調整大小時覆蓋現有檔案
+- `-c, --current-dir`：在調整大小時包括當前目錄中的圖像
+
 ## Español
 
 ### Organizador de Archivos con Marcas de Tiempo Japonesas
@@ -350,44 +391,3 @@ python scans_rename.py --directory PFAD [--rename] [--organize] [--resize] \
   Größenändern
 - `-c, --current-dir`: Schließe Bilder im aktuellen Verzeichnis selbst bei der
   Größenänderung ein
-
-## 繁體中文
-
-### 日語時間戳檔案整理工具
-
-此腳本有助於管理和整理檔案名中帶有日語時間戳的掃描檔案。它是為了應對
-Canon ImageFORMULA驅動程序的局限性而創建的，這個由開發人員編寫的驅動
-程序只能在Windows下正常工作，且缺乏生成適當檔案格式的能力。
-
-**功能：**
-
-- 將檔案從日語時間戳格式（`YYYYMMDD-HH時MM分SS秒-XXX.jpg`）重新命名為
-  拉丁格式（`YYYYMMDD-HHhMMmSSs-XXX.jpg`）
-- 根據時間戳前綴將檔案整理到資料夾中
-- 在"petites"子資料夾中創建適合網頁使用的調整大小版本圖像
-- 使用剪貼簿內容整理編號檔案（例如："1.jpg"、"2.jpg"）
-- 包含預覽模式，可在不修改檔案的情況下預覽更改
-- 可配置的詳細級別，提供詳細的操作反饋
-
-**使用方法：**
-
-```bash
-python scans_rename.py --directory 路徑 [--rename] [--organize] [--resize] \
-  [--numbered] [--dry-run] [--verbose 級別]
-```
-
-**參數：**
-
-- `-d, --directory`：包含要處理檔案的目錄（默認為當前目錄）
-- `-r, --dry-run`：模擬操作而不更改任何檔案
-- `-n, --rename`：啟用檔案重命名步驟（日語'時分秒'轉為拉丁'hms'）
-- `-o, --organize`：啟用檔案整理步驟
-  （將檔案移動到以時間戳命名的資料夾中）
-- `-z, --resize`：啟用圖像調整大小步驟
-  （在"petites"子資料夾中創建網頁友好版本）
-- `-x, --numbered`：啟用使用剪貼簿內容整理編號檔案
-- `-m, --max-pixels`：調整大小圖像的最大尺寸（像素，默認：2000）
-- `-q, --quality`：調整大小圖像的JPEG質量（70-100，默認：80）
-- `-v, --verbose`：詳細級別：0=安靜，1=摘要，2=詳細（默認：0）
-- `-w, --overwrite`：移動或調整大小時覆蓋現有檔案
-- `-c, --current-dir`：在調整大小時包括當前目錄中的圖像
