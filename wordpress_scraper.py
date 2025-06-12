@@ -2,23 +2,22 @@
 # -*- coding: utf-8 -*-
 
 """
-WordPress Authenticated Page Fetcher CLI Tool.
+WordPress Authenticated Page Fetcher CLI Tool (Advanced).
 
-This script connects to a WordPress site using provided credentials, and then
-retrieves and prints the HTML source code of a specified target page.
+This script connects to a website, handles complex login forms with CSRF
+tokens, and retrieves the HTML source code of a protected page.
 
-It features robust, granular error handling and a structured output system
-with multiple verbosity levels. It is designed to be used as a standalone
-command-line utility.
+It is designed for robustness and adaptability, allowing deep configuration
+via a YAML file to handle non-standard login mechanisms.
 
-Features:
-    - Code formatted with `black` for consistent style.
-    - Comprehensive type hints for clarity and static analysis.
-    - Detailed Google-style docstrings for all methods.
-    - Verbosity levels (0=silent, 1=normal, 2=verbose) via the -v flag.
-    - Configuration via YAML file with command-line overrides.
-    - All parameters are mandatory, ensuring complete configuration.
-    - Clear, actionable error messages for each potential failure mode.
+How to get browser headers:
+    1. Open your browser (e.g., Chrome).
+    2. Open Developer Tools (F12 or Ctrl+Shift+I).
+    3. Go to the "Network" tab.
+    4. Manually log in to the website.
+    5. Find the main request in the network log (e.g., a POST to a 'login' URL).
+    6. Click on it, and scroll down to the "Request Headers" section.
+    7. Copy these headers into the `headers` section of your `config.yaml`.
 """
 
 import argparse
@@ -27,6 +26,7 @@ import threading
 from datetime import datetime
 from pathlib import Path
 from typing import IO, Any, Dict, List, Union
+from urllib.parse import urljoin
 
 import requests
 import yaml
@@ -128,92 +128,108 @@ class OutMixin:
 
 
 class WordPressFetcher:
-    """
-    Handles the core logic of session management and web requests.
+    """Handles the core logic of session management, CSRF, and web requests."""
 
-    This class encapsulates the network operations, making it testable and
-    separate from the command-line interface logic.
-    """
-
-    def __init__(self, base_url: str, logger: Any) -> None:
+    def __init__(
+        self, base_url: str, logger: Any, headers: Dict[str, str] | None = None
+    ):
         """
-        Initializes the WordPressFetcher.
+        Initializes the Fetcher.
 
         Args:
-            base_url (str): The base URL of the WordPress site (e.g., "https://example.com").
-            logger (Any): An object with a `log(message, level)` method for output.
+            base_url (str): The base URL of the target website.
+            logger (Any): A logger object with a `log(msg, level)` method.
+            headers (Dict[str, str] | None): Custom HTTP headers to use for all requests.
         """
         self.base_url: str = base_url.rstrip("/")
         self.logger: Any = logger
         self.session: requests.Session = requests.Session()
-        self.session.headers.update(
-            {
-                "User-Agent": (
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                    "AppleWebKit/537.36 (KHTML, like Gecko) "
-                    "Chrome/91.0.4472.124 Safari/537.36"
-                )
-            }
-        )
-        self.login_url: str = f"{self.base_url}/wp-login.php"
 
-    def perform_login(self, username: str, password: str) -> None:
-        """
-        Performs a robust, multistep login to handle custom forms and CSRF tokens.
-        """
-        # The site's actual login page, not the generic wp-login.php
-        login_page_url = f"{self.base_url}/com/login"
-        self.logger.log(
-            f"Step 1: Fetching login page to get CSRF tokens from {login_page_url}",
-            level=2,
-        )
+        # Set default headers and then override/extend with custom ones.
+        default_headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/91.0.4472.124 Safari/537.36"
+            ),
+            "Accept-Encoding": "gzip, deflate",
+            "Accept": "*/*",
+            "Connection": "keep-alive",
+        }
+        self.session.headers.update(default_headers)
+        if headers:
+            self.session.headers.update(headers)
+            self.logger.log("Custom headers have been applied to the session.", level=2)
 
-        # Step 1: GET the login page to start a session and get the form
+    def perform_login(self, config: Dict[str, Any]) -> None:
+        """
+        Performs a robust, multi-step login to handle custom forms and CSRF tokens.
+
+        This method first fetches the login page, parses it to find the form's
+        action URL and hidden CSRF tokens, and then submits a complete payload.
+
+        Args:
+            config (Dict[str, Any]): A configuration dictionary containing login details
+                like username, password, paths, and field names.
+
+        Raises:
+            ConnectionError: If the login form cannot be found or if authentication
+                is explicitly rejected by the server after submission.
+            requests.exceptions.*: All underlying network exceptions are passed through.
+        """
+        username = config["username"]
+        password = config["password"]
+        login_path = config.get("login_page_path", "/wp-login.php")
+        login_page_url = urljoin(self.base_url, login_path)
+
+        self.logger.log(f"Step 1: Fetching login page for CSRF tokens...", level=1)
+        self.logger.log(f"  URL: {login_page_url}", level=2)
         response = self.session.get(login_page_url, timeout=15)
         response.raise_for_status()
 
-        # Step 2: Parse the HTML to find all hidden inputs (CSRF tokens)
-        self.logger.log("Step 2: Parsing HTML to extract CSRF tokens...", level=2)
+        self.logger.log("Step 2: Parsing HTML to extract form data...", level=1)
         soup = BeautifulSoup(response.text, "html.parser")
-        form = soup.find("form", {"name": "com-login"})
+
+        # Find the form. We prioritize finding a form with a password field.
+        form = soup.find("form", {"action": True})
+        if soup.find("input", {"type": "password"}):
+            form = soup.find("input", {"type": "password"}).find_parent("form")
+
         if not form:
-            raise ConnectionError("Could not find the login form on the page.")
+            raise ConnectionError("Could not find any <form> on the login page.")
 
-        login_payload: Dict[str, str] = {}
-        hidden_inputs = form.find_all("input", {"type": "hidden"})
-        for field in hidden_inputs:
-            # The field might not have a 'value', check for it
-            if field.get("name") and field.has_attr("value"):
-                login_payload[field["name"]] = field["value"]
-                self.logger.log(f"  Found token: {field['name']}", level=2)
+        # Extract all hidden inputs for CSRF tokens
+        login_payload: Dict[str, str] = {
+            field.get("name"): field.get("value", "")
+            for field in form.find_all("input", {"type": "hidden"})
+            if field.get("name")
+        }
+        self.logger.log(f"  Found {len(login_payload)} hidden token(s).", level=2)
 
-        # Add the username and password to the payload
-        login_payload["authentication[login]"] = username
-        login_payload["authentication[password]"] = password
+        # Add credentials using configured field names
+        username_field = config.get("username_field", "log")
+        password_field = config.get("password_field", "pwd")
+        login_payload[username_field] = username
+        login_payload[password_field] = password
+        self.logger.log(f"  Mapping username to field '{username_field}'.", level=2)
+        self.logger.log(f"  Mapping password to field '{password_field}'.", level=2)
 
-        # The form's action attribute tells us where to POST
-        post_url = self.base_url + form["action"]
-        self.logger.log(
-            f"Step 3: Sending POST request with credentials and tokens to {post_url}",
-            level=1,
-        )
+        # Determine the POST URL from the form's 'action' attribute
+        post_url = urljoin(self.base_url, form["action"])
+        self.logger.log(f"Step 3: Submitting login POST to {post_url}", level=1)
 
-        # Step 3: Send the POST request with the complete payload
         login_response = self.session.post(post_url, data=login_payload, timeout=15)
         login_response.raise_for_status()
 
-        # A better success check: After login, the response should NOT contain the login form again.
-        # Or, even better, it should contain text like "Mon Compte" or "Déconnexion".
-        if (
-            "Je me connecte" in login_response.text
-            or "authentication[login]" in login_response.text
-        ):
+        # If the response still contains a password field, login failed.
+        if '<input type="password"' in login_response.text.lower():
             raise ConnectionError(
-                "Authentication failed. The server returned the login page again. "
-                "Please check credentials. The site might have additional protections."
+                "Authentication failed. The server returned a page with a login form. "
+                "Please double-check credentials and YAML configuration "
+                "(field names, etc.)."
             )
 
-        self.logger.log("Login successful.", level=1)
+        self.logger.log("Login successful. Session is authenticated.", level=1)
 
     def get_page_source(self, target_url: str) -> str:
         """
@@ -292,19 +308,15 @@ class WordPressFetcherCommand(OutMixin):
                 YAML file is malformed or not found.
         """
         parser = argparse.ArgumentParser(
-            description="Connect to a WordPress site and fetch a page's source code.",
+            description="Connect to a website and fetch a page's source code.",
             formatter_class=argparse.RawTextHelpFormatter,
         )
         parser.add_argument(
-            "-c", "--config", type=Path, help="Path to the YAML config file."
+            "-c", "--config", type=Path, help="Path to YAML config file."
         )
-        parser.add_argument(
-            "-u", "--url", type=str, help="Base URL of the WordPress site."
-        )
-        parser.add_argument("--username", type=str, help="WordPress login username.")
-        parser.add_argument(
-            "--password", type=str, help="WordPress login password or App Password."
-        )
+        parser.add_argument("-u", "--url", type=str, help="Base URL of the website.")
+        parser.add_argument("--username", type=str, help="Login username.")
+        parser.add_argument("--password", type=str, help="Login password.")
         parser.add_argument(
             "-t", "--target-url", type=str, help="Full URL of the page to fetch."
         )
@@ -346,8 +358,7 @@ class WordPressFetcherCommand(OutMixin):
 
         # 3. Validate that all required arguments are present in the final config
         required_keys = ["url", "username", "password", "target_url"]
-        missing = [key for key in required_keys if key not in config]
-        if missing:
+        if missing := [key for key in required_keys if key not in config]:
             self.abort(
                 f"Missing required configuration arguments: {', '.join(missing)}"
             )
@@ -365,37 +376,33 @@ class WordPressFetcherCommand(OutMixin):
 
         # Validate URL format early
         if not str(config["url"]).startswith(("http://", "https://")):
-            self.abort("Invalid 'url'. It must start with 'http://' or 'https://'.")
+            self.abort("Invalid 'url'. Must start with 'http://' or 'https://'.")
 
         self.log("--- Final Configuration Summary ---", level=1)
         self.log(f"  Base URL: {config['url']}", level=1)
         self.log(f"  Username: {config['username']}", level=1)
         self.log(f"  Target URL: {config['target_url']}", level=1)
+        self.log(f"  Custom Headers: {'Yes' if 'headers' in config else 'No'}", level=1)
         self.log(f"  Password: {'*' * len(str(config['password']))}", level=2)
         self.log(f"  Verbosity Level: {self.verbosity}", level=1)
         self.log("-----------------------------------", level=1)
 
         try:
-            fetcher = WordPressFetcher(base_url=config["url"], logger=self)
-            fetcher.perform_login(config["username"], config["password"])
+            fetcher = WordPressFetcher(
+                base_url=config["url"],
+                logger=self,
+                headers=config.get("headers"),
+            )
+            fetcher.perform_login(config)  # Pass the whole config
             source_code = fetcher.get_page_source(config["target_url"])
 
-            if self.verbosity > 0:
-                self.log(
-                    "Operation successful. Printing source code to stdout.", level=1
-                )
-
             # Print final result directly to stdout for clean piping
+            self.log("Operation successful. Printing source code to stdout.", level=1)
             self.stdout.write(source_code)
 
-        # --- GRANULAR EXCEPTION HANDLING ---
         except requests.exceptions.HTTPError as e:
-            status_code = e.response.status_code
             self.abort(
-                f"The server returned an HTTP error: {status_code} {e.response.reason}.\n"
-                f"  - URL: {e.request.url}\n"
-                f"  - This could mean the page doesn't exist (404), you don't have "
-                f"permission (403), or there's a server issue (5xx)."
+                f"HTTP Error: {e.response.status_code} {e.response.reason} for URL {e.request.url}"
             )
         except requests.exceptions.Timeout:
             self.abort(
