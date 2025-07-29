@@ -1,3 +1,5 @@
+### **Fichier `README.md` mis à jour**
+
 # Python Utility Scripts
 
 (Scripts Utilitaires Python / Python ユーティリティスクリプト / Python 实用脚本 /
@@ -23,8 +25,11 @@ its own README file with detailed information:
 - [**square_image_with_centered_cross_generator.py**](README_square_image_with_centered_cross_generator.md):
   Generates a square image with a centered cross, with customizable size and
   colors.
+- [**svg_pattern_for_vase.py**](README_svg_pattern_for_vase.md): Generates a foldable SVG pattern for a vase with a triangular base.
+- [**triangles.py**](README_triangles.md): Creates a PNG image with a double row of triangles, for use as a printable pattern.
 - [**unzip_files_then_clean.py**](README_unzip_files_then_clean.md): Extracts all
   ZIP files in a directory and reorganizes folder structure.
+- [**video_content_cutter.py**](README_video_content_cutter.md): Removes content from the beginning of a time-stamped file up to a specified MM:SS cutoff time.
 - [**wordpress_scraper.py**](README_wordpress_scraper.md): Fetches a protected
   web page after authenticating with a complex login form (supports CSRF).
 
@@ -44,9 +49,12 @@ détaillées :
 - [**square_image_with_centered_cross_generator.py**](README_square_image_with_centered_cross_generator.md):
   Génère une image carrée avec une croix centrée, avec une taille et des
   couleurs personnalisables.
+- [**svg_pattern_for_vase.py**](README_svg_pattern_for_vase.md) : Génère un patron SVG pliable pour un vase à base triangulaire.
+- [**triangles.py**](README_triangles.md) : Crée une image PNG avec une double rangée de triangles, à utiliser comme patron imprimable.
 - [**unzip_files_then_clean.py**](README_unzip_files_then_clean.md) : Extrait
   tous les fichiers ZIP d'un répertoire et réorganise la structure des
   dossiers.
+- [**video_content_cutter.py**](README_video_content_cutter.md) : Supprime le contenu du début d'un fichier horodaté jusqu'à un temps de coupe spécifié au format MM:SS.
 - [**wordpress_scraper.py**](README_wordpress_scraper.md): Récupère une page web
   protégée après s'être authentifié via un formulaire de connexion complexe
   (supporte CSRF).
@@ -65,8 +73,11 @@ détaillées :
   持つファイルの名前変更と整理を行います。
 - [**square_image_with_centered_cross_generator.py**](README_square_image_with_centered_cross_generator.md):
   中央に十字が描かれた正方形の画像を、カスタマイズ可能なサイズと色で生成します。
+- [**svg_pattern_for_vase.py**](README_svg_pattern_for_vase.md): 三角形の底面を持つ折りたたみ可能な花瓶のSVGパターンを生成します。
+- [**triangles.py**](README_triangles.md): 印刷可能なパターンとして使用するために、二重の三角形の列を持つPNG画像を生成します。
 - [**unzip_files_then_clean.py**](README_unzip_files_then_clean.md)：
   ディレクトリ内のすべてのZIPファイルを抽出し、フォルダ構造を再編成します。
+- [**video_content_cutter.py**](README_video_content_cutter.md): タイムスタンプ付きファイルの先頭から指定されたMM:SS形式のカットオフ時間までのコンテンツを削除します。
 - [**wordpress_scraper.py**](README_wordpress_scraper.md):
   複雑なログインフォーム（CSRF対応）で認証後、保護されたウェブページを取得します。
 
@@ -83,8 +94,11 @@ détaillées :
   时间戳的文件。
 - [**square_image_with_centered_cross_generator.py**](README_square_image_with_centered_cross_generator.md):
   生成一个带有居中十字的正方形图像，尺寸和颜色可自定义。
+- [**svg_pattern_for_vase.py**](README_svg_pattern_for_vase.md): 为三角形底座的可折叠花瓶生成SVG图案。
+- [**triangles.py**](README_triangles.md): 创建一个带有双排三角形的PNG图像，用作可打印的图案。
 - [**unzip_files_then_clean.py**](README_unzip_files_then_clean.md)：提取目录中
   的所有ZIP文件并重组文件夹结构。
+- [**video_content_cutter.py**](README_video_content_cutter.md): 从带时间戳文件的开头删除内容，直到指定的MM:SS格式的截止时间。
 - [**wordpress_scraper.py**](README_wordpress_scraper.md):
   在通过复杂的登录表单（支持CSRF）进行身份验证后，获取受保護的网页。
 
@@ -101,8 +115,11 @@ détaillées :
   日語時間戳的檔案。
 - [**square_image_with_centered_cross_generator.py**](README_square_image_with_centered_cross_generator.md):
   生成一個帶有居中十字的正方形圖像，尺寸和顏色可自訂。
+- [**svg_pattern_for_vase.py**](README_svg_pattern_for_vase.md): 為三角形底座的可折疊花瓶生成SVG圖案。
+- [**triangles.py**](README_triangles.md): 創建一個帶有雙排三角形的PNG圖像，用作可打印的圖案。
 - [**unzip_files_then_clean.py**](README_unzip_files_then_clean.md)：提取目錄中
   的所有ZIP檔案並重組資料夾結構。
+- [**video_content_cutter.py**](README_video_content_cutter.md): 從帶時間戳檔案的開頭刪除內容，直到指定的MM:SS格式的截止時間。
 - [**wordpress_scraper.py**](README_wordpress_scraper.md):
   在通過複雜的登錄表單（支援CSRF）進行身份驗證後，獲取受保護的網頁。
 
@@ -121,8 +138,11 @@ script está documentado en su propio archivo README con información detallada:
 - [**square_image_with_centered_cross_generator.py**](README_square_image_with_centered_cross_generator.md):
   Genera una imagen cuadrada con una cruz centrada, con tamaño y colores
   personalizables.
+- [**svg_pattern_for_vase.py**](README_svg_pattern_for_vase.md): Genera un patrón SVG plegable para un jarrón con base triangular.
+- [**triangles.py**](README_triangles.md): Crea una imagen PNG con una doble fila de triángulos, para usar como patrón imprimible.
 - [**unzip_files_then_clean.py**](README_unzip_files_then_clean.md): Extrae todos
   los archivos ZIP en un directorio y reorganiza la estructura de carpetas.
+- [**video_content_cutter.py**](README_video_content_cutter.md): Elimina el contenido desde el principio de un archivo con marca de tiempo hasta un tiempo de corte especificado en formato MM:SS.
 - [**wordpress_scraper.py**](README_wordpress_scraper.md): Obtiene una página
   web protegida después de autenticarse con un formulario de inicio de sesión
   complejo (compatible con CSRF).
@@ -142,8 +162,11 @@ Ogni script è documentato nel proprio file README con informazioni dettagliate:
 - [**square_image_with_centered_cross_generator.py**](README_square_image_with_centered_cross_generator.md):
   Genera un'immagine quadrata con una croce centrata, con dimensioni e colori
   personalizzabili.
+- [**svg_pattern_for_vase.py**](README_svg_pattern_for_vase.md): Genera un modello SVG pieghevole per un vaso con base triangolare.
+- [**triangles.py**](README_triangles.md): Crea un'immagine PNG con una doppia fila di triangoli, da utilizzare come modello stampabile.
 - [**unzip_files_then_clean.py**](README_unzip_files_then_clean.md): Estrae tutti
   i file ZIP in una directory e riorganizza la struttura delle cartelle.
+- [**video_content_cutter.py**](README_video_content_cutter.md): Rimuove il contenuto dall'inizio di un file con timestamp fino a un tempo di taglio specificato in formato MM:SS.
 - [**wordpress_scraper.py**](README_wordpress_scraper.md): Recupera una pagina
   web protetta dopo l'autenticazione con un modulo di login complesso
   (supporta CSRF).
@@ -164,8 +187,11 @@ detaillierten Informationen dokumentiert:
 - [**square_image_with_centered_cross_generator.py**](README_square_image_with_centered_cross_generator.md):
   Erzeugt ein quadratisches Bild mit einem zentrierten Kreuz, dessen Größe und
   Farben anpassbar sind.
+- [**svg_pattern_for_vase.py**](README_svg_pattern_for_vase.md): Erzeugt ein faltbares SVG-Muster für eine Vase mit dreieckigem Boden.
+- [**triangles.py**](README_triangles.md): Erstellt ein PNG-Bild mit einer doppelten Reihe von Dreiecken zur Verwendung als druckbares Muster.
 - [**unzip_files_then_clean.py**](README_unzip_files_then_clean.md): Extrahiert
   alle ZIP-Dateien in einem Verzeichnis und reorganisiert die Ordnerstruktur.
+- [**video_content_cutter.py**](README_video_content_cutter.md): Entfernt Inhalte vom Anfang einer zeitgestempelten Datei bis zu einer angegebenen MM:SS-Schnittzeit.
 - [**wordpress_scraper.py**](README_wordpress_scraper.md): Ruft eine geschützte
   Webseite ab, nachdem eine Authentifizierung über ein komplexes Anmeldeformular
   (unterstützt CSRF) erfolgt ist.
