@@ -26,6 +26,7 @@ PAGE_HEIGHT_MM = 297  # A4 paper height
 
 # --- Vector Geometry Helper Functions ---
 
+
 def add_vectors(v1: Vector2D, v2: Vector2D) -> Vector2D:
     """Adds two 2D vectors component-wise.
 
@@ -198,9 +199,7 @@ def generate_straight_vase_pattern(
         "Z"
     )
 
-    cut_path = dwg.path(
-        d=cut_path_str, fill="none", stroke="black", stroke_width=0.5
-    )
+    cut_path = dwg.path(d=cut_path_str, fill="none", stroke="black", stroke_width=0.5)
     dwg.add(cut_path)
 
     # # --- Add Informational Text ---
@@ -238,7 +237,9 @@ if __name__ == "__main__":
     WALL_HEIGHT_MM: float = 120.0
 
     # The output filename for the SVG pattern.
-    OUTPUT_FILENAME: str = f"vase_pattern_{int(BASE_EDGE_LENGTH_MM)}x{int(WALL_HEIGHT_MM)}.svg"
+    OUTPUT_FILENAME: str = (
+        f"vase_pattern_{int(BASE_EDGE_LENGTH_MM)}x{int(WALL_HEIGHT_MM)}.svg"
+    )
 
     # --- Generate the pattern ---
     print("Generating vase pattern...")

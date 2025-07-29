@@ -40,13 +40,17 @@ marge_px = 30
 # --- CALCUL DE LA TAILLE DE L'IMAGE ---
 
 # La largeur est calculée comme avant, en fonction du nombre de triangles par ligne
-largeur_image = (marge_px * 2) + ((NOMBRE_DE_TRIANGLES_PAR_LIGNE - 1) * (arete_px / 2 + ecart_px)) + arete_px
+largeur_image = (
+    (marge_px * 2)
+    + ((NOMBRE_DE_TRIANGLES_PAR_LIGNE - 1) * (arete_px / 2 + ecart_px))
+    + arete_px
+)
 
 # La hauteur doit maintenant accommoder DEUX rangées de triangles
 hauteur_image = (marge_px * 2) + (2 * hauteur_px)
 
 # Création de l'image vierge
-image = Image.new('RGB', (int(largeur_image), int(hauteur_image)), COULEUR_FOND)
+image = Image.new("RGB", (int(largeur_image), int(hauteur_image)), COULEUR_FOND)
 dessin = ImageDraw.Draw(image)
 
 # --- DESSIN DES TRIANGLES ---
