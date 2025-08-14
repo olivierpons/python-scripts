@@ -27,39 +27,45 @@ from typing import Iterator, List, Optional, Tuple, Union
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 logger = logging.getLogger(__name__)
 
 
 class FileCutterError(Exception):
     """Base exception class for file cutter operations."""
+
     pass
 
 
 class TimeFormatError(FileCutterError):
     """Exception raised for invalid time format."""
+
     pass
 
 
 class FileOperationError(FileCutterError):
     """Exception raised for file operation errors."""
+
     pass
 
 
 class TimestampNotFoundError(FileCutterError):
     """Exception raised when cutoff timestamp is not found in file."""
+
     pass
 
 
 class InsufficientPermissionsError(FileCutterError):
     """Exception raised for permission-related errors."""
+
     pass
 
 
 class DiskSpaceError(FileCutterError):
     """Exception raised when insufficient disk space is available."""
+
     pass
 
 
@@ -105,9 +111,7 @@ def safe_file_operation(file_path: Union[str, Path], operation: str) -> Iterator
                 f"Expected file but found directory: '{file_path}'"
             ) from e
         elif e.errno == 26:  # Text file busy
-            raise FileOperationError(
-                f"File is currently in use: '{file_path}'"
-            ) from e
+            raise FileOperationError(f"File is currently in use: '{file_path}'") from e
         else:
             raise FileOperationError(
                 f"OS error during {operation} on '{file_path}': {e}"
@@ -147,17 +151,23 @@ def validate_file_access(file_path: Path, operation: str) -> None:
 
         if not file_path.is_file():
             if file_path.is_dir():
-                raise FileOperationError(f"Path is a directory, not a file: '{file_path}'")
+                raise FileOperationError(
+                    f"Path is a directory, not a file: '{file_path}'"
+                )
             elif file_path.is_symlink():
                 raise FileOperationError(f"Path is a symbolic link: '{file_path}'")
             else:
                 raise FileOperationError(f"Path is not a regular file: '{file_path}'")
 
         if operation == "read" and not os.access(file_path, os.R_OK):
-            raise InsufficientPermissionsError(f"No read permission for file: '{file_path}'")
+            raise InsufficientPermissionsError(
+                f"No read permission for file: '{file_path}'"
+            )
 
         if operation == "write" and not os.access(file_path, os.W_OK):
-            raise InsufficientPermissionsError(f"No write permission for file: '{file_path}'")
+            raise InsufficientPermissionsError(
+                f"No write permission for file: '{file_path}'"
+            )
 
         # Check if file is empty
         if file_path.stat().st_size == 0:
@@ -220,7 +230,7 @@ def parse_time_format(time_str: str) -> Tuple[int, int]:
         raise TimeFormatError("Time string cannot be empty")
 
     # Check for valid MM:SS format
-    pattern = r'^(\d{1,3}):(\d{2})$'
+    pattern = r"^(\d{1,3}):(\d{2})$"
     match = re.match(pattern, time_str)
 
     if not match:
@@ -232,7 +242,9 @@ def parse_time_format(time_str: str) -> Tuple[int, int]:
         minutes = int(match.group(1))
         seconds = int(match.group(2))
     except (ValueError, OverflowError) as e:
-        raise TimeFormatError(f"Invalid numeric values in time string '{time_str}': {e}") from e
+        raise TimeFormatError(
+            f"Invalid numeric values in time string '{time_str}': {e}"
+        ) from e
 
     # Validate ranges
     if minutes < 0:
@@ -259,11 +271,11 @@ def detect_file_encoding(file_path: Path) -> str:
     Raises:
         FileOperationError: If encoding cannot be determined
     """
-    encodings_to_try = ['utf-8', 'utf-8-sig', 'latin1', 'cp1252', 'iso-8859-1']
+    encodings_to_try = ["utf-8", "utf-8-sig", "latin1", "cp1252", "iso-8859-1"]
 
     for encoding in encodings_to_try:
         try:
-            with open(file_path, 'r', encoding=encoding) as f:
+            with open(file_path, "r", encoding=encoding) as f:
                 # Try to read first 1KB to test encoding
                 f.read(1024)
                 return encoding
@@ -310,19 +322,25 @@ def safe_read_file(file_path: Path) -> Tuple[List[str], str]:
 
     with safe_file_operation(file_path, "reading"):
         try:
-            with open(file_path, 'r', encoding=encoding, newline=None) as file:
+            with open(file_path, "r", encoding=encoding, newline=None) as file:
                 lines = file.readlines()
         except MemoryError as e:
             raise MemoryError(f"File too large to fit in memory: '{file_path}'") from e
 
     if not lines:
-        raise FileOperationError(f"File is empty or contains no readable content: '{file_path}'")
+        raise FileOperationError(
+            f"File is empty or contains no readable content: '{file_path}'"
+        )
 
-    logger.info(f"Successfully read {len(lines)} lines from '{file_path}' using {encoding} encoding")
+    logger.info(
+        f"Successfully read {len(lines)} lines from '{file_path}' using {encoding} encoding"
+    )
     return lines, encoding
 
 
-def find_cutoff_line(lines: List[str], cutoff_minutes: int, cutoff_seconds: int) -> Optional[int]:
+def find_cutoff_line(
+    lines: List[str], cutoff_minutes: int, cutoff_seconds: int
+) -> Optional[int]:
     """Find the line index where the cutoff time is reached or exceeded.
 
     Args:
@@ -350,11 +368,11 @@ def find_cutoff_line(lines: List[str], cutoff_minutes: int, cutoff_seconds: int)
 
     # Enhanced timestamp patterns with more comprehensive matching
     patterns = [
-        r'(?:^|\s)(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?(?:\s|$)',  # MM:SS or MM:SS.mmm
-        r'\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\]',  # [MM:SS] or [MM:SS.mmm]
-        r'(?:^|\s)(\d{1,2}):(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?(?:\s|$)',  # HH:MM:SS or HH:MM:SS.mmm
-        r'(\d{1,2}):(\d{2})\s*-\s*',  # MM:SS followed by dash (common in transcripts)
-        r'(?:Time|Timestamp):\s*(\d{1,2}):(\d{2})',  # "Time: MM:SS" format
+        r"(?:^|\s)(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?(?:\s|$)",  # MM:SS or MM:SS.mmm
+        r"\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\]",  # [MM:SS] or [MM:SS.mmm]
+        r"(?:^|\s)(\d{1,2}):(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?(?:\s|$)",  # HH:MM:SS or HH:MM:SS.mmm
+        r"(\d{1,2}):(\d{2})\s*-\s*",  # MM:SS followed by dash (common in transcripts)
+        r"(?:Time|Timestamp):\s*(\d{1,2}):(\d{2})",  # "Time: MM:SS" format
     ]
 
     found_any_timestamp = False
@@ -391,7 +409,12 @@ def find_cutoff_line(lines: List[str], cutoff_minutes: int, cutoff_seconds: int)
                                 seconds = int(match[1])
 
                                 # Validate ranges
-                                if minutes < 0 or minutes > 999 or seconds < 0 or seconds > 59:
+                                if (
+                                    minutes < 0
+                                    or minutes > 999
+                                    or seconds < 0
+                                    or seconds > 59
+                                ):
                                     continue
 
                                 total_seconds = minutes * 60 + seconds
@@ -404,14 +427,18 @@ def find_cutoff_line(lines: List[str], cutoff_minutes: int, cutoff_seconds: int)
                                 return line_idx
 
                         except (ValueError, IndexError, OverflowError) as e:
-                            logger.debug(f"Error parsing timestamp in line {line_idx + 1}: {e}")
+                            logger.debug(
+                                f"Error parsing timestamp in line {line_idx + 1}: {e}"
+                            )
                             continue
 
                 except re.error as e:
                     logger.warning(f"Regex error with pattern '{pattern}': {e}")
                     continue
                 except Exception as e:
-                    logger.debug(f"Unexpected error processing line {line_idx + 1}: {e}")
+                    logger.debug(
+                        f"Unexpected error processing line {line_idx + 1}: {e}"
+                    )
                     continue
 
     except Exception as e:
@@ -436,12 +463,12 @@ def create_backup(file_path: Path) -> Path:
         FileOperationError: If backup creation fails
         DiskSpaceError: If insufficient disk space
     """
-    backup_path = file_path.with_suffix(file_path.suffix + '.backup')
+    backup_path = file_path.with_suffix(file_path.suffix + ".backup")
     counter = 1
 
     # Find unique backup name
     while backup_path.exists():
-        backup_path = file_path.with_suffix(f'{file_path.suffix}.backup.{counter}')
+        backup_path = file_path.with_suffix(f"{file_path.suffix}.backup.{counter}")
         counter += 1
         if counter > 1000:  # Prevent infinite loop
             raise FileOperationError("Could not create unique backup filename")
@@ -476,7 +503,9 @@ def atomic_write_file(file_path: Path, content: List[str], encoding: str) -> Non
         raise FileOperationError("Cannot write empty content")
 
     # Estimate content size
-    estimated_size = sum(len(line.encode(encoding, errors='replace')) for line in content)
+    estimated_size = sum(
+        len(line.encode(encoding, errors="replace")) for line in content
+    )
     check_disk_space(file_path, estimated_size)
 
     # Create temporary file in same directory for atomic operation
@@ -485,14 +514,12 @@ def atomic_write_file(file_path: Path, content: List[str], encoding: str) -> Non
 
     try:
         temp_fd, temp_path = tempfile.mkstemp(
-            dir=file_path.parent,
-            prefix=f'.{file_path.name}.tmp',
-            suffix='.tmp'
+            dir=file_path.parent, prefix=f".{file_path.name}.tmp", suffix=".tmp"
         )
         temp_path = Path(temp_path)
 
         with safe_file_operation(temp_path, "writing temporary file"):
-            with open(temp_fd, 'w', encoding=encoding, newline='') as temp_file:
+            with open(temp_fd, "w", encoding=encoding, newline="") as temp_file:
                 temp_file.writelines(content)
             temp_fd = None  # File is closed
 
@@ -518,12 +545,16 @@ def atomic_write_file(file_path: Path, content: List[str], encoding: str) -> Non
             try:
                 temp_path.unlink()
             except OSError as cleanup_error:
-                logger.warning(f"Could not cleanup temporary file '{temp_path}': {cleanup_error}")
+                logger.warning(
+                    f"Could not cleanup temporary file '{temp_path}': {cleanup_error}"
+                )
 
         raise FileOperationError(f"Failed to write file '{file_path}': {e}") from e
 
 
-def cut_file_content(filename: str, cutoff_time: str, output_filename: Optional[str] = None) -> bool:
+def cut_file_content(
+    filename: str, cutoff_time: str, output_filename: Optional[str] = None
+) -> bool:
     """Cut file content from beginning up to the specified cutoff time.
 
     Args:
@@ -550,7 +581,9 @@ def cut_file_content(filename: str, cutoff_time: str, output_filename: Optional[
         except TimeFormatError:
             raise
         except Exception as e:
-            raise TimeFormatError(f"Unexpected error parsing time '{cutoff_time}': {e}") from e
+            raise TimeFormatError(
+                f"Unexpected error parsing time '{cutoff_time}': {e}"
+            ) from e
 
         # Read file content with encoding detection
         try:
@@ -558,7 +591,9 @@ def cut_file_content(filename: str, cutoff_time: str, output_filename: Optional[
         except (FileOperationError, MemoryError):
             raise
         except Exception as e:
-            raise FileOperationError(f"Unexpected error reading file '{filename}': {e}") from e
+            raise FileOperationError(
+                f"Unexpected error reading file '{filename}': {e}"
+            ) from e
 
         # Find cutoff line
         try:
@@ -573,7 +608,9 @@ def cut_file_content(filename: str, cutoff_time: str, output_filename: Optional[
             )
 
         if cutoff_line_idx == 0:
-            logger.warning(f"Cutoff time {cutoff_time} found at first line - no content will be removed")
+            logger.warning(
+                f"Cutoff time {cutoff_time} found at first line - no content will be removed"
+            )
             return False
 
         # Keep content from cutoff line onwards
@@ -590,7 +627,9 @@ def cut_file_content(filename: str, cutoff_time: str, output_filename: Optional[
         if output_filename:
             # Check if output directory exists and is writable
             if not output_path.parent.exists():
-                raise FileOperationError(f"Output directory does not exist: '{output_path.parent}'")
+                raise FileOperationError(
+                    f"Output directory does not exist: '{output_path.parent}'"
+                )
 
             if not os.access(output_path.parent, os.W_OK):
                 raise InsufficientPermissionsError(
@@ -606,7 +645,9 @@ def cut_file_content(filename: str, cutoff_time: str, output_filename: Optional[
         except (FileOperationError, DiskSpaceError):
             raise
         except Exception as e:
-            raise FileOperationError(f"Unexpected error writing output file: {e}") from e
+            raise FileOperationError(
+                f"Unexpected error writing output file: {e}"
+            ) from e
 
         # Report results
         lines_removed = cutoff_line_idx
@@ -622,8 +663,13 @@ def cut_file_content(filename: str, cutoff_time: str, output_filename: Optional[
 
         return True
 
-    except (TimeFormatError, FileOperationError, TimestampNotFoundError,
-            InsufficientPermissionsError, DiskSpaceError):
+    except (
+        TimeFormatError,
+        FileOperationError,
+        TimestampNotFoundError,
+        InsufficientPermissionsError,
+        DiskSpaceError,
+    ):
         raise
     except KeyboardInterrupt:
         raise
@@ -741,58 +787,53 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description="Remove content from beginning of file up to specified cutoff time",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        add_help=False  # We'll handle help ourselves
+        add_help=False,  # We'll handle help ourselves
     )
 
     parser.add_argument(
-        'filename',
-        nargs='?',  # Make optional to handle help cases
+        "filename",
+        nargs="?",  # Make optional to handle help cases
         type=str,
-        help='Input filename to process'
+        help="Input filename to process",
     )
 
     parser.add_argument(
-        'cutoff_time',
-        nargs='?',  # Make optional to handle help cases
+        "cutoff_time",
+        nargs="?",  # Make optional to handle help cases
         type=str,
-        help='Cutoff time in MM:SS format (e.g., 05:30)'
+        help="Cutoff time in MM:SS format (e.g., 05:30)",
     )
 
     parser.add_argument(
-        '-h', '--help',
-        action='store_true',
-        help='Show complete help with examples'
+        "-h", "--help", action="store_true", help="Show complete help with examples"
     )
 
     parser.add_argument(
-        '-o', '--output',
+        "-o",
+        "--output",
         type=str,
         default=None,
-        help='Output filename (default: overwrite input file)'
+        help="Output filename (default: overwrite input file)",
     )
 
     parser.add_argument(
-        '--backup',
-        action='store_true',
-        help='Create backup of original file before cutting'
+        "--backup",
+        action="store_true",
+        help="Create backup of original file before cutting",
     )
 
     parser.add_argument(
-        '--dry-run',
-        action='store_true',
-        help='Show what would be cut without actually modifying files'
+        "--dry-run",
+        action="store_true",
+        help="Show what would be cut without actually modifying files",
     )
 
     parser.add_argument(
-        '-v', '--verbose',
-        action='store_true',
-        help='Enable verbose logging'
+        "-v", "--verbose", action="store_true", help="Enable verbose logging"
     )
 
     parser.add_argument(
-        '--force',
-        action='store_true',
-        help='Force operation even with warnings'
+        "--force", action="store_true", help="Force operation even with warnings"
     )
 
     try:
@@ -836,7 +877,9 @@ def main() -> int:
         # Validate cutoff time format early
         try:
             cutoff_minutes, cutoff_seconds = parse_time_format(args.cutoff_time.strip())
-            logger.debug(f"Parsed cutoff time: {cutoff_minutes:02d}:{cutoff_seconds:02d}")
+            logger.debug(
+                f"Parsed cutoff time: {cutoff_minutes:02d}:{cutoff_seconds:02d}"
+            )
         except TimeFormatError as e:
             logger.error(str(e))
             return 1
@@ -846,7 +889,11 @@ def main() -> int:
         if args.backup and not args.dry_run:
             try:
                 backup_path = create_backup(input_path)
-            except (FileOperationError, DiskSpaceError, InsufficientPermissionsError) as e:
+            except (
+                FileOperationError,
+                DiskSpaceError,
+                InsufficientPermissionsError,
+            ) as e:
                 logger.error(f"Failed to create backup: {e}")
                 return 1
 
@@ -855,19 +902,27 @@ def main() -> int:
             try:
                 logger.info("Performing dry run...")
                 lines, encoding = safe_read_file(input_path)
-                cutoff_line_idx = find_cutoff_line(lines, cutoff_minutes, cutoff_seconds)
+                cutoff_line_idx = find_cutoff_line(
+                    lines, cutoff_minutes, cutoff_seconds
+                )
 
                 if cutoff_line_idx is None:
-                    logger.warning(f"Dry run: Cutoff time {args.cutoff_time} not found in file")
+                    logger.warning(
+                        f"Dry run: Cutoff time {args.cutoff_time} not found in file"
+                    )
                     logger.info("Dry run completed - no changes would be made")
                 else:
                     logger.info(f"Dry run results:")
-                    logger.info(f"  Would remove {cutoff_line_idx} lines from beginning")
+                    logger.info(
+                        f"  Would remove {cutoff_line_idx} lines from beginning"
+                    )
                     logger.info(f"  Would keep {len(lines) - cutoff_line_idx} lines")
                     logger.info(f"  File encoding: {encoding}")
                     if cutoff_line_idx > 0:
                         logger.info(f"  First removed line: {repr(lines[0][:100])}")
-                        logger.info(f"  First kept line: {repr(lines[cutoff_line_idx][:100])}")
+                        logger.info(
+                            f"  First kept line: {repr(lines[cutoff_line_idx][:100])}"
+                        )
 
                 return 0
 
@@ -877,7 +932,9 @@ def main() -> int:
 
         # Execute the cut operation
         try:
-            success = cut_file_content(args.filename.strip(), args.cutoff_time.strip(), args.output)
+            success = cut_file_content(
+                args.filename.strip(), args.cutoff_time.strip(), args.output
+            )
 
             if success:
                 logger.info("Operation completed successfully")
@@ -890,7 +947,12 @@ def main() -> int:
             logger.error(str(e))
             logger.info("Use --help for examples and supported timestamp formats")
             return 1
-        except (TimeFormatError, FileOperationError, InsufficientPermissionsError, DiskSpaceError) as e:
+        except (
+            TimeFormatError,
+            FileOperationError,
+            InsufficientPermissionsError,
+            DiskSpaceError,
+        ) as e:
             logger.error(str(e))
 
             # Cleanup backup if operation failed
@@ -914,7 +976,7 @@ def main() -> int:
         return 1
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         exit_code = main()
         sys.exit(exit_code)

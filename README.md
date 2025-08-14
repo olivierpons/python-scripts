@@ -1,5 +1,3 @@
-### **Fichier `README.md` mis à jour**
-
 # Python Utility Scripts
 
 (Scripts Utilitaires Python / Python ユーティリティスクリプト / Python 实用脚本 /
@@ -20,6 +18,9 @@ its own README file with detailed information:
   files to remove duplicates and saves them separately.
 - [**extract_first_column_of_csv.py**](README_extract_first_column_of_csv.md):
   Extracts the first column from a CSV file.
+- [**pie_chart_generator.py**](README_pie_chart_generator.md): Generates a professional
+  series of pie charts showing color progression from 0% to 100% with extensive
+  customization options and modern Python 3.13+ features.
 - [**scans_rename.py**](README_scans_rename.md): Renames and organizes files
   with Japanese timestamps in their filenames.
 - [**square_image_with_centered_cross_generator.py**](README_square_image_with_centered_cross_generator.md):
@@ -44,6 +45,9 @@ détaillées :
   fichiers CSV pour supprimer les doublons et les enregistre séparément.
 - [**extract_first_column_of_csv.py**](README_extract_first_column_of_csv.md) :
   Extrait la première colonne d'un fichier CSV.
+- [**pie_chart_generator.py**](README_pie_chart_generator.md) : Génère une série
+  professionnelle de camemberts montrant la progression des couleurs de 0% à 100%
+  avec de nombreuses options de personnalisation et les fonctionnalités modernes de Python 3.13+.
 - [**scans_rename.py**](README_scans_rename.md) : Renomme et organise les
   fichiers avec des horodatages japonais dans leurs noms.
 - [**square_image_with_centered_cross_generator.py**](README_square_image_with_centered_cross_generator.md):
@@ -69,6 +73,9 @@ détaillées :
   処理して重複を削除し、別々に保存します。
 - [**extract_first_column_of_csv.py**](README_extract_first_column_of_csv.md)：
   CSVファイルの最初の列を抽出します。
+- [**pie_chart_generator.py**](README_pie_chart_generator.md)：0%から100%までの
+  色の進行を示すプロフェッショナルな円グラフシリーズを、豊富なカスタマイズオプションと
+  Python 3.13+の最新機能で生成します。
 - [**scans_rename.py**](README_scans_rename.md)：ファイル名の日本語タイムスタンプを
   持つファイルの名前変更と整理を行います。
 - [**square_image_with_centered_cross_generator.py**](README_square_image_with_centered_cross_generator.md):
@@ -90,6 +97,8 @@ détaillées :
   删除重复项并将其单独保存。
 - [**extract_first_column_of_csv.py**](README_extract_first_column_of_csv.md)：
   从CSV文件中提取第一列。
+- [**pie_chart_generator.py**](README_pie_chart_generator.md)：生成专业的饼图系列，
+  显示从0%到100%的颜色进展，具有丰富的自定义选项和Python 3.13+的现代功能。
 - [**scans_rename.py**](README_scans_rename.md)：重命名并整理文件名中带有日语
   时间戳的文件。
 - [**square_image_with_centered_cross_generator.py**](README_square_image_with_centered_cross_generator.md):
@@ -100,7 +109,7 @@ détaillées :
   的所有ZIP文件并重组文件夹结构。
 - [**video_content_cutter.py**](README_video_content_cutter.md): 从带时间戳文件的开头删除内容，直到指定的MM:SS格式的截止时间。
 - [**wordpress_scraper.py**](README_wordpress_scraper.md):
-  在通过复杂的登录表单（支持CSRF）进行身份验证后，获取受保護的网页。
+  在通过复杂的登录表单（支持CSRF）进行身份验证后，获取受保护的网页。
 
 ### 繁體中文
 
@@ -111,6 +120,8 @@ détaillées :
   刪除重複項並將其單獨保存。
 - [**extract_first_column_of_csv.py**](README_extract_first_column_of_csv.md)：
   從CSV檔案中提取第一列。
+- [**pie_chart_generator.py**](README_pie_chart_generator.md)：生成專業的圓餅圖系列，
+  顯示從0%到100%的顏色進展，具有豐富的自訂選項和Python 3.13+的現代功能。
 - [**scans_rename.py**](README_scans_rename.md)：重新命名並整理檔案名中帶有
   日語時間戳的檔案。
 - [**square_image_with_centered_cross_generator.py**](README_square_image_with_centered_cross_generator.md):
@@ -121,7 +132,7 @@ détaillées :
   的所有ZIP檔案並重組資料夾結構。
 - [**video_content_cutter.py**](README_video_content_cutter.md): 從帶時間戳檔案的開頭刪除內容，直到指定的MM:SS格式的截止時間。
 - [**wordpress_scraper.py**](README_wordpress_scraper.md):
-  在通過複雜的登錄表單（支援CSRF）進行身份驗證後，獲取受保護的網頁。
+  在通過複雜的登錄表單（支持CSRF）進行身份驗證後，獲取受保護的網頁。
 
 ### Español
 
@@ -133,6 +144,9 @@ script está documentado en su propio archivo README con información detallada:
   archivos CSV para eliminar duplicados y los guarda por separado.
 - [**extract_first_column_of_csv.py**](README_extract_first_column_of_csv.md):
   Extrae la primera columna de un archivo CSV.
+- [**pie_chart_generator.py**](README_pie_chart_generator.md): Genera una serie
+  profesional de gráficos circulares mostrando la progresión de colores del 0% al 100%
+  con amplias opciones de personalización y características modernas de Python 3.13+.
 - [**scans_rename.py**](README_scans_rename.md): Renombra y organiza archivos con
   marcas de tiempo japonesas en sus nombres.
 - [**square_image_with_centered_cross_generator.py**](README_square_image_with_centered_cross_generator.md):
@@ -157,6 +171,9 @@ Ogni script è documentato nel proprio file README con informazioni dettagliate:
   CSV per rimuovere duplicati e li salva separatamente.
 - [**extract_first_column_of_csv.py**](README_extract_first_column_of_csv.md):
   Estrae la prima colonna da un file CSV.
+- [**pie_chart_generator.py**](README_pie_chart_generator.md): Genera una serie
+  professionale di grafici a torta mostrando la progressione dei colori dallo 0% al 100%
+  con ampie opzioni di personalizzazione e funzionalità moderne di Python 3.13+.
 - [**scans_rename.py**](README_scans_rename.md): Rinomina e organizza file con
   timestamp giapponesi nei loro nomi.
 - [**square_image_with_centered_cross_generator.py**](README_square_image_with_centered_cross_generator.md):
@@ -182,6 +199,9 @@ detaillierten Informationen dokumentiert:
   CSV-Dateien, um Duplikate zu entfernen und speichert sie separat.
 - [**extract_first_column_of_csv.py**](README_extract_first_column_of_csv.md):
   Extrahiert die erste Spalte aus einer CSV-Datei.
+- [**pie_chart_generator.py**](README_pie_chart_generator.md): Generiert eine
+  professionelle Serie von Kreisdiagrammen, die den Farbfortschritt von 0% bis 100%
+  zeigen, mit umfangreichen Anpassungsoptionen und modernen Python 3.13+ Funktionen.
 - [**scans_rename.py**](README_scans_rename.md): Benennt und organisiert Dateien
   mit japanischen Zeitstempeln in ihren Dateinamen.
 - [**square_image_with_centered_cross_generator.py**](README_square_image_with_centered_cross_generator.md):
