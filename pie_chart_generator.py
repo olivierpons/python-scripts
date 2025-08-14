@@ -3,8 +3,62 @@
 This module generates a series of pie charts showing the progression of two colors
 from 0% to 100% in 1% increments, creating 101 total images.
 
-Example:
-    python pie_chart_generator.py
+Examples:
+    Basic usage:
+        python pie_chart_generator.py
+
+    Custom colors and range:
+        python pie_chart_generator.py -o charts -c "#FF0000,#00FF00" -s 0 -e 50 --step 1
+
+    Color combinations and edge styles:
+        # Vibrant colors without border
+        python pie_chart_generator.py -o charts -c "#FF6B35,#004E89" --edge-width 0
+
+        # Pastel colors with thin white border
+        python pie_chart_generator.py -o charts -c "#FFB3BA,#BAE1FF" --edge-width 1 --edge-color "#FFFFFF"
+
+        # Dark colors with thick black border
+        python pie_chart_generator.py -o charts -c "#2E2E2E,#D32F2F" --edge-width 3 --edge-color "#000000"
+
+        # Blue-green gradient without border
+        python pie_chart_generator.py -o charts -c "#1E3A8A,#10B981" --edge-width 0
+
+        # Sunset colors with golden border
+        python pie_chart_generator.py -o charts -c "#FF6B6B,#FFE66D" --edge-width 2 --edge-color "#FFD700"
+
+        # Monochrome with gray border
+        python pie_chart_generator.py -o charts -c "#000000,#FFFFFF" --edge-width 4 --edge-color "#808080"
+
+        # Neon colors
+        python pie_chart_generator.py -o charts -c "#00FFFF,#FF00FF" --edge-width 0
+
+        # Natural colors
+        python pie_chart_generator.py -o charts -c "#8B4513,#228B22" --edge-width 1.5 --edge-color "#FFFFFF"
+
+    Advanced options:
+        # High quality transparent PNG with text
+        python pie_chart_generator.py -c "#FF4444,#44FF44" --edge-width 0 --transparent --format png --dpi 300 --show-percentage
+
+        # Generate animated GIF
+        python pie_chart_generator.py -c "#FF6B35,#004E89" --gif --gif-duration 100 --edge-width 0
+
+        # Custom range with step
+        python pie_chart_generator.py -c "#1E3A8A,#10B981" -s 25 -e 75 --step 5 --edge-width 0
+
+Edge width options:
+    --edge-width 0      : No border
+    --edge-width 0.5    : Very thin border
+    --edge-width 1      : Thin border
+    --edge-width 2      : Medium border (default)
+    --edge-width 3      : Thick border
+    --edge-width 5      : Very thick border
+
+Edge color options:
+    --edge-color "#FFFFFF"  : White (default)
+    --edge-color "#000000"  : Black
+    --edge-color "#808080"  : Gray
+    --edge-color "#FFD700"  : Gold
+    --edge-color "none"     : No border (equivalent to --edge-width 0)
 """
 
 import argparse
@@ -24,6 +78,7 @@ from pathlib import Path, PurePath
 from typing import List, Tuple, Any
 
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 
 class ImageFormat(StrEnum):
@@ -77,11 +132,12 @@ class ChartConfig:
     font_color: str = "#333333"
     font_weight: FontWeight = FontWeight.BOLD
     title_font_size: int = 16
-    show_percentage: bool = True
+    show_percentage: bool = False  # Changé de True à False par défaut
+    show_title: bool = False  # Nouveau paramètre pour contrôler le titre
+    transparent_background: bool = True  # Nouveau paramètre pour la transparence
     format: ImageFormat = ImageFormat.PNG
     gif_duration: int = 100
     gif_loop: int = 0
-    progress_width: int = 60
     quiet: bool = False
     verbose: bool = False
 
@@ -284,8 +340,9 @@ def _validate_path_safety(path: Path) -> None:
             severity=ErrorSeverity.HIGH,
         )
 
-    if pure_path.is_absolute() and not str(path).startswith(("/tmp", "/var/tmp")):
-        warnings.warn(f"Using absolute path: {path}", UserWarning, stacklevel=3)
+    # Remove absolute path warning as it's not necessary and pollutes output
+    # if pure_path.is_absolute() and not str(path).startswith(("/tmp", "/var/tmp")):
+    #     warnings.warn(f"Using absolute path: {path}", UserWarning, stacklevel=3)
 
     reserved_names = {
         "CON",
@@ -635,9 +692,9 @@ def create_progress_bar(
     for i in range(width):
         if i < filled_width:
             color_index: int = (i * len(bar_colors)) // width
-            bar += f"{bar_colors[color_index]}█{TerminalColors.RESET}"
+            bar += f"{bar_colors[color_index]}â–ˆ{TerminalColors.RESET}"
         else:
-            bar += f"{TerminalColors.DIM}░{TerminalColors.RESET}"
+            bar += f"{TerminalColors.DIM}â–'{TerminalColors.RESET}"
 
     progress_line: str = (
         f"\r{TerminalColors.BOLD}Progress:{TerminalColors.RESET} [{bar}]"
@@ -742,11 +799,8 @@ def create_output_directory_advanced(directory: Path) -> None:
 
             try:
                 if any(directory.iterdir()):
-                    warnings.warn(
-                        f"Directory is not empty: {directory}",
-                        UserWarning,
-                        stacklevel=2,
-                    )
+                    # Remove warning as it's not critical and pollutes output
+                    pass
             except PermissionError:
                 pass
 
@@ -806,7 +860,9 @@ def create_pie_chart(
     font_color: str = "#333333",
     font_weight: str = "bold",
     title_font_size: int = 16,
-    show_percentage: bool = True,
+    show_percentage: bool = False,  # Changé de True à False par défaut
+    show_title: bool = False,  # Nouveau paramètre
+    transparent_background: bool = True,  # Nouveau paramètre
 ) -> Tuple[plt.Figure, plt.Axes]:
     """Create a single pie chart with specified parameters.
 
@@ -823,6 +879,8 @@ def create_pie_chart(
         font_weight: Font weight for percentage text.
         title_font_size: Font size for title.
         show_percentage: Whether to show percentage in center.
+        show_title: Whether to show title.
+        transparent_background: Whether to use transparent background.
 
     Returns:
         Tuple containing the matplotlib Figure and Axes objects.
@@ -834,6 +892,11 @@ def create_pie_chart(
         sizes: List[float] = calculate_pie_sizes(percentage)
 
         fig, ax = plt.subplots(figsize=figure_size)
+
+        # Configure transparent background if requested
+        if transparent_background:
+            fig.patch.set_alpha(0.0)
+            ax.patch.set_alpha(0.0)
 
         wedges, _ = ax.pie(
             sizes,
@@ -847,6 +910,7 @@ def create_pie_chart(
             },
         )
 
+        # Show percentage only if requested
         if show_percentage:
             ax.text(
                 0,
@@ -860,12 +924,15 @@ def create_pie_chart(
             )
 
         ax.set_aspect("equal")
-        ax.set_title(
-            f"Pie Chart - {percentage}% / {100 - percentage}%",
-            fontsize=title_font_size,
-            fontweight="bold",
-            pad=20,
-        )
+
+        # Show title only if requested
+        if show_title:
+            ax.set_title(
+                f"Pie Chart - {percentage}% / {100 - percentage}%",
+                fontsize=title_font_size,
+                fontweight="bold",
+                pad=20,
+            )
 
         return fig, ax
 
@@ -899,8 +966,6 @@ def save_chart_image_advanced(
         with safe_file_operation(filename, "image_save"):
             save_kwargs: dict[str, Any] = {
                 "bbox_inches": "tight",
-                "facecolor": "white",
-                "edgecolor": "none",
                 "metadata": {
                     "Creator": "Pie Chart Generator",
                     "Subject": f"Pie chart at {percentage}%",
@@ -908,18 +973,34 @@ def save_chart_image_advanced(
                 },
             }
 
+            # Configure background based on transparency option
+            if config.transparent_background:
+                save_kwargs["facecolor"] = "none"
+                save_kwargs["edgecolor"] = "none"
+                save_kwargs["transparent"] = True
+            else:
+                save_kwargs["facecolor"] = "white"
+                save_kwargs["edgecolor"] = "none"
+
             match config.format:
                 case (
                     ImageFormat.PNG
-                    | ImageFormat.JPG
-                    | ImageFormat.JPEG
                     | ImageFormat.WEBP
                     | ImageFormat.TIFF
                 ):
                     save_kwargs["dpi"] = config.dpi
-                    if config.format in (ImageFormat.JPG, ImageFormat.JPEG):
-                        save_kwargs["quality"] = 95
-                        save_kwargs["optimize"] = True
+                case (
+                    ImageFormat.JPG
+                    | ImageFormat.JPEG
+                ):
+                    save_kwargs["dpi"] = config.dpi
+                    save_kwargs["quality"] = 95
+                    save_kwargs["optimize"] = True
+                    # JPEG doesn't support transparency, force white background
+                    if config.transparent_background:
+                        print_warning_message("JPEG format doesn't support transparency, using white background")
+                        save_kwargs["facecolor"] = "white"
+                        save_kwargs["transparent"] = False
                 case ImageFormat.PDF:
                     save_kwargs["pdf_compression"] = 6
                 case ImageFormat.SVG:
@@ -1118,8 +1199,9 @@ Examples:
   %(prog)s -o charts -c "#FF0000,#00FF00" -s 0 -e 50 --step 5
   %(prog)s --width 10 --height 10 --dpi 300 --clockwise
   %(prog)s --colors "#123456,#ABCDEF" --gif --gif-duration 50
-  %(prog)s --start-angle 0 --font-size 32 --no-percentage
-  %(prog)s --format webp --atomic-writes --backup
+  %(prog)s --start-angle 0 --font-size 32 --show-percentage
+  %(prog)s --format webp --atomic-writes --backup --transparent
+  %(prog)s --show-title --no-transparent
         """,
     )
 
@@ -1176,6 +1258,19 @@ Examples:
         type=float,
         default=ChartConfig().height,
         help=f"Figure height in inches (default: {ChartConfig().height})",
+    )
+
+    # New transparency option
+    visual_group.add_argument(
+        "--transparent",
+        action="store_true",
+        default=ChartConfig().transparent_background,
+        help="Use transparent background (default: enabled)",
+    )
+    visual_group.add_argument(
+        "--no-transparent",
+        action="store_true",
+        help="Use white background instead of transparent",
     )
 
     range_group = parser.add_argument_group("Range Options")
@@ -1252,10 +1347,17 @@ Examples:
         default=ChartConfig().title_font_size,
         help=f"Title font size (default: {ChartConfig().title_font_size})",
     )
+
+    # Options to show or hide text
     text_group.add_argument(
-        "--no-percentage",
+        "--show-percentage",
         action="store_true",
-        help="Hide percentage text in center",
+        help="Show percentage text in center (default: disabled)",
+    )
+    text_group.add_argument(
+        "--show-title",
+        action="store_true",
+        help="Show chart title (default: disabled)",
     )
 
     gif_group = parser.add_argument_group("GIF Options")
@@ -1278,12 +1380,6 @@ Examples:
     )
 
     progress_group = parser.add_argument_group("Progress Options")
-    progress_group.add_argument(
-        "--progress-width",
-        type=int,
-        default=ChartConfig().progress_width,
-        help=f"Progress bar width in characters (default: {ChartConfig().progress_width})",
-    )
     progress_group.add_argument(
         "--quiet",
         "-q",
@@ -1356,13 +1452,12 @@ def validate_arguments(args: argparse.Namespace) -> None:
                 f"GIF loop count must be non-negative, got {args.gif_loop}"
             )
 
-        if args.progress_width < 10:
-            raise ValidationError(
-                f"Progress width must be at least 10, got {args.progress_width}"
-            )
-
         if not validate_hex_color(args.font_color):
             raise ValidationError(f"Invalid font color: {args.font_color}")
+
+        # Validate mutually exclusive transparency options
+        if args.transparent and args.no_transparent:
+            raise ValidationError("Cannot use both --transparent and --no-transparent options")
 
     except Exception as e:
         if isinstance(e, ValidationError):
@@ -1382,6 +1477,13 @@ def args_to_config(args: argparse.Namespace) -> ChartConfig:
     """
     colors = parse_color_list(args.colors)
 
+    # Handle transparency option
+    transparent_background = ChartConfig().transparent_background
+    if args.no_transparent:
+        transparent_background = False
+    elif args.transparent:
+        transparent_background = True
+
     return ChartConfig(
         output_dir=args.output_dir,
         colors=colors,
@@ -1399,11 +1501,12 @@ def args_to_config(args: argparse.Namespace) -> ChartConfig:
         font_color=args.font_color,
         font_weight=args.font_weight,
         title_font_size=args.title_font_size,
-        show_percentage=not args.no_percentage,
+        show_percentage=args.show_percentage,
+        show_title=args.show_title,
+        transparent_background=transparent_background,
         format=args.format,
         gif_duration=args.gif_duration,
         gif_loop=args.gif_loop,
-        progress_width=args.progress_width,
         quiet=args.quiet,
         verbose=args.verbose,
     )
@@ -1435,6 +1538,9 @@ def generate_pie_chart_series(config: ChartConfig) -> None:
             print_info_message(
                 f"Dimensions: {config.width}x{config.height} inches @ {config.dpi} DPI"
             )
+            print_info_message(f"Transparent background: {config.transparent_background}")
+            print_info_message(f"Show percentage: {config.show_percentage}")
+            print_info_message(f"Show title: {config.show_title}")
             print()
 
         percentages: List[int] = list(
@@ -1445,13 +1551,17 @@ def generate_pie_chart_series(config: ChartConfig) -> None:
         if config.verbose:
             print_info_message(f"Generating {total_charts} charts...")
 
-        for i, percentage in enumerate(percentages):
-            try:
-                if not config.quiet:
-                    create_progress_bar(
-                        i, total_charts - 1, width=config.progress_width
-                    )
+        # Use tqdm directly instead of wrapper function
+        progress_bar = tqdm(
+            enumerate(percentages),
+            total=len(percentages),
+            desc="Generating charts",
+            disable=config.quiet,
+            unit="chart"
+        )
 
+        for i, percentage in progress_bar:
+            try:
                 fig, ax = create_pie_chart(
                     percentage=percentage,
                     colors=config.colors,
@@ -1462,9 +1572,11 @@ def generate_pie_chart_series(config: ChartConfig) -> None:
                     edge_width=config.edge_width,
                     font_size=config.font_size,
                     font_color=config.font_color,
-                    font_weight=config.font_weight.value,
+                    font_weight=str(config.font_weight.value),
                     title_font_size=config.title_font_size,
                     show_percentage=config.show_percentage,
+                    show_title=config.show_title,
+                    transparent_background=config.transparent_background,
                 )
 
                 filename: Path = save_chart_image_advanced(fig, percentage, config)
@@ -1472,23 +1584,12 @@ def generate_pie_chart_series(config: ChartConfig) -> None:
                 plt.close(fig)
 
                 if config.verbose and (i + 1) % 10 == 0:
-                    print(f"\nGenerated {i + 1}/{total_charts} charts")
+                    tqdm.write(f"Generated {i + 1}/{total_charts} charts")
 
             except (RenderingError, FileOperationError) as e:
-                if not config.quiet:
-                    print()
-                print_error_message(f"Failed to generate chart for {percentage}%: {e}")
-                if not config.quiet:
-                    continue
-                else:
+                tqdm.write(f"ERROR: Failed to generate chart for {percentage}%: {e}")
+                if config.quiet:
                     raise
-
-        if not config.quiet:
-            create_progress_bar(
-                total_charts - 1, total_charts - 1, width=config.progress_width
-            )
-            print()
-            print()
 
         print_success_message(
             f"Generation complete! {total_charts} images created in '{config.output_dir}' directory"
@@ -1528,16 +1629,18 @@ def create_animated_gif(
 
         total_images: int = len(image_files)
 
+        # Use tqdm directly for GIF creation
+        progress_bar = tqdm(
+            image_files,
+            desc="Loading images",
+            disable=config.quiet,
+            unit="image"
+        )
+
         images: List[Image.Image] = []
-        for i, filename in enumerate(image_files):
-            if not config.quiet:
-                create_progress_bar(i, total_images - 1, width=40)
+        for filename in progress_bar:
             img: Image.Image = Image.open(filename)
             images.append(img)
-
-        if not config.quiet:
-            create_progress_bar(total_images - 1, total_images - 1, width=40)
-            print()
 
         output_path: Path = config.output_dir / output_filename
         images[0].save(
@@ -1605,10 +1708,11 @@ def main() -> None:
                     "font_weight": config.font_weight.value,
                     "title_font_size": config.title_font_size,
                     "show_percentage": config.show_percentage,
+                    "show_title": config.show_title,
+                    "transparent_background": config.transparent_background,
                     "format": config.format.value,
                     "gif_duration": config.gif_duration,
                     "gif_loop": config.gif_loop,
-                    "progress_width": config.progress_width,
                 }
                 save_config_to_file_advanced(config_dict, args.save_config)
             except ConfigurationError as e:
