@@ -70,12 +70,11 @@ import stat
 import sys
 import tempfile
 import time
-import warnings
 from contextlib import contextmanager
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import StrEnum, auto
 from pathlib import Path, PurePath
-from typing import List, Tuple, Any
+from typing import List, Tuple, Any, Union
 
 import matplotlib.pyplot as plt
 from tqdm import tqdm
@@ -116,7 +115,7 @@ class ErrorSeverity(StrEnum):
 class ChartConfig:
     """Configuration dataclass for chart generation."""
 
-    output_dir: Path = field(default_factory=lambda: Path("pie_charts"))
+    output_dir: Union[str, Path] = Path("default")
     colors: tuple[str, str] = ("#FF6B6B", "#4ECDC4")
     width: float = 8.0
     height: float = 8.0
@@ -143,8 +142,7 @@ class ChartConfig:
 
     def __post_init__(self) -> None:
         """Validate configuration after initialization."""
-        if not isinstance(self.output_dir, Path):
-            object.__setattr__(self, "output_dir", Path(self.output_dir))
+        object.__setattr__(self, "output_dir", Path(self.output_dir))
 
 
 class PieChartError(Exception):
@@ -576,15 +574,14 @@ def atomic_file_write(path: Path, content: bytes, backup: bool = True) -> None:
             if temp_path and temp_path.exists():
                 try:
                     temp_path.unlink()
-                except Exception:
+                except OSError:
                     pass
 
             if backup_path and backup_path.exists():
                 try:
                     shutil.copy2(backup_path, path)
-                except Exception:
+                except (OSError, shutil.Error):
                     pass
-
             raise FileOperationError(
                 f"Atomic write failed: {e}", path=path, operation="atomic_write"
             )
@@ -592,11 +589,11 @@ def atomic_file_write(path: Path, content: bytes, backup: bool = True) -> None:
             if backup_path and backup_path.exists():
                 try:
                     backup_path.unlink()
-                except Exception:
+                except OSError:
                     pass
 
 
-def validate_hex_color(color: str) -> bool:
+def validate_hex_color(*, color: str | None) -> bool:
     """Validate if a string is a valid hex color code.
 
     Args:
@@ -630,7 +627,7 @@ def validate_colors(colors: tuple[str, str] | list[str]) -> None:
         )
 
     for i, color in enumerate(colors):
-        if not validate_hex_color(color):
+        if not validate_hex_color(color=color):
             raise ValidationError(
                 f"Invalid hex color at position {i}: '{color}'",
                 field=f"color_{i}",
@@ -983,22 +980,17 @@ def save_chart_image_advanced(
                 save_kwargs["edgecolor"] = "none"
 
             match config.format:
-                case (
-                    ImageFormat.PNG
-                    | ImageFormat.WEBP
-                    | ImageFormat.TIFF
-                ):
+                case ImageFormat.PNG | ImageFormat.WEBP | ImageFormat.TIFF:
                     save_kwargs["dpi"] = config.dpi
-                case (
-                    ImageFormat.JPG
-                    | ImageFormat.JPEG
-                ):
+                case ImageFormat.JPG | ImageFormat.JPEG:
                     save_kwargs["dpi"] = config.dpi
                     save_kwargs["quality"] = 95
                     save_kwargs["optimize"] = True
                     # JPEG doesn't support transparency, force white background
                     if config.transparent_background:
-                        print_warning_message("JPEG format doesn't support transparency, using white background")
+                        print_warning_message(
+                            "JPEG format doesn't support transparency, using white background"
+                        )
                         save_kwargs["facecolor"] = "white"
                         save_kwargs["transparent"] = False
                 case ImageFormat.PDF:
@@ -1116,7 +1108,7 @@ def parse_color_list(color_string: str) -> tuple[str, str]:
     try:
         colors = [color.strip() for color in color_string.split(",")]
         validate_colors(colors)
-        return (colors[0], colors[1])
+        return colors[0], colors[1]
     except Exception as e:
         raise ValidationError(f"Failed to parse colors '{color_string}': {e}")
 
@@ -1418,12 +1410,9 @@ def validate_arguments(args: argparse.Namespace) -> None:
         ValidationError: If arguments are invalid.
     """
     try:
-        colors = parse_color_list(args.colors)
-
+        parse_color_list(args.colors)
         validate_dimensions(args.width, args.height)
-
         validate_dpi(args.dpi)
-
         validate_percentage_range(args.start, args.end, args.step)
 
         if not (0 <= args.start_angle <= 360):
@@ -1452,12 +1441,14 @@ def validate_arguments(args: argparse.Namespace) -> None:
                 f"GIF loop count must be non-negative, got {args.gif_loop}"
             )
 
-        if not validate_hex_color(args.font_color):
+        if not validate_hex_color(color=args.font_color):
             raise ValidationError(f"Invalid font color: {args.font_color}")
 
         # Validate mutually exclusive transparency options
         if args.transparent and args.no_transparent:
-            raise ValidationError("Cannot use both --transparent and --no-transparent options")
+            raise ValidationError(
+                "Cannot use both --transparent and --no-transparent options"
+            )
 
     except Exception as e:
         if isinstance(e, ValidationError):
@@ -1538,7 +1529,9 @@ def generate_pie_chart_series(config: ChartConfig) -> None:
             print_info_message(
                 f"Dimensions: {config.width}x{config.height} inches @ {config.dpi} DPI"
             )
-            print_info_message(f"Transparent background: {config.transparent_background}")
+            print_info_message(
+                f"Transparent background: {config.transparent_background}"
+            )
             print_info_message(f"Show percentage: {config.show_percentage}")
             print_info_message(f"Show title: {config.show_title}")
             print()
@@ -1557,7 +1550,7 @@ def generate_pie_chart_series(config: ChartConfig) -> None:
             total=len(percentages),
             desc="Generating charts",
             disable=config.quiet,
-            unit="chart"
+            unit="chart",
         )
 
         for i, percentage in progress_bar:
@@ -1579,10 +1572,8 @@ def generate_pie_chart_series(config: ChartConfig) -> None:
                     transparent_background=config.transparent_background,
                 )
 
-                filename: Path = save_chart_image_advanced(fig, percentage, config)
-
+                save_chart_image_advanced(fig, percentage, config)
                 plt.close(fig)
-
                 if config.verbose and (i + 1) % 10 == 0:
                     tqdm.write(f"Generated {i + 1}/{total_charts} charts")
 
@@ -1627,14 +1618,9 @@ def create_animated_gif(
 
         print_info_message(f"Creating GIF from {len(image_files)} images...")
 
-        total_images: int = len(image_files)
-
         # Use tqdm directly for GIF creation
         progress_bar = tqdm(
-            image_files,
-            desc="Loading images",
-            disable=config.quiet,
-            unit="image"
+            image_files, desc="Loading images", disable=config.quiet, unit="image"
         )
 
         images: List[Image.Image] = []
@@ -1675,7 +1661,7 @@ def main() -> None:
 
         if args.config:
             try:
-                file_config = load_config_from_file_advanced(args.config)
+                load_config_from_file_advanced(args.config)
                 print_success_message(f"Loaded configuration from: {args.config}")
             except ConfigurationError as e:
                 print_error_message(f"Configuration error: {e}")
@@ -1740,7 +1726,7 @@ def main() -> None:
     except Exception as e:
         print()
         print_error_message(f"Unexpected error: {e}")
-        if hasattr(e, "severity") and e.severity == ErrorSeverity.CRITICAL:
+        if isinstance(e, PieChartError) and e.severity == ErrorSeverity.CRITICAL:
             sys.exit(2)
         else:
             sys.exit(1)
