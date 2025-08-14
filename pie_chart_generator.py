@@ -1,7 +1,28 @@
 """Pie Chart Generator Module.
 
 This module generates a series of pie charts showing the progression of two colors
-from 0% to 100% in 1% increments, creating 101 total images.
+from 0% to 100% in customizable increments. Built with Python 3.13+ features,
+it offers extensive customization options and robust error handling.
+
+Features:
+    - Generates pie chart series with customizable percentage ranges and steps
+    - Supports multiple output formats (PNG, JPG, JPEG, PDF, SVG, WEBP, TIFF)
+    - Advanced command-line interface with short and long argument formats
+    - Comprehensive validation using PurePath for cross-platform compatibility
+    - Atomic file writes with backup support to prevent corruption
+    - Colorful terminal progress bars and status messages
+    - Optional animated GIF creation from generated images
+    - Configuration file support (JSON) for saving and loading settings
+    - Extensive error handling with custom exception hierarchy
+    - Modern Python 3.13+ features: dataclasses, enums, pattern matching, union types
+    - Transparent background support for PNG and other compatible formats
+    - Optional text display controls (percentage and title)
+
+Requirements:
+    - Python 3.13+
+    - matplotlib
+    - tqdm
+    - Pillow (for GIF creation)
 
 Examples:
     Basic usage:
@@ -45,6 +66,19 @@ Examples:
         # Custom range with step
         python pie_chart_generator.py -c "#1E3A8A,#10B981" -s 25 -e 75 --step 5 --edge-width 0
 
+        # Using atomic writes with backup
+        python pie_chart_generator.py -c "#FF0000,#00FF00" --atomic-writes --backup --overwrite
+
+        # Custom angles and clockwise direction
+        python pie_chart_generator.py -c "#FF6B35,#004E89" --start-angle 0 --clockwise
+
+        # Save and load configuration
+        python pie_chart_generator.py --save-config my_config.json
+        python pie_chart_generator.py --config my_config.json
+
+        # Verbose output with custom font settings
+        python pie_chart_generator.py -c "#1E3A8A,#10B981" --verbose --font-size 32 --font-weight bold --show-title
+
 Edge width options:
     --edge-width 0      : No border
     --edge-width 0.5    : Very thin border
@@ -59,6 +93,55 @@ Edge color options:
     --edge-color "#808080"  : Gray
     --edge-color "#FFD700"  : Gold
     --edge-color "none"     : No border (equivalent to --edge-width 0)
+
+Arguments:
+    Output Options:
+        -o, --output-dir     : Output directory for generated images
+        -f, --format         : Output image format (png, jpg, jpeg, pdf, svg, webp, tiff)
+        --dpi                : Image resolution in DPI (50-1000)
+        --atomic-writes      : Use atomic file writes to prevent corruption
+        --backup             : Create backups of existing files
+        --overwrite          : Overwrite existing files (default: skip existing files)
+
+    Visual Options:
+        -c, --colors         : Two hex colors separated by comma
+        -w, --width          : Figure width in inches
+        --height             : Figure height in inches
+        --transparent        : Use transparent background (default: enabled)
+        --no-transparent     : Use white background instead of transparent
+
+    Range Options:
+        -s, --start          : Starting percentage (0-100)
+        -e, --end            : Ending percentage (0-100)
+        --step               : Step increment
+
+    Chart Appearance:
+        --start-angle        : Starting angle in degrees (0-360)
+        --clockwise          : Draw pie chart clockwise
+        --edge-color         : Edge color for pie segments
+        --edge-width         : Edge line width
+
+    Text Options:
+        --font-size          : Font size for percentage text
+        --font-color         : Font color for percentage text
+        --font-weight        : Font weight (normal, bold, light, ultralight, heavy)
+        --title-font-size    : Title font size
+        --show-percentage    : Show percentage text in center (default: disabled)
+        --show-title         : Show chart title (default: disabled)
+
+    GIF Options:
+        --gif                : Generate animated GIF
+        --gif-duration       : GIF frame duration in milliseconds
+        --gif-loop           : GIF loop count (0=infinite)
+        --keep-png           : Keep PNG files when generating GIF (default: delete PNG files after GIF creation)
+
+    Progress Options:
+        --quiet, -q          : Suppress progress output
+        --verbose, -v        : Enable verbose output
+
+    Configuration Options:
+        --config             : Load configuration from JSON file
+        --save-config        : Save current configuration to JSON file
 """
 
 import argparse
@@ -1638,24 +1721,40 @@ def generate_pie_chart_series(config: ChartConfig) -> None:
             raise PieChartError(f"Unexpected error during generation: {e}")
 
 
-def _create_gif_from_images(
-    image_files: List[str], config: ChartConfig, output_filename: str = "animation.gif"
-) -> Path:
-    """Helper function to create GIF from a list of image files.
+def _create_gif_from_config(
+    config: ChartConfig, output_filename: str = "animation.gif"
+) -> List[str]:
+    """Helper function to find image files and create GIF.
 
     Args:
-        image_files: List of image file paths.
         config: Chart configuration object.
         output_filename: Name for the output GIF file.
 
     Returns:
-        Path object of the created GIF file.
+        List of image file paths that were used to create the GIF.
 
     Raises:
         ImportError: If Pillow is not available.
         Exception: If GIF creation fails.
     """
     from PIL import Image
+    import glob
+
+    pattern: str = str(config.output_dir / f"pie_chart_*.{config.format.value}")
+    image_files: List[str] = sorted(glob.glob(pattern))
+
+    if not image_files:
+        print_error_message(f"No images found in {config.output_dir}")
+        return []
+
+    percentages = list(range(config.start_percent, config.end_percent + 1, config.step))
+    expected_files = len(percentages)
+
+    if len(image_files) < expected_files and not config.overwrite_existing:
+        print_warning_message(
+            f"Found {len(image_files)} PNG files but expected {expected_files}. "
+            f"Some files may have been skipped. Use --overwrite to ensure all files are generated."
+        )
 
     print_info_message(f"Creating GIF from {len(image_files)} images...")
 
@@ -1679,7 +1778,7 @@ def _create_gif_from_images(
     )
 
     print_success_message(f"Animated GIF created: {output_path}")
-    return output_path
+    return image_files
 
 
 def create_animated_gif(
@@ -1695,28 +1794,11 @@ def create_animated_gif(
         Requires Pillow package (pip install Pillow).
     """
     try:
-        import glob
+        # Create GIF and get list of image files used
+        image_files = _create_gif_from_config(config, output_filename)
 
-        pattern: str = str(config.output_dir / f"pie_chart_*.{config.format.value}")
-        image_files: List[str] = sorted(glob.glob(pattern))
-
-        if not image_files:
-            print_error_message(f"No images found in {config.output_dir}")
+        if not image_files:  # No images found
             return
-
-        percentages = list(
-            range(config.start_percent, config.end_percent + 1, config.step)
-        )
-        expected_files = len(percentages)
-
-        if len(image_files) < expected_files and not config.overwrite_existing:
-            print_warning_message(
-                f"Found {len(image_files)} PNG files but expected {expected_files}. "
-                f"Some files may have been skipped. Use --overwrite to ensure all files are generated."
-            )
-
-        # Create GIF using helper function
-        _create_gif_from_images(image_files, config, output_filename)
 
         # Cleanup PNG files if requested
         if not config.keep_png_for_gif:
@@ -1764,28 +1846,11 @@ def create_animated_gif_with_existing(
         Requires Pillow package (pip install Pillow).
     """
     try:
-        import glob
+        # Create GIF and get list of image files used
+        image_files = _create_gif_from_config(config, output_filename)
 
-        pattern: str = str(config.output_dir / f"pie_chart_*.{config.format.value}")
-        image_files: List[str] = sorted(glob.glob(pattern))
-
-        if not image_files:
-            print_error_message(f"No images found in {config.output_dir}")
+        if not image_files:  # No images found
             return
-
-        percentages = list(
-            range(config.start_percent, config.end_percent + 1, config.step)
-        )
-        expected_files = len(percentages)
-
-        if len(image_files) < expected_files and not config.overwrite_existing:
-            print_warning_message(
-                f"Found {len(image_files)} PNG files but expected {expected_files}. "
-                f"Some files may have been skipped. Use --overwrite to ensure all files are generated."
-            )
-
-        # Create GIF using helper function
-        _create_gif_from_images(image_files, config, output_filename)
 
         # Cleanup only new PNG files if requested
         if not config.keep_png_for_gif:
@@ -1887,7 +1952,6 @@ def main() -> None:
         if args.gif and not args.quiet:
             print_info_message("Animated GIF will be created after chart generation")
 
-        # CORRECTION: Capturer les fichiers existants AVANT la génération
         existing_files = set()
         if args.gif and not config.keep_png_for_gif:
             import glob

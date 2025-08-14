@@ -21,6 +21,12 @@ This script generates a series of pie charts showing the progression of two colo
 - Transparent background support for PNG and other compatible formats
 - Optional text display controls (percentage and title)
 
+**Requirements:**
+- Python 3.13+
+- matplotlib
+- tqdm
+- Pillow (for GIF creation)
+
 **Basic Usage:**
 
 ```bash
@@ -70,6 +76,19 @@ python pie_chart_generator.py -c "#FF6B35,#004E89" --gif --gif-duration 100 --ed
 
 # Custom range with step
 python pie_chart_generator.py -c "#1E3A8A,#10B981" -s 25 -e 75 --step 5 --edge-width 0
+
+# Using atomic writes with backup
+python pie_chart_generator.py -c "#FF0000,#00FF00" --atomic-writes --backup --overwrite
+
+# Custom angles and clockwise direction
+python pie_chart_generator.py -c "#FF6B35,#004E89" --start-angle 0 --clockwise
+
+# Save and load configuration
+python pie_chart_generator.py --save-config my_config.json
+python pie_chart_generator.py --config my_config.json
+
+# Verbose output with custom font settings
+python pie_chart_generator.py -c "#1E3A8A,#10B981" --verbose --font-size 32 --font-weight bold --show-title
 ```
 
 **Edge Width Options:**
@@ -95,6 +114,7 @@ python pie_chart_generator.py -c "#1E3A8A,#10B981" -s 25 -e 75 --step 5 --edge-w
 - `--dpi`: Image resolution in DPI (50-1000)
 - `--atomic-writes`: Use atomic file writes to prevent corruption
 - `--backup`: Create backups of existing files
+- `--overwrite`: Overwrite existing files (default: skip existing files)
 
 **Visual Options:**
 - `-c, --colors`: Two hex colors separated by comma
@@ -126,6 +146,7 @@ python pie_chart_generator.py -c "#1E3A8A,#10B981" -s 25 -e 75 --step 5 --edge-w
 - `--gif`: Generate animated GIF
 - `--gif-duration`: GIF frame duration in milliseconds
 - `--gif-loop`: GIF loop count (0=infinite)
+- `--keep-png`: Keep PNG files when generating GIF (default: delete PNG files after GIF creation)
 
 **Progress Options:**
 - `--quiet, -q`: Suppress progress output
@@ -155,6 +176,12 @@ Ce script génère une série de camemberts montrant la progression de deux coul
 - Fonctionnalités modernes Python 3.13+ : dataclasses, enums, pattern matching, types union
 - Support d'arrière-plan transparent pour PNG et autres formats compatibles
 - Contrôles optionnels d'affichage du texte (pourcentage et titre)
+
+**Prérequis :**
+- Python 3.13+
+- matplotlib
+- tqdm
+- Pillow (pour la création de GIF)
 
 **Utilisation Basique :**
 
@@ -205,6 +232,19 @@ python pie_chart_generator.py -c "#FF6B35,#004E89" --gif --gif-duration 100 --ed
 
 # Plage personnalisée avec pas
 python pie_chart_generator.py -c "#1E3A8A,#10B981" -s 25 -e 75 --step 5 --edge-width 0
+
+# Utilisation d'écritures atomiques avec sauvegarde
+python pie_chart_generator.py -c "#FF0000,#00FF00" --atomic-writes --backup --overwrite
+
+# Angles personnalisés et direction horaire
+python pie_chart_generator.py -c "#FF6B35,#004E89" --start-angle 0 --clockwise
+
+# Sauvegarder et charger la configuration
+python pie_chart_generator.py --save-config ma_config.json
+python pie_chart_generator.py --config ma_config.json
+
+# Sortie détaillée avec paramètres de police personnalisés
+python pie_chart_generator.py -c "#1E3A8A,#10B981" --verbose --font-size 32 --font-weight bold --show-title
 ```
 
 **Options de Largeur de Bordure :**
@@ -230,6 +270,7 @@ python pie_chart_generator.py -c "#1E3A8A,#10B981" -s 25 -e 75 --step 5 --edge-w
 - `--dpi` : Résolution d'image en DPI (50-1000)
 - `--atomic-writes` : Utiliser des écritures atomiques pour éviter la corruption
 - `--backup` : Créer des sauvegardes des fichiers existants
+- `--overwrite` : Écraser les fichiers existants (par défaut : ignorer les fichiers existants)
 
 **Options Visuelles :**
 - `-c, --colors` : Deux couleurs hex séparées par une virgule
@@ -261,6 +302,7 @@ python pie_chart_generator.py -c "#1E3A8A,#10B981" -s 25 -e 75 --step 5 --edge-w
 - `--gif` : Générer un GIF animé
 - `--gif-duration` : Durée de frame GIF en millisecondes
 - `--gif-loop` : Nombre de boucles GIF (0=infini)
+- `--keep-png` : Conserver les fichiers PNG lors de la génération de GIF (par défaut : supprimer les fichiers PNG après création du GIF)
 
 **Options de Progression :**
 - `--quiet, -q` : Supprimer la sortie de progression
@@ -284,12 +326,18 @@ python pie_chart_generator.py -c "#1E3A8A,#10B981" -s 25 -e 75 --step 5 --edge-w
 - クロスプラットフォーム互換性のためのPurePathを使用した包括的検証
 - 破損を防ぐバックアップサポート付きアトミックファイル書き込み
 - カラフルなターミナル進行状況バーとステータスメッセージ
-- 生成された画像からのオプションのアニメーションGIF作成
+- 生成された画像からのオプションのアニメーション GIF作成
 - 設定の保存と読み込みのための設定ファイルサポート（JSON）
 - カスタム例外階層による広範なエラー処理
 - 最新のPython 3.13+機能：データクラス、列挙型、パターンマッチング、ユニオン型
 - PNGおよび他の互換形式用の透明背景サポート
 - オプションのテキスト表示制御（パーセンテージとタイトル）
+
+**必要条件：**
+- Python 3.13+
+- matplotlib
+- tqdm
+- Pillow（GIF作成用）
 
 **基本的な使用法：**
 
@@ -340,6 +388,19 @@ python pie_chart_generator.py -c "#FF6B35,#004E89" --gif --gif-duration 100 --ed
 
 # ステップ付きカスタム範囲
 python pie_chart_generator.py -c "#1E3A8A,#10B981" -s 25 -e 75 --step 5 --edge-width 0
+
+# バックアップ付きアトミック書き込みの使用
+python pie_chart_generator.py -c "#FF0000,#00FF00" --atomic-writes --backup --overwrite
+
+# カスタム角度と時計回り方向
+python pie_chart_generator.py -c "#FF6B35,#004E89" --start-angle 0 --clockwise
+
+# 設定の保存と読み込み
+python pie_chart_generator.py --save-config my_config.json
+python pie_chart_generator.py --config my_config.json
+
+# カスタムフォント設定での詳細出力
+python pie_chart_generator.py -c "#1E3A8A,#10B981" --verbose --font-size 32 --font-weight bold --show-title
 ```
 
 **エッジ幅オプション：**
@@ -365,6 +426,7 @@ python pie_chart_generator.py -c "#1E3A8A,#10B981" -s 25 -e 75 --step 5 --edge-w
 - `--dpi`：DPIでの画像解像度（50-1000）
 - `--atomic-writes`：破損を防ぐためのアトミックファイル書き込みを使用
 - `--backup`：既存ファイルのバックアップを作成
+- `--overwrite`：既存ファイルを上書き（デフォルト：既存ファイルをスキップ）
 
 **視覚オプション：**
 - `-c, --colors`：コンマで区切られた2つのヘックス色
@@ -379,7 +441,7 @@ python pie_chart_generator.py -c "#1E3A8A,#10B981" -s 25 -e 75 --step 5 --edge-w
 - `--step`：ステップ増分
 
 **グラフの外観：**
-- `--start-angle`：度単位での開始角度（0-360）
+- `--start-angle`：度数単位での開始角度（0-360）
 - `--clockwise`：円グラフを時計回りに描画
 - `--edge-color`：円セグメントのエッジ色
 - `--edge-width`：エッジライン幅
@@ -389,13 +451,14 @@ python pie_chart_generator.py -c "#1E3A8A,#10B981" -s 25 -e 75 --step 5 --edge-w
 - `--font-color`：パーセンテージテキストのフォント色
 - `--font-weight`：フォントウェイト（normal、bold、light、ultralight、heavy）
 - `--title-font-size`：タイトルフォントサイズ
-- `--show-percentage`：中央にパーセンテージテキストを表示（デフォルト：無効）
+- `--show-percentage`：中心にパーセンテージテキストを表示（デフォルト：無効）
 - `--show-title`：グラフタイトルを表示（デフォルト：無効）
 
 **GIFオプション：**
 - `--gif`：アニメーションGIFを生成
 - `--gif-duration`：ミリ秒単位のGIFフレーム時間
 - `--gif-loop`：GIFループ回数（0=無限）
+- `--keep-png`：GIF生成時にPNGファイルを保持（デフォルト：GIF作成後にPNGファイルを削除）
 
 **進行状況オプション：**
 - `--quiet, -q`：進行状況出力を抑制
@@ -425,6 +488,12 @@ python pie_chart_generator.py -c "#1E3A8A,#10B981" -s 25 -e 75 --step 5 --edge-w
 - 现代Python 3.13+功能：数据类、枚举、模式匹配、联合类型
 - PNG和其他兼容格式的透明背景支持
 - 可选文本显示控制（百分比和标题）
+
+**要求：**
+- Python 3.13+
+- matplotlib
+- tqdm
+- Pillow（用于GIF创建）
 
 **基本用法：**
 
@@ -475,6 +544,19 @@ python pie_chart_generator.py -c "#FF6B35,#004E89" --gif --gif-duration 100 --ed
 
 # 带步长的自定义范围
 python pie_chart_generator.py -c "#1E3A8A,#10B981" -s 25 -e 75 --step 5 --edge-width 0
+
+# 使用带备份的原子写入
+python pie_chart_generator.py -c "#FF0000,#00FF00" --atomic-writes --backup --overwrite
+
+# 自定义角度和顺时针方向
+python pie_chart_generator.py -c "#FF6B35,#004E89" --start-angle 0 --clockwise
+
+# 保存和加载配置
+python pie_chart_generator.py --save-config my_config.json
+python pie_chart_generator.py --config my_config.json
+
+# 带自定义字体设置的详细输出
+python pie_chart_generator.py -c "#1E3A8A,#10B981" --verbose --font-size 32 --font-weight bold --show-title
 ```
 
 **边缘宽度选项：**
@@ -500,6 +582,7 @@ python pie_chart_generator.py -c "#1E3A8A,#10B981" -s 25 -e 75 --step 5 --edge-w
 - `--dpi`：DPI图像分辨率（50-1000）
 - `--atomic-writes`：使用原子文件写入防止损坏
 - `--backup`：创建现有文件的备份
+- `--overwrite`：覆盖现有文件（默认：跳过现有文件）
 
 **视觉选项：**
 - `-c, --colors`：用逗号分隔的两种十六进制颜色
@@ -531,6 +614,7 @@ python pie_chart_generator.py -c "#1E3A8A,#10B981" -s 25 -e 75 --step 5 --edge-w
 - `--gif`：生成动画GIF
 - `--gif-duration`：毫秒为单位的GIF帧持续时间
 - `--gif-loop`：GIF循环次数（0=无限）
+- `--keep-png`：生成GIF时保留PNG文件（默认：GIF创建后删除PNG文件）
 
 **进度选项：**
 - `--quiet, -q`：抑制进度输出
@@ -560,6 +644,12 @@ python pie_chart_generator.py -c "#1E3A8A,#10B981" -s 25 -e 75 --step 5 --edge-w
 - 現代Python 3.13+功能：資料類、列舉、模式匹配、聯合類型
 - PNG和其他相容格式的透明背景支援
 - 可選文字顯示控制（百分比和標題）
+
+**要求：**
+- Python 3.13+
+- matplotlib
+- tqdm
+- Pillow（用於GIF創建）
 
 **基本用法：**
 
@@ -610,6 +700,19 @@ python pie_chart_generator.py -c "#FF6B35,#004E89" --gif --gif-duration 100 --ed
 
 # 帶步長的自訂範圍
 python pie_chart_generator.py -c "#1E3A8A,#10B981" -s 25 -e 75 --step 5 --edge-width 0
+
+# 使用帶備份的原子寫入
+python pie_chart_generator.py -c "#FF0000,#00FF00" --atomic-writes --backup --overwrite
+
+# 自訊角度和順時針方向
+python pie_chart_generator.py -c "#FF6B35,#004E89" --start-angle 0 --clockwise
+
+# 保存和載入組態
+python pie_chart_generator.py --save-config my_config.json
+python pie_chart_generator.py --config my_config.json
+
+# 帶自訂字體設定的詳細輸出
+python pie_chart_generator.py -c "#1E3A8A,#10B981" --verbose --font-size 32 --font-weight bold --show-title
 ```
 
 **邊緣寬度選項：**
@@ -635,6 +738,7 @@ python pie_chart_generator.py -c "#1E3A8A,#10B981" -s 25 -e 75 --step 5 --edge-w
 - `--dpi`：DPI圖像解析度（50-1000）
 - `--atomic-writes`：使用原子檔案寫入防止損壞
 - `--backup`：創建現有檔案的備份
+- `--overwrite`：覆蓋現有檔案（預設：跳過現有檔案）
 
 **視覺選項：**
 - `-c, --colors`：用逗號分隔的兩種十六進制顏色
@@ -666,6 +770,7 @@ python pie_chart_generator.py -c "#1E3A8A,#10B981" -s 25 -e 75 --step 5 --edge-w
 - `--gif`：產生動畫GIF
 - `--gif-duration`：毫秒為單位的GIF幀持續時間
 - `--gif-loop`：GIF循環次數（0=無限）
+- `--keep-png`：產生GIF時保留PNG檔案（預設：GIF創建後刪除PNG檔案）
 
 **進度選項：**
 - `--quiet, -q`：抑制進度輸出
@@ -695,6 +800,12 @@ Este script genera una serie de gráficos circulares que muestran la progresión
 - Características modernas de Python 3.13+: dataclasses, enums, pattern matching, union types
 - Soporte de fondo transparente para PNG y otros formatos compatibles
 - Controles opcionales de visualización de texto (porcentaje y título)
+
+**Requisitos:**
+- Python 3.13+
+- matplotlib
+- tqdm
+- Pillow (para creación de GIF)
 
 **Uso Básico:**
 
@@ -745,6 +856,19 @@ python pie_chart_generator.py -c "#FF6B35,#004E89" --gif --gif-duration 100 --ed
 
 # Rango personalizado con paso
 python pie_chart_generator.py -c "#1E3A8A,#10B981" -s 25 -e 75 --step 5 --edge-width 0
+
+# Uso de escrituras atómicas con respaldo
+python pie_chart_generator.py -c "#FF0000,#00FF00" --atomic-writes --backup --overwrite
+
+# Ángulos personalizados y dirección horaria
+python pie_chart_generator.py -c "#FF6B35,#004E89" --start-angle 0 --clockwise
+
+# Guardar y cargar configuración
+python pie_chart_generator.py --save-config mi_config.json
+python pie_chart_generator.py --config mi_config.json
+
+# Salida detallada con configuraciones de fuente personalizadas
+python pie_chart_generator.py -c "#1E3A8A,#10B981" --verbose --font-size 32 --font-weight bold --show-title
 ```
 
 **Opciones de Ancho de Borde:**
@@ -770,6 +894,7 @@ python pie_chart_generator.py -c "#1E3A8A,#10B981" -s 25 -e 75 --step 5 --edge-w
 - `--dpi`: Resolución de imagen en DPI (50-1000)
 - `--atomic-writes`: Usar escrituras atómicas para prevenir corrupción
 - `--backup`: Crear respaldos de archivos existentes
+- `--overwrite`: Sobrescribir archivos existentes (predeterminado: omitir archivos existentes)
 
 **Opciones Visuales:**
 - `-c, --colors`: Dos colores hex separados por coma
@@ -801,6 +926,7 @@ python pie_chart_generator.py -c "#1E3A8A,#10B981" -s 25 -e 75 --step 5 --edge-w
 - `--gif`: Generar GIF animado
 - `--gif-duration`: Duración de frame GIF en milisegundos
 - `--gif-loop`: Número de bucles GIF (0=infinito)
+- `--keep-png`: Mantener archivos PNG al generar GIF (predeterminado: eliminar archivos PNG después de la creación de GIF)
 
 **Opciones de Progreso:**
 - `--quiet, -q`: Suprimir salida de progreso
@@ -830,6 +956,12 @@ Questo script genera una serie di grafici a torta che mostrano la progressione d
 - Funzionalità moderne Python 3.13+: dataclasses, enums, pattern matching, union types
 - Supporto sfondo trasparente per PNG e altri formati compatibili
 - Controlli opzionali di visualizzazione del testo (percentuale e titolo)
+
+**Requisiti:**
+- Python 3.13+
+- matplotlib
+- tqdm
+- Pillow (per creazione GIF)
 
 **Utilizzo Base:**
 
@@ -880,6 +1012,19 @@ python pie_chart_generator.py -c "#FF6B35,#004E89" --gif --gif-duration 100 --ed
 
 # Intervallo personalizzato con passo
 python pie_chart_generator.py -c "#1E3A8A,#10B981" -s 25 -e 75 --step 5 --edge-width 0
+
+# Uso di scritture atomiche con backup
+python pie_chart_generator.py -c "#FF0000,#00FF00" --atomic-writes --backup --overwrite
+
+# Angoli personalizzati e direzione oraria
+python pie_chart_generator.py -c "#FF6B35,#004E89" --start-angle 0 --clockwise
+
+# Salvare e caricare configurazione
+python pie_chart_generator.py --save-config mia_config.json
+python pie_chart_generator.py --config mia_config.json
+
+# Output dettagliato con impostazioni font personalizzate
+python pie_chart_generator.py -c "#1E3A8A,#10B981" --verbose --font-size 32 --font-weight bold --show-title
 ```
 
 **Opzioni Larghezza Bordo:**
@@ -905,6 +1050,7 @@ python pie_chart_generator.py -c "#1E3A8A,#10B981" -s 25 -e 75 --step 5 --edge-w
 - `--dpi`: Risoluzione immagine in DPI (50-1000)
 - `--atomic-writes`: Usare scritture atomiche per prevenire corruzione
 - `--backup`: Creare backup di file esistenti
+- `--overwrite`: Sovrascrivere file esistenti (predefinito: saltare file esistenti)
 
 **Opzioni Visive:**
 - `-c, --colors`: Due colori hex separati da virgola
@@ -936,6 +1082,7 @@ python pie_chart_generator.py -c "#1E3A8A,#10B981" -s 25 -e 75 --step 5 --edge-w
 - `--gif`: Generare GIF animata
 - `--gif-duration`: Durata frame GIF in millisecondi
 - `--gif-loop`: Numero di cicli GIF (0=infinito)
+- `--keep-png`: Mantenere file PNG quando si genera GIF (predefinito: eliminare file PNG dopo creazione GIF)
 
 **Opzioni Progresso:**
 - `--quiet, -q`: Sopprimere output progresso
@@ -965,6 +1112,12 @@ Dieses Skript generiert eine Serie von Kreisdiagrammen, die den Fortschritt zwei
 - Moderne Python 3.13+ Funktionen: dataclasses, enums, pattern matching, union types
 - Transparenter Hintergrund-Support für PNG und andere kompatible Formate
 - Optionale Textanzeigesteuerung (Prozentsatz und Titel)
+
+**Anforderungen:**
+- Python 3.13+
+- matplotlib
+- tqdm
+- Pillow (für GIF-Erstellung)
 
 **Grundlegende Verwendung:**
 
@@ -1015,6 +1168,19 @@ python pie_chart_generator.py -c "#FF6B35,#004E89" --gif --gif-duration 100 --ed
 
 # Benutzerdefinierter Bereich mit Schritt
 python pie_chart_generator.py -c "#1E3A8A,#10B981" -s 25 -e 75 --step 5 --edge-width 0
+
+# Verwendung atomarer Schreibvorgänge mit Backup
+python pie_chart_generator.py -c "#FF0000,#00FF00" --atomic-writes --backup --overwrite
+
+# Benutzerdefinierte Winkel und Uhrzeigersinn-Richtung
+python pie_chart_generator.py -c "#FF6B35,#004E89" --start-angle 0 --clockwise
+
+# Konfiguration speichern und laden
+python pie_chart_generator.py --save-config meine_config.json
+python pie_chart_generator.py --config meine_config.json
+
+# Detaillierte Ausgabe mit benutzerdefinierten Schrifteinstellungen
+python pie_chart_generator.py -c "#1E3A8A,#10B981" --verbose --font-size 32 --font-weight bold --show-title
 ```
 
 **Randbreiten-Optionen:**
@@ -1040,6 +1206,7 @@ python pie_chart_generator.py -c "#1E3A8A,#10B981" -s 25 -e 75 --step 5 --edge-w
 - `--dpi`: Bildauflösung in DPI (50-1000)
 - `--atomic-writes`: Atomare Dateischreibungen zur Korruptionsvermeidung verwenden
 - `--backup`: Backups bestehender Dateien erstellen
+- `--overwrite`: Bestehende Dateien überschreiben (Standard: bestehende Dateien überspringen)
 
 **Visuelle Optionen:**
 - `-c, --colors`: Zwei durch Komma getrennte Hex-Farben
@@ -1071,6 +1238,7 @@ python pie_chart_generator.py -c "#1E3A8A,#10B981" -s 25 -e 75 --step 5 --edge-w
 - `--gif`: Animierte GIF generieren
 - `--gif-duration`: GIF-Frame-Dauer in Millisekunden
 - `--gif-loop`: GIF-Wiederholungsanzahl (0=unendlich)
+- `--keep-png`: PNG-Dateien beim Generieren von GIF behalten (Standard: PNG-Dateien nach GIF-Erstellung löschen)
 
 **Fortschritts-Optionen:**
 - `--quiet, -q`: Fortschrittsausgabe unterdrücken
