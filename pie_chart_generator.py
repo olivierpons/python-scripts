@@ -132,9 +132,9 @@ class ChartConfig:
     font_color: str = "#333333"
     font_weight: FontWeight = FontWeight.BOLD
     title_font_size: int = 16
-    show_percentage: bool = False  # Changé de True à False par défaut
-    show_title: bool = False  # Nouveau paramètre pour contrôler le titre
-    transparent_background: bool = True  # Nouveau paramètre pour la transparence
+    show_percentage: bool = False
+    show_title: bool = False
+    transparent_background: bool = True
     format: ImageFormat = ImageFormat.PNG
     gif_duration: int = 100
     gif_loop: int = 0
@@ -860,9 +860,9 @@ def create_pie_chart(
     font_color: str = "#333333",
     font_weight: str = "bold",
     title_font_size: int = 16,
-    show_percentage: bool = False,  # Changé de True à False par défaut
-    show_title: bool = False,  # Nouveau paramètre
-    transparent_background: bool = True,  # Nouveau paramètre
+    show_percentage: bool = False,
+    show_title: bool = False,
+    transparent_background: bool = True,
 ) -> Tuple[plt.Figure, plt.Axes]:
     """Create a single pie chart with specified parameters.
 
