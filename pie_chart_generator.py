@@ -137,6 +137,8 @@ class ChartConfig:
     format: ImageFormat = ImageFormat.PNG
     gif_duration: int = 100
     gif_loop: int = 0
+    keep_png_for_gif: bool = False
+    overwrite_existing: bool = False
     quiet: bool = False
     verbose: bool = False
 
@@ -956,8 +958,11 @@ def save_chart_image_advanced(
         FileOperationError: If image saving fails.
     """
     filename = config.output_dir / f"pie_chart_{percentage:03d}.{config.format.value}"
-
     filename = validate_path_with_purepath(str(filename))
+    if filename.exists() and not config.overwrite_existing:
+        if config.verbose:
+            print_info_message(f"Skipping existing file: {filename.name}")
+        return filename
 
     try:
         with safe_file_operation(filename, "image_save"):
@@ -1229,6 +1234,11 @@ Examples:
         action="store_true",
         help="Create backups of existing files",
     )
+    output_group.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="Overwrite existing files (default: skip existing files)",
+    )
 
     visual_group = parser.add_argument_group("Visual Options")
     visual_group.add_argument(
@@ -1370,6 +1380,14 @@ Examples:
         default=ChartConfig().gif_loop,
         help=f"GIF loop count (0=infinite) (default: {ChartConfig().gif_loop})",
     )
+    gif_group.add_argument(
+        "--keep-png",
+        action="store_true",
+        help=(
+            "Keep PNG files when generating GIF "
+            "(default: delete PNG files after GIF creation)"
+        ),
+    )
 
     progress_group = parser.add_argument_group("Progress Options")
     progress_group.add_argument(
@@ -1498,6 +1516,8 @@ def args_to_config(args: argparse.Namespace) -> ChartConfig:
         format=args.format,
         gif_duration=args.gif_duration,
         gif_loop=args.gif_loop,
+        keep_png_for_gif=args.keep_png,
+        overwrite_existing=args.overwrite,
         quiet=args.quiet,
         verbose=args.verbose,
     )
@@ -1540,6 +1560,8 @@ def generate_pie_chart_series(config: ChartConfig) -> None:
             range(config.start_percent, config.end_percent + 1, config.step)
         )
         total_charts: int = len(percentages)
+        created_count = 0
+        skipped_count = 0
 
         if config.verbose:
             print_info_message(f"Generating {total_charts} charts...")
@@ -1555,6 +1577,12 @@ def generate_pie_chart_series(config: ChartConfig) -> None:
 
         for i, percentage in progress_bar:
             try:
+                filename = (
+                    config.output_dir
+                    / f"pie_chart_{percentage:03d}.{config.format.value}"
+                )
+                file_existed = filename.exists()
+
                 fig, ax = create_pie_chart(
                     percentage=percentage,
                     colors=config.colors,
@@ -1574,6 +1602,12 @@ def generate_pie_chart_series(config: ChartConfig) -> None:
 
                 save_chart_image_advanced(fig, percentage, config)
                 plt.close(fig)
+
+                if file_existed and not config.overwrite_existing:
+                    skipped_count += 1
+                else:
+                    created_count += 1
+
                 if config.verbose and (i + 1) % 10 == 0:
                     tqdm.write(f"Generated {i + 1}/{total_charts} charts")
 
@@ -1582,15 +1616,70 @@ def generate_pie_chart_series(config: ChartConfig) -> None:
                 if config.quiet:
                     raise
 
-        print_success_message(
-            f"Generation complete! {total_charts} images created in '{config.output_dir}' directory"
-        )
+        if skipped_count > 0:
+            print_success_message(
+                f"Generation complete! "
+                f"{created_count} images created, "
+                f"{skipped_count} existing files skipped "
+                f"in '{config.output_dir}' directory"
+            )
+            if not config.overwrite_existing:
+                print_info_message("Use --overwrite to replace existing files")
+        else:
+            print_success_message(
+                f"Generation complete! {total_charts} images created "
+                f"in '{config.output_dir}' directory"
+            )
 
     except Exception as e:
         if isinstance(e, (ValidationError, FileOperationError, RenderingError)):
             raise
         else:
             raise PieChartError(f"Unexpected error during generation: {e}")
+
+
+def _create_gif_from_images(
+    image_files: List[str], config: ChartConfig, output_filename: str = "animation.gif"
+) -> Path:
+    """Helper function to create GIF from a list of image files.
+
+    Args:
+        image_files: List of image file paths.
+        config: Chart configuration object.
+        output_filename: Name for the output GIF file.
+
+    Returns:
+        Path object of the created GIF file.
+
+    Raises:
+        ImportError: If Pillow is not available.
+        Exception: If GIF creation fails.
+    """
+    from PIL import Image
+
+    print_info_message(f"Creating GIF from {len(image_files)} images...")
+
+    # Use tqdm directly for GIF creation
+    progress_bar = tqdm(
+        image_files, desc="Loading images", disable=config.quiet, unit="image"
+    )
+
+    images: List[Image.Image] = []
+    for filename in progress_bar:
+        img: Image.Image = Image.open(filename)
+        images.append(img)
+
+    output_path: Path = config.output_dir / output_filename
+    images[0].save(
+        str(output_path),
+        save_all=True,
+        append_images=images[1:],
+        duration=config.gif_duration,
+        loop=config.gif_loop,
+    )
+
+    print_success_message(f"Animated GIF created: {output_path}")
+    return output_path
 
 
 def create_animated_gif(
@@ -1606,7 +1695,6 @@ def create_animated_gif(
         Requires Pillow package (pip install Pillow).
     """
     try:
-        from PIL import Image
         import glob
 
         pattern: str = str(config.output_dir / f"pie_chart_*.{config.format.value}")
@@ -1616,28 +1704,114 @@ def create_animated_gif(
             print_error_message(f"No images found in {config.output_dir}")
             return
 
-        print_info_message(f"Creating GIF from {len(image_files)} images...")
-
-        # Use tqdm directly for GIF creation
-        progress_bar = tqdm(
-            image_files, desc="Loading images", disable=config.quiet, unit="image"
+        percentages = list(
+            range(config.start_percent, config.end_percent + 1, config.step)
         )
+        expected_files = len(percentages)
 
-        images: List[Image.Image] = []
-        for filename in progress_bar:
-            img: Image.Image = Image.open(filename)
-            images.append(img)
+        if len(image_files) < expected_files and not config.overwrite_existing:
+            print_warning_message(
+                f"Found {len(image_files)} PNG files but expected {expected_files}. "
+                f"Some files may have been skipped. Use --overwrite to ensure all files are generated."
+            )
 
-        output_path: Path = config.output_dir / output_filename
-        images[0].save(
-            str(output_path),
-            save_all=True,
-            append_images=images[1:],
-            duration=config.gif_duration,
-            loop=config.gif_loop,
+        # Create GIF using helper function
+        _create_gif_from_images(image_files, config, output_filename)
+
+        # Cleanup PNG files if requested
+        if not config.keep_png_for_gif:
+            print_info_message("Cleaning up PNG files...")
+            cleanup_bar = tqdm(
+                image_files,
+                desc="Deleting PNG files",
+                disable=config.quiet,
+                unit="file",
+            )
+            deleted_count = 0
+            for filename in cleanup_bar:
+                try:
+                    Path(filename).unlink()
+                    deleted_count += 1
+                except OSError as e:
+                    print_warning_message(f"Could not delete {filename}: {e}")
+
+            if deleted_count > 0:
+                print_success_message(f"Deleted {deleted_count} PNG files")
+            else:
+                print_info_message("No PNG files were deleted")
+        else:
+            print_info_message(f"Kept {len(image_files)} PNG files as requested")
+
+    except ImportError:
+        print_warning_message(
+            "To create animated GIF, install Pillow: pip install Pillow"
         )
+    except Exception as e:
+        print_error_message(f"GIF creation failed: {e}")
 
-        print_success_message(f"Animated GIF created: {output_path}")
+
+def create_animated_gif_with_existing(
+    config: ChartConfig, existing_files: set, output_filename: str = "animation.gif"
+) -> None:
+    """Create animated GIF from generated pie chart images.
+
+    Args:
+        config: Chart configuration object.
+        existing_files: Set of files that existed before generation.
+        output_filename: Name for the output GIF file.
+
+    Note:
+        Requires Pillow package (pip install Pillow).
+    """
+    try:
+        import glob
+
+        pattern: str = str(config.output_dir / f"pie_chart_*.{config.format.value}")
+        image_files: List[str] = sorted(glob.glob(pattern))
+
+        if not image_files:
+            print_error_message(f"No images found in {config.output_dir}")
+            return
+
+        percentages = list(
+            range(config.start_percent, config.end_percent + 1, config.step)
+        )
+        expected_files = len(percentages)
+
+        if len(image_files) < expected_files and not config.overwrite_existing:
+            print_warning_message(
+                f"Found {len(image_files)} PNG files but expected {expected_files}. "
+                f"Some files may have been skipped. Use --overwrite to ensure all files are generated."
+            )
+
+        # Create GIF using helper function
+        _create_gif_from_images(image_files, config, output_filename)
+
+        # Cleanup only new PNG files if requested
+        if not config.keep_png_for_gif:
+            print_info_message("Cleaning up newly created PNG files...")
+            new_files = [f for f in image_files if f not in existing_files]
+            if new_files:
+                cleanup_bar = tqdm(
+                    new_files,
+                    desc="Deleting new PNG files",
+                    disable=config.quiet,
+                    unit="file",
+                )
+                deleted_count = 0
+                for filename in cleanup_bar:
+                    try:
+                        Path(filename).unlink()
+                        deleted_count += 1
+                    except OSError as e:
+                        print_warning_message(f"Could not delete {filename}: {e}")
+                print_success_message(
+                    f"Deleted {deleted_count} newly created PNG files"
+                )
+            else:
+                print_info_message("No new PNG files to delete")
+        else:
+            print_info_message(f"Kept {len(image_files)} PNG files as requested")
 
     except ImportError:
         print_warning_message(
@@ -1710,11 +1884,22 @@ def main() -> None:
         )
         print()
 
+        if args.gif and not args.quiet:
+            print_info_message("Animated GIF will be created after chart generation")
+
+        # CORRECTION: Capturer les fichiers existants AVANT la génération
+        existing_files = set()
+        if args.gif and not config.keep_png_for_gif:
+            import glob
+
+            pattern = str(config.output_dir / f"pie_chart_*.{config.format.value}")
+            existing_files = set(glob.glob(pattern))
+
         generate_pie_chart_series(config)
 
         if args.gif:
             print_section_header("GIF CREATION")
-            create_animated_gif(config)
+            create_animated_gif_with_existing(config, existing_files)
 
         print()
         print_success_message("Process completed successfully!")
