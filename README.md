@@ -27,6 +27,7 @@ its own README file with detailed information:
   Generates a square image with a centered cross, with customizable size and
   colors.
 - [**svg_pattern_for_vase.py**](README_svg_pattern_for_vase.md): Generates a foldable SVG pattern for a vase with a triangular base.
+- [**svg_to_bitmap_converter.py**](README_svg_to_bitmap_converter.md): Converts simple rectangle-based SVG files to bitmap formats (PNG, BMP, JPEG, etc.) with comprehensive error handling and logging.
 - [**triangles.py**](README_triangles.md): Creates a PNG image with a double row of triangles, for use as a printable pattern.
 - [**unzip_files_then_clean.py**](README_unzip_files_then_clean.md): Extracts all
   ZIP files in a directory and reorganizes folder structure.
@@ -54,6 +55,7 @@ détaillées :
   Génère une image carrée avec une croix centrée, avec une taille et des
   couleurs personnalisables.
 - [**svg_pattern_for_vase.py**](README_svg_pattern_for_vase.md) : Génère un patron SVG pliable pour un vase à base triangulaire.
+- [**svg_to_bitmap_converter.py**](README_svg_to_bitmap_converter.md) : Convertit des fichiers SVG simples (rectangles uniquement) vers des formats bitmap (PNG, BMP, JPEG, etc.) avec gestion d'erreurs complète et journalisation.
 - [**triangles.py**](README_triangles.md) : Crée une image PNG avec une double rangée de triangles, à utiliser comme patron imprimable.
 - [**unzip_files_then_clean.py**](README_unzip_files_then_clean.md) : Extrait
   tous les fichiers ZIP d'un répertoire et réorganise la structure des
@@ -81,6 +83,7 @@ détaillées :
 - [**square_image_with_centered_cross_generator.py**](README_square_image_with_centered_cross_generator.md):
   中央に十字が描かれた正方形の画像を、カスタマイズ可能なサイズと色で生成します。
 - [**svg_pattern_for_vase.py**](README_svg_pattern_for_vase.md): 三角形の底面を持つ折りたたみ可能な花瓶のSVGパターンを生成します。
+- [**svg_to_bitmap_converter.py**](README_svg_to_bitmap_converter.md): シンプルな長方形ベースのSVGファイルをビットマップ形式（PNG、BMP、JPEGなど）に変換し、包括的なエラー処理とログ記録を提供します。
 - [**triangles.py**](README_triangles.md): 印刷可能なパターンとして使用するために、二重の三角形の列を持つPNG画像を生成します。
 - [**unzip_files_then_clean.py**](README_unzip_files_then_clean.md)：
   ディレクトリ内のすべてのZIPファイルを抽出し、フォルダ構造を再編成します。
@@ -104,6 +107,7 @@ détaillées :
 - [**square_image_with_centered_cross_generator.py**](README_square_image_with_centered_cross_generator.md):
   生成一个带有居中十字的正方形图像，尺寸和颜色可自定义。
 - [**svg_pattern_for_vase.py**](README_svg_pattern_for_vase.md): 为三角形底座的可折叠花瓶生成SVG图案。
+- [**svg_to_bitmap_converter.py**](README_svg_to_bitmap_converter.md): 将简单的基于矩形的SVG文件转换为位图格式（PNG、BMP、JPEG等），提供全面的错误处理和日志记录。
 - [**triangles.py**](README_triangles.md): 创建一个带有双排三角形的PNG图像，用作可打印的图案。
 - [**unzip_files_then_clean.py**](README_unzip_files_then_clean.md)：提取目录中
   的所有ZIP文件并重组文件夹结构。
@@ -127,6 +131,7 @@ détaillées :
 - [**square_image_with_centered_cross_generator.py**](README_square_image_with_centered_cross_generator.md):
   生成一個帶有居中十字的正方形圖像，尺寸和顏色可自訂。
 - [**svg_pattern_for_vase.py**](README_svg_pattern_for_vase.md): 為三角形底座的可折疊花瓶生成SVG圖案。
+- [**svg_to_bitmap_converter.py**](README_svg_to_bitmap_converter.md): 將簡單的基於矩形的SVG檔案轉換為點陣圖格式（PNG、BMP、JPEG等），提供全面的錯誤處理和日誌記錄。
 - [**triangles.py**](README_triangles.md): 創建一個帶有雙排三角形的PNG圖像，用作可打印的圖案。
 - [**unzip_files_then_clean.py**](README_unzip_files_then_clean.md)：提取目錄中
   的所有ZIP檔案並重組資料夾結構。
@@ -153,6 +158,7 @@ script está documentado en su propio archivo README con información detallada:
   Genera una imagen cuadrada con una cruz centrada, con tamaño y colores
   personalizables.
 - [**svg_pattern_for_vase.py**](README_svg_pattern_for_vase.md): Genera un patrón SVG plegable para un jarrón con base triangular.
+- [**svg_to_bitmap_converter.py**](README_svg_to_bitmap_converter.md): Convierte archivos SVG simples basados en rectángulos a formatos bitmap (PNG, BMP, JPEG, etc.) con manejo completo de errores y registro.
 - [**triangles.py**](README_triangles.md): Crea una imagen PNG con una doble fila de triángulos, para usar como patrón imprimible.
 - [**unzip_files_then_clean.py**](README_unzip_files_then_clean.md): Extrae todos
   los archivos ZIP en un directorio y reorganiza la estructura de carpetas.
@@ -180,6 +186,7 @@ Ogni script è documentato nel proprio file README con informazioni dettagliate:
   Genera un'immagine quadrata con una croce centrata, con dimensioni e colori
   personalizzabili.
 - [**svg_pattern_for_vase.py**](README_svg_pattern_for_vase.md): Genera un modello SVG pieghevole per un vaso con base triangolare.
+- [**svg_to_bitmap_converter.py**](README_svg_to_bitmap_converter.md): Converte file SVG semplici basati su rettangoli in formati bitmap (PNG, BMP, JPEG, ecc.) con gestione completa degli errori e registrazione.
 - [**triangles.py**](README_triangles.md): Crea un'immagine PNG con una doppia fila di triangoli, da utilizzare come modello stampabile.
 - [**unzip_files_then_clean.py**](README_unzip_files_then_clean.md): Estrae tutti
   i file ZIP in una directory e riorganizza la struttura delle cartelle.
@@ -208,6 +215,7 @@ detaillierten Informationen dokumentiert:
   Erzeugt ein quadratisches Bild mit einem zentrierten Kreuz, dessen Größe und
   Farben anpassbar sind.
 - [**svg_pattern_for_vase.py**](README_svg_pattern_for_vase.md): Erzeugt ein faltbares SVG-Muster für eine Vase mit dreieckigem Boden.
+- [**svg_to_bitmap_converter.py**](README_svg_to_bitmap_converter.md): Konvertiert einfache rechteckbasierte SVG-Dateien in Bitmap-Formate (PNG, BMP, JPEG, etc.) mit umfassender Fehlerbehandlung und Protokollierung.
 - [**triangles.py**](README_triangles.md): Erstellt ein PNG-Bild mit einer doppelten Reihe von Dreiecken zur Verwendung als druckbares Muster.
 - [**unzip_files_then_clean.py**](README_unzip_files_then_clean.md): Extrahiert
   alle ZIP-Dateien in einem Verzeichnis und reorganisiert die Ordnerstruktur.
