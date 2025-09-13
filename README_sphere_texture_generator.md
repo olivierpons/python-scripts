@@ -4,26 +4,19 @@
 
 ### Seamless Sphere Texture Generator
 
-This script generates seamless sphere textures optimized for Blender and Godot using 
-equirectangular projection. Creates procedural textures (Earth-like planets, gas giants,
-marble patterns) or converts existing images to sphere-ready formats with automatic 
-pole distortion correction, power-of-2 optimization, and comprehensive noise 
-configuration.
+This script generates seamless sphere textures for Blender and Godot using equirectangular projection. It creates procedural textures or converts existing images to sphere-ready formats.
 
 **Features:**
-
-- Generates seamless sphere textures using equirectangular projection (2:1 ratio)
+- Generates seamless sphere textures with equirectangular projection (2:1 ratio)
 - Creates procedural textures: Earth-like planets, gas giants, marble patterns
-- Converts existing images to sphere-compatible format with spherical coordinate mapping
-- Optimized for Blender UV mapping and Godot SphereMesh with automatic compatibility checks
-- Advanced pole correction using Gaussian blur masking and pixel consolidation
-- Flexible resolutions: standard presets (512, 1K, 2K, 4K, 8K) plus custom dimensions
-- Comprehensive noise configuration with octave controls and coordinate modes
-- Refactored coordinate generation to eliminate code duplication for improved maintainability
-- Robust type hints using `TypeAlias` for better mypy compatibility and modern Python 3.13+ features
-- Professional output with JPEG quality control and PNG optimization
-- Detailed processing summaries and validation
-- Modern Python 3.13+ features with dataclasses and union types
+- Converts images to sphere-compatible format using spherical coordinate mapping
+- Applies pole distortion correction with Gaussian blur masking
+- Supports resolutions: 512 (1024x512), 1K (2048x1024), 2K (4096x2048), 4K (8192x4096), 
+  8K (16384x8192), or custom
+- Configures noise with octaves, scale, and coordinate modes
+- Optimizes textures for Blender UV mapping and Godot SphereMesh
+- Outputs PNG or JPEG with adjustable JPEG quality
+- Provides processing summaries
 
 **Requirements:**
 - Python 3.13+
@@ -43,10 +36,10 @@ python sphere_texture_generator.py -m procedural -t gas_giant -r 4k -s 123 -o ju
 # Convert existing image to seamless sphere texture
 python sphere_texture_generator.py -m convert -i landscape.jpg -o sphere_landscape.png -r 2k
 
-# High-quality JPEG output with custom quality
+# JPEG output with custom quality
 python sphere_texture_generator.py -m procedural -t earth -f JPEG -q 98 -o earth_hq.jpg
 
-# Batch generate all textures with planetary and marble palettes (512x256, PNG)
+# Batch generate textures with planetary and marble palettes (512x256, PNG)
 mkdir -p ok/512; i=0; 
 for TYPE in earth gas_giant; do 
     for PALETTE in jupiter neptune saturn venus mars mercury uranus pluto titan europa; do 
@@ -83,26 +76,19 @@ done
 
 ### Générateur de Textures Sphériques Seamless
 
-Ce script génère des textures sphériques seamless optimisées pour Blender et Godot en 
-utilisant la projection équirectangulaire. Crée des textures procédurales (planètes 
-terrestres, géantes gazeuses, motifs marbre) ou convertit des images existantes 
-en formats prêts pour les sphères avec correction automatique des distorsions 
-polaires, optimisation `power-of-2`, et configuration complète du bruit.
+Ce script génère des textures sphériques seamless pour Blender et Godot en utilisant la projection équirectangulaire. Il crée des textures procédurales ou convertit des images existantes en formats prêts pour les sphères.
 
 **Fonctionnalités :**
-
-- Génère des textures sphériques seamless utilisant la projection équirectangulaire (ratio 2:1)
+- Génère des textures sphériques seamless avec projection équirectangulaire (ratio 2:1)
 - Crée des textures procédurales : planètes terrestres, géantes gazeuses, motifs marbre
-- Convertit des images existantes en format compatible sphérique avec mapping coordonnées sphériques
-- Optimisé pour le mapping UV Blender et SphereMesh Godot avec vérifications compatibilité automatiques
-- Correction polaire avancée utilisant masquage flou gaussien et consolidation pixels
-- Résolutions flexibles : préréglages standard (512, 1K, 2K, 4K, 8K) plus dimensions personnalisées
-- Configuration complète du bruit avec contrôles octaves et modes coordonnées
-- Factorisation de la génération des coordonnées pour éliminer la duplication de code et améliorer la maintenabilité
-- Typage robuste avec `TypeAlias` pour une meilleure compatibilité mypy et fonctionnalités Python 3.13+ modernes
-- Sortie professionnelle avec contrôle qualité JPEG et optimisation PNG
-- Résumés traitement détaillés et validation
-- Fonctionnalités Python 3.13+ modernes avec dataclasses et types union
+- Convertit des images en format compatible sphérique avec mapping coordonnées sphériques
+- Applique une correction des distorsions polaires avec flou gaussien
+- Supporte les résolutions : 512 (1024x512), 1K (2048x1024), 2K (4096x2048),
+  4K (8192x4096), 8K (16384x8192), ou personnalisées
+- Configure le bruit avec octaves, échelle et modes de coordonnées
+- Optimise les textures pour le mapping UV Blender et SphereMesh Godot
+- Sortie en PNG ou JPEG avec qualité JPEG ajustable
+- Fournit des résumés de traitement
 
 **Prérequis :**
 - Python 3.13+
@@ -122,10 +108,10 @@ python sphere_texture_generator.py -m procedural -t gas_giant -r 4k -s 123 -o ju
 # Convertir image existante en texture sphère seamless
 python sphere_texture_generator.py -m convert -i paysage.jpg -o sphere_paysage.png -r 2k
 
-# Sortie JPEG haute qualité avec qualité personnalisée
+# Sortie JPEG avec qualité personnalisée
 python sphere_texture_generator.py -m procedural -t earth -f JPEG -q 98 -o terre_hq.jpg
 
-# Générer en lot toutes les textures avec palettes planétaires et marbre (512x256, PNG)
+# Générer en lot les textures avec palettes planétaires et marbre (512x256, PNG)
 mkdir -p ok/512; i=0; 
 for TYPE in earth gas_giant; do 
     for PALETTE in jupiter neptune saturn venus mars mercury uranus pluto titan europa; do 
@@ -162,22 +148,18 @@ done
 
 ### シームレス球体テクスチャジェネレーター
 
-このスクリプトは、正距円筒図法を使用してBlenderとGodot用に最適化されたシームレス球体テクスチャを生成します。手続き的テクスチャ（地球風惑星、ガス惑星、大理石パターン）を作成するか、既存の画像を球体対応フォーマットに変換し、自動極点歪み補正、2の冪乗最適化、包括的なノイズ設定を備えています。
+このスクリプトは、正距円筒図法を使用してBlenderとGodot用にシームレス球体テクスチャを生成します。手続き的テクスチャを作成するか、既存の画像を球体対応フォーマットに変換します。
 
 **機能：**
-
-- 正距円筒図法（2:1比率）を使用してシームレス球体テクスチャを生成
+- 正距円筒図法（2:1比率）でシームレス球体テクスチャを生成
 - 手続き的テクスチャを作成：地球風惑星、ガス惑星、大理石パターン
-- 球面座標マッピングで既存画像を球体互換フォーマットに変換
-- BlenderのUVマッピングとGodotのSphereMesh用に最適化、自動互換性チェック付き
-- ガウシアンブラーマスキングとピクセル統合による高度な極点補正
-- 柔軟な解像度：標準プリセット（512、1K、2K、4K、8K）およびカスタム寸法
-- オクターブ制御と座標モードを備えた包括的ノイズ設定
-- コード重複を排除する座標生成のリファクタリングでメンテナンス性を向上
-- `TypeAlias`を使用した堅牢な型ヒントにより、mypy互換性とPython 3.13+の現代的機能を向上
-- JPEG品質制御とPNG最適化によるプロフェッショナル出力
-- 詳細な処理サマリーと検証
-- dataclassesとユニオン型を使用した現代的Python 3.13+機能
+- 球面座標マッピングで画像を球体互換フォーマットに変換
+- ガウシアンブラーマスキングで極点歪みを補正
+- 解像度をサポート：512 (1024x512)、1K (2048x1024)、2K (4096x2048)、4K (8192x4096)、8K (16384x8192)、またはカスタム
+- オクターブ、スケール、座標モードでノイズを設定
+- BlenderのUVマッピングとGodotのSphereMesh用に最適化
+- PNGまたはJPEG出力、JPEG品質調整可能
+- 処理サマリーを提供
 
 **必要条件：**
 - Python 3.13+
@@ -197,10 +179,10 @@ python sphere_texture_generator.py -m procedural -t gas_giant -r 4k -s 123 -o ju
 # 既存画像をシームレス球体テクスチャに変換
 python sphere_texture_generator.py -m convert -i landscape.jpg -o sphere_landscape.png -r 2k
 
-# カスタム品質の高品質JPEG出力
+# JPEG出力、カスタム品質
 python sphere_texture_generator.py -m procedural -t earth -f JPEG -q 98 -o earth_hq.jpg
 
-# 惑星および大理石パレットで全テクスチャをバッチ生成（512x256、PNG）
+# 惑星および大理石パレットでテクスチャをバッチ生成（512x256、PNG）
 mkdir -p ok/512; i=0; 
 for TYPE in earth gas_giant; do 
     for PALETTE in jupiter neptune saturn venus mars mercury uranus pluto titan europa; do 
@@ -237,22 +219,18 @@ done
 
 ### 无缝球体纹理生成器
 
-此脚本使用等距圆柱投影生成针对Blender和Godot优化的无缝球体纹理。创建程序化纹理（类地行星、气态巨行星、大理石图案）或将现有图像转换为球体就绪格式，具有自动极点畸变校正、2的幂优化和全面的噪声配置。
+此脚本使用等距圆柱投影为Blender和Godot生成无缝球体纹理。创建程序化纹理或将现有图像转换为球体就绪格式。
 
 **功能：**
-
 - 使用等距圆柱投影（2:1比例）生成无缝球体纹理
 - 创建程序化纹理：类地行星、气态巨行星、大理石图案
-- 通过球面坐标映射将现有图像转换为球体兼容格式
-- 为Blender UV映射和Godot SphereMesh优化，带自动兼容性检查
-- 使用高斯模糊遮罩和像素合并的高级极点校正
-- 灵活分辨率：标准预设（512、1K、2K、4K、8K）加自定义尺寸
-- 具有倍频程控制和坐标模式的全面噪声配置
-- 重构坐标生成以消除代码重复，提高可维护性
-- 使用`TypeAlias`的健壮类型提示，提升mypy兼容性和Python 3.13+现代功能
-- JPEG质量控制和PNG优化的专业输出
-- 详细的处理摘要和验证
-- 具有数据类和联合类型的现代Python 3.13+功能
+- 使用球面坐标映射将图像转换为球体兼容格式
+- 使用高斯模糊遮罩校正极点畸变
+- 支持分辨率：512 (1024x512)、1K (2048x1024)、2K (4096x2048)、4K (8192x4096)、8K (16384x8192)，或自定义
+- 使用倍频程、尺度、坐标模式配置噪声
+- 为Blender UV映射和Godot SphereMesh优化
+- 输出PNG或JPEG，可调整JPEG质量
+- 提供处理摘要
 
 **要求：**
 - Python 3.13+
@@ -272,10 +250,10 @@ python sphere_texture_generator.py -m procedural -t gas_giant -r 4k -s 123 -o ju
 # 将现有图像转换为无缝球体纹理
 python sphere_texture_generator.py -m convert -i landscape.jpg -o sphere_landscape.png -r 2k
 
-# 自定义质量的高质量JPEG输出
+# JPEG输出，自定义质量
 python sphere_texture_generator.py -m procedural -t earth -f JPEG -q 98 -o earth_hq.jpg
 
-# 批量生成所有带有行星和大理石调色板的纹理（512x256，PNG）
+# 批量生成带有行星和大理石调色板的纹理（512x256，PNG）
 mkdir -p ok/512; i=0; 
 for TYPE in earth gas_giant; do 
     for PALETTE in jupiter neptune saturn venus mars mercury uranus pluto titan europa; do 
@@ -312,22 +290,18 @@ done
 
 ### 無縫球體紋理生成器
 
-此腳本使用等距圓柱投影生成針對Blender和Godot優化的無縫球體紋理。創建程序化紋理（類地行星、氣態巨行星、大理石圖案）或將現有圖像轉換為球體就緒格式，具有自動極點畸變校正、2的冪優化和全面的噪聲配置。
+此腳本使用等距圓柱投影為Blender和Godot生成無縫球體紋理。創建程序化紋理或將現有圖像轉換為球體就緒格式。
 
 **功能：**
-
 - 使用等距圓柱投影（2:1比例）生成無縫球體紋理
 - 創建程序化紋理：類地行星、氣態巨行星、大理石圖案
-- 通過球面座標映射將現有圖像轉換為球體兼容格式
-- 為Blender UV映射和Godot SphereMesh優化，帶自動兼容性檢查
-- 使用高斯模糊遮罩和像素合併的高級極點校正
-- 靈活分辨率：標準預設（512、1K、2K、4K、8K）加自訂尺寸
-- 具有倍頻程控制和座標模式的全面噪聲配置
-- 重構座標生成以消除代碼重複，提高可維護性
-- 使用`TypeAlias`的健壯類型提示，提升mypy兼容性和Python 3.13+現代功能
-- JPEG品質控制和PNG優化的專業輸出
-- 詳細的處理摘要和驗證
-- 具有資料類和聯合類型的現代Python 3.13+功能
+- 使用球面座標映射將圖像轉換為球體兼容格式
+- 使用高斯模糊遮罩校正極點畸變
+- 支持分辨率：512 (1024x512)、1K (2048x1024)、2K (4096x2048)、4K (8192x4096)、8K (16384x8192)，或自訂
+- 使用倍頻程、尺度、座標模式配置噪聲
+- 為Blender UV映射和Godot SphereMesh優化
+- 輸出PNG或JPEG，可調整JPEG品質
+- 提供處理摘要
 
 **要求：**
 - Python 3.13+
@@ -347,10 +321,10 @@ python sphere_texture_generator.py -m procedural -t gas_giant -r 4k -s 123 -o ju
 # 將現有圖像轉換為無縫球體紋理
 python sphere_texture_generator.py -m convert -i landscape.jpg -o sphere_landscape.png -r 2k
 
-# 自訂品質的高品質JPEG輸出
+# JPEG輸出，自訂品質
 python sphere_texture_generator.py -m procedural -t earth -f JPEG -q 98 -o earth_hq.jpg
 
-# 批量生成所有帶有行星和大理石調色板的紋理（512x256，PNG）
+# 批量生成帶有行星和大理石調色板的紋理（512x256，PNG）
 mkdir -p ok/512; i=0; 
 for TYPE in earth gas_giant; do 
     for PALETTE in jupiter neptune saturn venus mars mercury uranus pluto titan europa; do 
@@ -387,22 +361,18 @@ done
 
 ### Generador de Texturas Esféricas Sin Costuras
 
-Este script genera texturas esféricas sin costuras optimizadas para Blender y Godot usando proyección equirectangular. Crea texturas procedimentales (planetas terrestres, gigantes gaseosos, patrones de mármol) o convierte imágenes existentes a formatos listos para esferas con corrección automática de distorsión polar, optimización power-of-2, y configuración completa de ruido.
+Este script genera texturas esféricas sin costuras para Blender y Godot usando proyección equirectangular. Crea texturas procedimentales o convierte imágenes existentes a formatos listos para esferas.
 
 **Características:**
-
-- Genera texturas esféricas sin costuras usando proyección equirectangular (proporción 2:1)
+- Genera texturas esféricas sin costuras con proyección equirectangular (proporción 2:1)
 - Crea texturas procedimentales: planetas terrestres, gigantes gaseosos, patrones mármol
-- Convierte imágenes existentes a formato compatible con esferas usando mapeo coordenadas esféricas
-- Optimizado para mapeo UV Blender y SphereMesh Godot con verificaciones compatibilidad automáticas
-- Corrección polar avanzada usando enmascarado difuminado gaussiano y consolidación píxeles
-- Resoluciones flexibles: preajustes estándar (512, 1K, 2K, 4K, 8K) más dimensiones personalizadas
-- Configuración completa de ruido con controles octavas y modos coordenadas
-- Refactorización de generación de coordenadas para eliminar duplicación de código y mejorar mantenibilidad
-- Tipos robustos con `TypeAlias` para mejor compatibilidad con mypy y características modernas de Python 3.13+
-- Salida profesional con control calidad JPEG y optimización PNG
-- Resúmenes procesamiento detallados y validación
-- Características modernas Python 3.13+ con dataclasses y tipos union
+- Convierte imágenes a formato compatible con esferas usando mapeo coordenadas esféricas
+- Aplica corrección de distorsión polar con difuminado gaussiano
+- Soporta resoluciones: 512 (1024x512), 1K (2048x1024), 2K (4096x2048), 4K (8192x4096), 8K (16384x8192), o personalizadas
+- Configura ruido con octavas, escala y modos de coordenadas
+- Optimiza texturas para mapeo UV Blender y SphereMesh Godot
+- Salida en PNG o JPEG con calidad JPEG ajustable
+- Proporciona resúmenes de procesamiento
 
 **Requisitos:**
 - Python 3.13+
@@ -422,10 +392,10 @@ python sphere_texture_generator.py -m procedural -t gas_giant -r 4k -s 123 -o ju
 # Convertir imagen existente a textura esfera sin costuras
 python sphere_texture_generator.py -m convert -i paisaje.jpg -o sphere_paisaje.png -r 2k
 
-# Salida JPEG alta calidad con calidad personalizada
+# Salida JPEG con calidad personalizada
 python sphere_texture_generator.py -m procedural -t earth -f JPEG -q 98 -o earth_hq.jpg
 
-# Generar en lote todas las texturas con paletas planetarias y de mármol (512x256, PNG)
+# Generar en lote texturas con paletas planetarias y de mármol (512x256, PNG)
 mkdir -p ok/512; i=0; 
 for TYPE in earth gas_giant; do 
     for PALETTE in jupiter neptune saturn venus mars mercury uranus pluto titan europa; do 
@@ -462,22 +432,18 @@ done
 
 ### Generatore di Texture Sferiche Senza Giunture
 
-Questo script genera texture sferiche senza giunture ottimizzate per Blender e Godot utilizzando proiezione equirettangolare. Crea texture procedurali (pianeti terrestri, giganti gassosi, pattern marmorei) o converte immagini esistenti in formati pronti per sfere con correzione automatica distorsione polare, ottimizzazione power-of-2, e configurazione completa rumore.
+Questo script genera texture sferiche senza giunture per Blender e Godot utilizzando proiezione equirettangolare. Crea texture procedurali o converte immagini esistenti in formati pronti per sfere.
 
 **Funzionalità:**
-
-- Genera texture sferiche senza giunture utilizzando proiezione equirettangolare (rapporto 2:1)
+- Genera texture sferiche senza giunture con proiezione equirettangolare (rapporto 2:1)
 - Crea texture procedurali: pianeti terrestri, giganti gassosi, pattern marmorei
-- Converte immagini esistenti in formato compatibile sfere utilizzando mappatura coordinate sferiche
-- Ottimizzato per mappatura UV Blender e SphereMesh Godot con verifiche compatibilità automatiche
-- Correzione polare avanzata utilizzando mascheratura sfocatura gaussiana e consolidamento pixel
-- Risoluzioni flessibili: preimpostazioni standard (512, 1K, 2K, 4K, 8K) più dimensioni personalizzate
-- Configurazione completa rumore con controlli ottave e modalità coordinate
-- Refactoring della generazione di coordinate per eliminare duplicazione codice e migliorare manutenibilità
-- Tipi robusti con `TypeAlias` per migliore compatibilità mypy e funzionalità moderne Python 3.13+
-- Output professionale con controllo qualità JPEG e ottimizzazione PNG
-- Riassunti elaborazione dettagliati e validazione
-- Funzionalità moderne Python 3.13+ con dataclasses e tipi union
+- Converte immagini in formato compatibile sfere con mappatura coordinate sferiche
+- Applica correzione distorsione polare con sfocatura gaussiana
+- Supporta risoluzioni: 512 (1024x512), 1K (2048x1024), 2K (4096x2048), 4K (8192x4096), 8K (16384x8192), o personalizzate
+- Configura rumore con ottave, scala e modalità coordinate
+- Ottimizza texture per mappatura UV Blender e SphereMesh Godot
+- Output in PNG o JPEG con qualità JPEG regolabile
+- Fornisce riassunti di elaborazione
 
 **Requisiti:**
 - Python 3.13+
@@ -497,10 +463,10 @@ python sphere_texture_generator.py -m procedural -t gas_giant -r 4k -s 123 -o ju
 # Convertire immagine esistente a texture sfera senza giunture
 python sphere_texture_generator.py -m convert -i paesaggio.jpg -o sphere_paesaggio.png -r 2k
 
-# Output JPEG alta qualità con qualità personalizzata
+# Output JPEG con qualità personalizzata
 python sphere_texture_generator.py -m procedural -t earth -f JPEG -q 98 -o earth_hq.jpg
 
-# Generare in batch tutte le texture con palette planetarie e marmoree (512x256, PNG)
+# Generare in batch texture con palette planetarie e marmoree (512x256, PNG)
 mkdir -p ok/512; i=0; 
 for TYPE in earth gas_giant; do 
     for PALETTE in jupiter neptune saturn venus mars mercury uranus pluto titan europa; do 
@@ -537,22 +503,18 @@ done
 
 ### Nahtloser Sphären-Textur-Generator
 
-Dieses Skript generiert nahtlose Sphären-Texturen optimiert für Blender und Godot mit äquirektangulärer Projektion. Erstellt prozedurale Texturen (erdähnliche Planeten, Gasriesen, Marmormuster) oder konvertiert bestehende Bilder in sphärentaugliche Formate mit automatischer Polverzerrungskorrektur, Power-of-2-Optimierung und umfassender Rauschkonfiguration.
+Dieses Skript generiert nahtlose Sphären-Texturen für Blender und Godot mit äquirektangulärer Projektion. Es erstellt prozedurale Texturen oder konvertiert bestehende Bilder in sphärentaugliche Formate.
 
 **Funktionen:**
-
 - Generiert nahtlose Sphären-Texturen mit äquirektangulärer Projektion (2:1-Verhältnis)
 - Erstellt prozedurale Texturen: erdähnliche Planeten, Gasriesen, Marmormuster
-- Konvertiert bestehende Bilder in sphärenkompatibles Format mit sphärischer Koordinatenmappierung
-- Optimiert für Blender UV-Mapping und Godot SphereMesh mit automatischen Kompatibilitätsprüfungen
-- Erweiterte Polkorrektur mit Gaußsche Unschärfe-Maskierung und Pixelkonsolidierung
-- Flexible Auflösungen: Standard-Voreinstellungen (512, 1K, 2K, 4K, 8K) plus benutzerdefinierte Dimensionen
-- Umfassende Rauschkonfiguration mit Oktav-Kontrollen und Koordinatenmodi
-- Refaktorisierte Koordinatengenerierung zur Beseitigung von Code-Duplikation und Verbesserung der Wartbarkeit
-- Robuste Typ-Hinweise mit `TypeAlias` für bessere mypy-Kompatibilität und moderne Python 3.13+ Funktionen
-- Professionelle Ausgabe mit JPEG-Qualitätskontrolle und PNG-Optimierung
-- Detaillierte Verarbeitungszusammenfassungen und Validierung
-- Moderne Python 3.13+ Funktionen mit Dataclasses und Union-Typen
+- Konvertiert Bilder in sphärenkompatibles Format mit sphärischer Koordinatenmappierung
+- Wendet Polverzerrungskorrektur mit Gaußscher Unschärfe an
+- Unterstützt Auflösungen: 512 (1024x512), 1K (2048x1024), 2K (4096x2048), 4K (8192x4096), 8K (16384x8192), oder benutzerdefiniert
+- Konfiguriert Rausch mit Oktaven, Skala und Koordinatenmodi
+- Optimiert Texturen für Blender UV-Mapping und Godot SphereMesh
+- Ausgabe in PNG oder JPEG mit einstellbarer JPEG-Qualität
+- Liefert Verarbeitungszusammenfassungen
 
 **Anforderungen:**
 - Python 3.13+
@@ -572,7 +534,7 @@ python sphere_texture_generator.py -m procedural -t gas_giant -r 4k -s 123 -o ju
 # Vorhandenes Bild in nahtlose Sphären-Textur konvertieren
 python sphere_texture_generator.py -m convert -i landschaft.jpg -o sphere_landschaft.png -r 2k
 
-# Hochqualitative JPEG-Ausgabe mit benutzerdefinierter Qualität
+# JPEG-Ausgabe mit benutzerdefinierter Qualität
 python sphere_texture_generator.py -m procedural -t earth -f JPEG -q 98 -o earth_hq.jpg
 
 # Alle Texturen mit planetaren und Marmorpaletten im Batch generieren (512x256, PNG)
