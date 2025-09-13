@@ -34,21 +34,26 @@ Usage Examples:
 
 Command Line Examples:
     # Earth with Neptune palette
-    python sphere_texture_generator.py -m procedural -t earth -r 1k -s 202 --base-colors neptune -o earth_neptune_1k_seed202.png
+    python sphere_texture_generator.py -m procedural -t earth -r 1k -s 202 \
+        --base-colors neptune -o earth_neptune_1k_seed202.png
 
     # Gas giant with Jupiter palette
-    python sphere_texture_generator.py -m procedural -t gas_giant -r 1k -s 203 --base-colors jupiter -o gas_giant_jupiter_1k_seed203.png
+    python sphere_texture_generator.py -m procedural -t gas_giant -r 1k -s 203 \
+        --base-colors jupiter -o gas_giant_jupiter_1k_seed203.png
 
     # Marble with Venus palette
-    python sphere_texture_generator.py -m procedural -t marble -r 1k -s 204 --base-colors venus -o marble_venus_1k_seed204.png
+    python sphere_texture_generator.py -m procedural -t marble -r 1k -s 204 \
+        --base-colors venus -o marble_venus_1k_seed204.png
 
     # Custom colors via JSON
     python sphere_texture_generator.py -m procedural -t gas_giant -r 1k -s 205 \
-        --base-colors '[[0,201,87],[173,255,47],[255,255,0],[128,128,0]]' -o gas_giant_custom_1k_seed205.png
+        --base-colors '[[0,201,87],[173,255,47],[255,255,0],[128,128,0]]' \
+        -o gas_giant_custom_1k_seed205.png
 
 Resolution Guidelines:
-    512x256: Preview/testing (fast generation)
-    1024x512: Low-detail game objects
+    256x128: Mobile preview (very fast, low detail)
+    512x256: Mobile/testing (fast generation)
+    1024x512: Preview/low-detail game objects
     2048x1024: Standard game quality
     4096x2048: High-quality cinematics
     8192x4096: Ultra-high detail (large file sizes)
@@ -81,6 +86,8 @@ TextureArray: type = np.ndarray
 
 # Standard resolution presets
 STANDARD_RESOLUTIONS: dict[str, tuple[int, int]] = {
+    "128": (256, 128),
+    "256": (512, 256),
     "512": (1024, 512),
     "1k": (2048, 1024),
     "2k": (4096, 2048),
@@ -737,19 +744,19 @@ Examples:
         -a 6 -c 100.0 --base-colors neptune -f JPEG -q 90  \
         -o gas_giant_neptune_2k_seed204.jpg
 
-    # Generate gas giant with custom colors and xz coordinate mode (512x256, PNG)
-    python sphere_texture_generator.py -m procedural -t gas_giant -r 512 -s 205  \
+    # Generate gas giant with custom colors and xz coordinate mode (256x128, PNG)
+    python sphere_texture_generator.py -m procedural -t gas_giant -r 128 -s 205  \
         -a 4 -c 200.0 -d xz --base-colors '[[255,140,0],[204,85,0],[153,101,21]]'  \
-        -o gas_giant_custom_512_seed205.png
+        -o gas_giant_custom_128_seed205.png
 
     # Generate marble texture with marble_classic palette (1k, PNG)
     python sphere_texture_generator.py -m procedural -t marble -r 1k -s 206  \
         -a 6 -c 100.0 --base-colors marble_classic -o marble_classic_1k_seed206.png
 
     # Generate marble texture with custom colors (512x256, JPEG)
-    python sphere_texture_generator.py -m procedural -t marble -r 512 -s 207  \
+    python sphere_texture_generator.py -m procedural -t marble -r 256 -s 207  \
         -a 8 -c 120.0 --base-colors '[[245,245,220],[105,105,105]]'  \
-        -f JPEG -q 85 -o marble_custom_512_seed207.jpg
+        -f JPEG -q 85 -o marble_custom_256_seed207.jpg
 
     # Generate marble with marble_emerald palette and verbose output (1k, PNG)
     python sphere_texture_generator.py -m procedural -t marble -r 1k -s 208  \
@@ -781,7 +788,7 @@ Notes:
     - For 'marble', use 2 colors (base, veins)
     - For 'gas_giant', use 2+ colors for bands
     - Use -v for verbose logging
-    - Resolutions: 512 (1024x512), 1k (2048x1024), 2k (4096x2048), 
+    - Resolutions: 128 (256x128), 256 (512x256), 512 (1024x512), 1k (2048x1024), 2k (4096x2048), 
                    4k (8192x4096), 8k (16384x8192)
     - Custom resolutions with -w and -g (height defaults to width/2)
 """,
