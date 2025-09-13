@@ -103,66 +103,25 @@ STANDARD_RESOLUTIONS: dict[str, tuple[int, int]] = {
 
 # Predefined color palettes for gas giants
 PREDEFINED_PALETTES: dict[str, list[ColorTuple]] = {
-    "jupiter": [
-        (255, 165, 0),  # Orange doré
-        (204, 85, 0),  # Orange brûlé
-        (153, 101, 21),  # Brun caramel
-        (111, 78, 55),  # Brun chocolat
-    ],
-    "neptune": [
-        (173, 216, 230),  # Bleu glacial
-        (0, 255, 255),  # Cyan électrique
-        (0, 0, 139),  # Bleu océan profond
-        (106, 90, 205),  # Bleu ardoise
-    ],
-    "saturn": [
-        (153, 50, 204),  # Violet améthyste
-        (128, 0, 128),  # Pourpre royal
-        (230, 230, 250),  # Lavande
-        (221, 160, 221),  # Prune
-    ],
-    "venus": [
-        (0, 201, 87),  # Vert émeraude
-        (173, 255, 47),  # Vert acide
-        (255, 255, 0),  # Jaune soufre
-        (128, 128, 0),  # Vert olive
-    ],
-    "mars": [
-        (178, 34, 34),  # Rouge sang
-        (255, 127, 80),  # Rose corail
-        (165, 42, 42),  # Rouge brique
-        (250, 128, 114),  # Rose saumon
-    ],
-    "mercury": [
-        (169, 169, 169),  # Gris acier
-        (192, 192, 192),  # Argent brillant
-        (47, 79, 79),  # Gris anthracite
-        (211, 211, 211),  # Gris perle
-    ],
-    "uranus": [
-        (64, 224, 208),  # Turquoise tropical
-        (0, 128, 128),  # Teal profond
-        (0, 150, 136),  # Bleu paon
-        (152, 251, 152),  # Vert menthe
-    ],
-    "pluto": [
-        (0, 0, 0),  # Noir ébène
-        (69, 47, 32),  # Brun expresso
-        (54, 54, 54),  # Gris charbon
-        (139, 62, 47),  # Brun acajou
-    ],
-    "titan": [
-        (255, 215, 0),  # Or brillant
-        (218, 165, 32),  # Ambre miel
-        (184, 134, 11),  # Or cuivré
-        (250, 235, 215),  # Champagne
-    ],
-    "europa": [
-        (255, 255, 255),  # Blanc cristal
-        (202, 225, 255),  # Bleu glace
-        (240, 248, 255),  # Blanc nacré
-        (176, 224, 230),  # Bleu glacier
-    ],
+    # Gas Giant palettes (unchanged)
+    "jupiter": [(255, 165, 0), (204, 85, 0), (153, 101, 21), (111, 78, 55)],
+    "neptune": [(173, 216, 230), (0, 255, 255), (0, 0, 139), (106, 90, 205)],
+    "saturn": [(153, 50, 204), (128, 0, 128), (230, 230, 250), (221, 160, 221)],
+    "venus": [(0, 201, 87), (173, 255, 47), (255, 255, 0), (128, 128, 0)],
+    "mars": [(178, 34, 34), (255, 127, 80), (165, 42, 42), (250, 128, 114)],
+    "mercury": [(169, 169, 169), (192, 192, 192), (47, 79, 79), (211, 211, 211)],
+    "uranus": [(64, 224, 208), (0, 128, 128), (0, 150, 136), (152, 251, 152)],
+    "pluto": [(0, 0, 0), (69, 47, 32), (54, 54, 54), (139, 62, 47)],
+    "titan": [(255, 215, 0), (218, 165, 32), (184, 134, 11), (250, 235, 215)],
+    "europa": [(255, 255, 255), (202, 225, 255), (240, 248, 255), (176, 224, 230)],
+    # Earth palettes (ocean, land, mountain)
+    "earth_oceanic": [(0, 105, 148), (50, 205, 50), (139, 69, 19)],
+    "earth_desert": [(70, 130, 180), (210, 180, 140), (165, 42, 42)],
+    "earth_alien": [(75, 0, 130), (0, 255, 127), (255, 69, 0)],
+    # Marble palettes (base, veins)
+    "marble_classic": [(245, 245, 220), (105, 105, 105)],
+    "marble_onyx": [(30, 30, 30), (255, 215, 0)],
+    "marble_emerald": [(240, 255, 240), (0, 100, 0)],
 }
 
 
@@ -614,7 +573,9 @@ class TextureOptimizer:
         return Image.composite(blurred, result, mask)
 
     @staticmethod
-    def optimize_for_godot(image: Image.Image, target_format: str = "PNG") -> Image.Image:
+    def optimize_for_godot(
+        image: Image.Image, target_format: str = "PNG"
+    ) -> Image.Image:
         """Optimize image for Godot engine.
 
         Args:
@@ -1004,12 +965,16 @@ def create_cli_parser() -> argparse.ArgumentParser:
         help="Noise scale",
     )
 
-    # Color options for gas giant
+    # Color options for the gas giant
     parser.add_argument(
         "--base-colors",
         type=str,
-        help="Colors for gas_giant: either a JSON list of RGB tuples (e.g., '[[255,140,0],[204,85,0]]') "
-        "or a predefined palette name: " + ", ".join(PREDEFINED_PALETTES.keys()),
+        help="Colors for texture: either a JSON list of RGB tuples "
+        "(e.g., '[[255,140,0],[204,85,0]]') "
+        "or a predefined palette name: " + ", ".join(PREDEFINED_PALETTES.keys()) + ". "
+        "For 'earth', provide 3 colors (ocean, land, mountain). "
+        "For 'marble', provide 2 colors (base, veins). "
+        "For 'gas_giant', provide 2+ colors for bands.",
     )
 
     # Other options
@@ -1052,7 +1017,7 @@ def main() -> int:
             width = args.width
             height = args.height or args.width // 2
         else:
-            width, height = 2048, 1024  # Default
+            width, height = 2048, 1024
 
         # Create configuration
         texture_config = TextureConfig(
@@ -1070,11 +1035,23 @@ def main() -> int:
             coordinate_mode=args.coordinate_mode,
         )
 
-        # Parse base_colors for gas_giant
-        base_colors = None
-        if args.mode == "procedural" and args.type == "gas_giant" and args.base_colors:
+        # Parse base_colors
+        kwargs = {}
+        if args.mode == "procedural" and args.base_colors:
             if args.base_colors in PREDEFINED_PALETTES:
-                base_colors = PREDEFINED_PALETTES[args.base_colors]
+                colors = PREDEFINED_PALETTES[args.base_colors]
+                if args.type == "earth" and len(colors) != 3:
+                    parser.error(
+                        f"Palette {args.base_colors} must have exactly 3 colors for earth"
+                    )
+                if args.type == "marble" and len(colors) != 2:
+                    parser.error(
+                        f"Palette {args.base_colors} must have exactly 2 colors for marble"
+                    )
+                if args.type == "gas_giant" and len(colors) < 2:
+                    parser.error(
+                        f"Palette {args.base_colors} must have at least 2 colors for gas_giant"
+                    )
             else:
                 try:
                     parsed_colors = json.loads(args.base_colors)
@@ -1082,7 +1059,7 @@ def main() -> int:
                         raise ValueError(
                             "base-colors JSON must be a list of RGB tuples"
                         )
-                    base_colors = []
+                    colors = []
                     for color in parsed_colors:
                         if not isinstance(color, list) or len(color) != 3:
                             raise ValueError(
@@ -1092,13 +1069,32 @@ def main() -> int:
                             raise ValueError(
                                 "RGB values must be integers between 0 and 255"
                             )
-                        base_colors.append(tuple(color))
-                    if not base_colors:
-                        raise ValueError("base-colors list cannot be empty")
+                        colors.append(tuple(color))
+                    if args.type == "earth" and len(colors) != 3:
+                        raise ValueError(
+                            "earth requires exactly 3 colors (ocean, land, mountain)"
+                        )
+                    if args.type == "marble" and len(colors) != 2:
+                        raise ValueError(
+                            "marble requires exactly 2 colors (base, veins)"
+                        )
+                    if args.type == "gas_giant" and len(colors) < 2:
+                        raise ValueError("gas_giant requires at least 2 colors")
                 except json.JSONDecodeError:
                     parser.error(f"Invalid JSON for --base-colors: {args.base_colors}")
                 except ValueError as e:
                     parser.error(f"Error in --base-colors: {e}")
+
+            if args.type == "earth":
+                kwargs = {
+                    "ocean_color": colors[0],
+                    "land_color": colors[1],
+                    "mountain_color": colors[2],
+                }
+            elif args.type == "marble":
+                kwargs = {"base_color": colors[0], "vein_color": colors[1]}
+            elif args.type == "gas_giant":
+                kwargs = {"base_colors": colors}
 
         # Create generator
         generator = SphereTextureGenerator(texture_config, noise_config)
@@ -1108,15 +1104,12 @@ def main() -> int:
             if not args.input:
                 parser.error("--input is required for convert mode")
             generator.convert_image(args.input)
-
         elif args.mode == "procedural":
             if not args.type:
                 parser.error("--type is required for procedural mode")
-            generator.generate_procedural(args.type, base_colors=base_colors)
+            generator.generate_procedural(args.type, **kwargs)
 
         logger.info("✅ Operation completed successfully!")
-
-        # Print the final summary
         print("\n" + "=" * 60)
         print("📊 Generation summary")
         print("=" * 60)
@@ -1124,8 +1117,8 @@ def main() -> int:
         print(f"📏 Final size: {texture_config.width}x{texture_config.height}")
         print(f"📦 Format: {texture_config.format}")
         print(f"💾 File size: {texture_config.output_path.stat().st_size // 1024}KB")
-        if base_colors:
-            print(f"🎨 Colors: {base_colors}")
+        if kwargs:
+            print(f"🎨 Colors: {kwargs}")
         print("=" * 60)
         return 0
 
