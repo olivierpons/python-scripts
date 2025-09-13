@@ -41,22 +41,21 @@ Command Line Examples:
     # Standard Earth texture at 2K resolution
     python sphere_texture_generator.py -m procedural -t earth -r 2k -o earth_2k.png
 
-    # High-detail gas giant with custom noise settings
-    python sphere_texture_generator.py -m procedural -t gas_giant -w 4096 -g 2048 \\
-        -s 123 -a 8 -c 150.0 -o jupiter_style.png
+    # High-detail gas giant with custom colors (JSON)
+    python sphere_texture_generator.py -m procedural -t gas_giant -r 2k -s 123 \
+        --base-colors '[[255,140,0],[204,85,0],[153,101,21],[111,78,55]]' -o jupiter_style.png
+
+    # Gas giant with predefined palette
+    python sphere_texture_generator.py -m procedural -t gas_giant -r 1k -s 202 \
+        --base-colors neptune -o gas_giant_neptune.png
 
     # Convert photo to seamless sphere texture
-    python sphere_texture_generator.py -m convert -i landscape.jpg \\
+    python sphere_texture_generator.py -m convert -i landscape.jpg \
         -o sphere_landscape.png -r 4k
 
     # Marble texture with high quality JPEG output
-    python sphere_texture_generator.py -m procedural -t marble -r 1k \\
+    python sphere_texture_generator.py -m procedural -t marble -r 1k \
         -f JPEG -q 98 -o marble_sphere.jpg
-
-    # Multiple variations with different seeds
-    python sphere_texture_generator.py -m procedural -t earth -s 42 -o earth_v1.png
-    python sphere_texture_generator.py -m procedural -t earth -s 123 -o earth_v2.png
-    python sphere_texture_generator.py -m procedural -t earth -s 456 -o earth_v3.png
 
 Resolution Guidelines:
     512x256: Preview/testing (fast generation)
@@ -72,6 +71,7 @@ Integration Notes:
 """
 
 import argparse
+import json
 import logging
 import math
 import sys
@@ -99,6 +99,70 @@ STANDARD_RESOLUTIONS: dict[str, tuple[int, int]] = {
     "2k": (4096, 2048),
     "4k": (8192, 4096),
     "8k": (16384, 8192),
+}
+
+# Predefined color palettes for gas giants
+PREDEFINED_PALETTES: dict[str, list[ColorTuple]] = {
+    "jupiter": [
+        (255, 165, 0),  # Orange doré
+        (204, 85, 0),  # Orange brûlé
+        (153, 101, 21),  # Brun caramel
+        (111, 78, 55),  # Brun chocolat
+    ],
+    "neptune": [
+        (173, 216, 230),  # Bleu glacial
+        (0, 255, 255),  # Cyan électrique
+        (0, 0, 139),  # Bleu océan profond
+        (106, 90, 205),  # Bleu ardoise
+    ],
+    "saturn": [
+        (153, 50, 204),  # Violet améthyste
+        (128, 0, 128),  # Pourpre royal
+        (230, 230, 250),  # Lavande
+        (221, 160, 221),  # Prune
+    ],
+    "venus": [
+        (0, 201, 87),  # Vert émeraude
+        (173, 255, 47),  # Vert acide
+        (255, 255, 0),  # Jaune soufre
+        (128, 128, 0),  # Vert olive
+    ],
+    "mars": [
+        (178, 34, 34),  # Rouge sang
+        (255, 127, 80),  # Rose corail
+        (165, 42, 42),  # Rouge brique
+        (250, 128, 114),  # Rose saumon
+    ],
+    "mercury": [
+        (169, 169, 169),  # Gris acier
+        (192, 192, 192),  # Argent brillant
+        (47, 79, 79),  # Gris anthracite
+        (211, 211, 211),  # Gris perle
+    ],
+    "uranus": [
+        (64, 224, 208),  # Turquoise tropical
+        (0, 128, 128),  # Teal profond
+        (0, 150, 136),  # Bleu paon
+        (152, 251, 152),  # Vert menthe
+    ],
+    "pluto": [
+        (0, 0, 0),  # Noir ébène
+        (69, 47, 32),  # Brun expresso
+        (54, 54, 54),  # Gris charbon
+        (139, 62, 47),  # Brun acajou
+    ],
+    "titan": [
+        (255, 215, 0),  # Or brillant
+        (218, 165, 32),  # Ambre miel
+        (184, 134, 11),  # Or cuivré
+        (250, 235, 215),  # Champagne
+    ],
+    "europa": [
+        (255, 255, 255),  # Blanc cristal
+        (202, 225, 255),  # Bleu glace
+        (240, 248, 255),  # Blanc nacré
+        (176, 224, 230),  # Bleu glacier
+    ],
 }
 
 
@@ -677,54 +741,55 @@ def create_cli_parser() -> argparse.ArgumentParser:
       python sphere_textures.py -m procedural -t earth -r 2k -o earth.png
 
       # High-detail Earth with custom noise (8 octaves)
-      python sphere_textures.py -m procedural -t earth -w 4096 -g 2048 -a 8 -c 80.0
+      python sphere_texture_generator.py -m procedural -t earth -w 4096 -g 2048 -a 8 -c 80.0
 
       # Desert planet variation (different seed)
-      python sphere_textures.py -m procedural -t earth -s 999 -o desert_planet.png
+      python sphere_texture_generator.py -m procedural -t earth -s 999 -o desert_planet.png
 
       # Ocean world (high noise scale for more water)
-      python sphere_textures.py -m procedural -t earth -c 200.0 -s 777 -o ocean_world.png
+      python sphere_texture_generator.py -m procedural -t earth -c 200.0 -s 777 -o ocean_world.png
 
     🪐 Gas Giants:
-      # Jupiter-style banded planet
-      python sphere_textures.py -m procedural -t gas_giant -r 4k -s 42 -o jupiter.png
+      # Jupiter-style banded planet with predefined palette
+      python sphere_texture_generator.py -m procedural -t gas_giant -r 4k -s 42 --base-colors jupiter -o jupiter.png
 
-      # Saturn-style with different seed and resolution
-      python sphere_textures.py -m procedural -t gas_giant -w 2048 -g 1024 -s 123
+      # Custom colors via JSON
+      python sphere_texture_generator.py -m procedural -t gas_giant -r 2k -s 123 \
+          --base-colors '[[255,140,0],[204,85,0],[153,101,21],[111,78,55]]' -o custom_jupiter.png
 
       # High-turbulence gas giant (more octaves = more detail)
-      python sphere_textures.py -m procedural -t gas_giant -a 10 -c 50.0 -o turbulent.png
+      python sphere_texture_generator.py -m procedural -t gas_giant -a 10 -c 50.0 --base-colors neptune -o turbulent.png
 
       # Smooth gas giant (fewer octaves = smoother bands)  
-      python sphere_textures.py -m procedural -t gas_giant -a 3 -c 120.0 -o smooth.png
+      python sphere_texture_generator.py -m procedural -t gas_giant -a 3 -c 120.0 --base-colors saturn -o smooth.png
 
     🏛️ Marble Textures:
       # Classic white marble with gray veins
-      python sphere_textures.py -m procedural -t marble -r 2k -o marble_classic.png
+      python sphere_texture_generator.py -m procedural -t marble -r 2k -o marble_classic.png
 
       # High-resolution marble for close-ups
-      python sphere_textures.py -m procedural -t marble -w 8192 -g 4096 -o marble_hd.png
+      python sphere_texture_generator.py -m procedural -t marble -w 8192 -g 4096 -o marble_hd.png
 
       # Different marble patterns with various seeds
-      python sphere_textures.py -m procedural -t marble -s 100 -o marble_v1.png
-      python sphere_textures.py -m procedural -t marble -s 200 -o marble_v2.png
-      python sphere_textures.py -m procedural -t marble -s 300 -o marble_v3.png
+      python sphere_texture_generator.py -m procedural -t marble -s 100 -o marble_v1.png
+      python sphere_texture_generator.py -m procedural -t marble -s 200 -o marble_v2.png
+      python sphere_texture_generator.py -m procedural -t marble -s 300 -o marble_v3.png
 
     ━━━ IMAGE CONVERSION ━━━
 
     📸 Photo to Sphere Texture:
       # Convert landscape photo to seamless sphere
-      python sphere_textures.py -m convert -i landscape.jpg -o sphere_landscape.png -r 2k
+      python sphere_texture_generator.py -m convert -i landscape.jpg -o sphere_landscape.png -r 2k
 
       # Convert texture with custom resolution
-      python sphere_textures.py -m convert -i texture.png -w 4096 -g 2048 -o converted.png
+      python sphere_texture_generator.py -m convert -i texture.png -w 4096 -g 2048 -o converted.png
 
       # High-quality JPEG output for smaller files
-      python sphere_textures.py -m convert -i photo.jpg -f JPEG -q 95 -o result.jpg
+      python sphere_texture_generator.py -m convert -i photo.jpg -f JPEG -q 95 -o result.jpg
 
       # Batch conversion concept (run multiple times)
-      python sphere_textures.py -m convert -i input1.jpg -o sphere1.png
-      python sphere_textures.py -m convert -i input2.jpg -o sphere2.png
+      python sphere_texture_generator.py -m convert -i input1.jpg -o sphere1.png
+      python sphere_texture_generator.py -m convert -i input2.jpg -o sphere2.png
 
     ━━━ RESOLUTION PRESETS ━━━
 
@@ -737,59 +802,59 @@ def create_cli_parser() -> argparse.ArgumentParser:
 
     🎯 Custom Resolutions:
       # Square aspect (will show warning but work)
-      python sphere_textures.py -m procedural -t earth -w 1024 -g 1024
+      python sphere_texture_generator.py -m procedural -t earth -w 1024 -g 1024
 
       # Ultra-wide for special effects
-      python sphere_textures.py -m procedural -t gas_giant -w 4096 -g 1024
+      python sphere_texture_generator.py -m procedural -t gas_giant -w 4096 -g 1024
 
       # Mobile-optimized size
-      python sphere_textures.py -m procedural -t marble -w 512 -g 256
+      python sphere_texture_generator.py -m procedural -t marble -w 512 -g 256
 
     ━━━ OUTPUT FORMATS ━━━
 
     🖼️ PNG (Lossless):
       # High quality, larger files
-      python sphere_textures.py -m procedural -t earth -f PNG -o earth.png
+      python sphere_texture_generator.py -m procedural -t earth -f PNG -o earth.png
 
     📷 JPEG (Compressed):
       # Smaller files, good for textures
-      python sphere_textures.py -m procedural -t earth -f JPEG -q 90 -o earth.jpg
+      python sphere_texture_generator.py -m procedural -t earth -f JPEG -q 90 -o earth.jpg
 
       # Maximum JPEG quality
-      python sphere_textures.py -m procedural -t marble -f JPEG -q 100 -o marble.jpg
+      python sphere_texture_generator.py -m procedural -t marble -f JPEG -q 100 -o marble.jpg
 
       # Balanced quality/size
-      python sphere_textures.py -m procedural -t gas_giant -f JPEG -q 85 -o planet.jpg
+      python sphere_texture_generator.py -m procedural -t gas_giant -f JPEG -q 85 --base-colors venus -o planet.jpg
 
     ━━━ ADVANCED WORKFLOWS ━━━
 
     🎮 Game Development Pipeline:
       # Generate planet set for space game
-      python sphere_textures.py -m procedural -t earth -s 1 -r 2k -o planet_earth.png
-      python sphere_textures.py -m procedural -t gas_giant -s 2 -r 2k -o planet_gas1.png  
-      python sphere_textures.py -m procedural -t gas_giant -s 3 -r 2k -o planet_gas2.png
-      python sphere_textures.py -m procedural -t marble -s 4 -r 2k -o planet_rock.png
+      python sphere_texture_generator.py -m procedural -t earth -s 1 -r 2k -o planet_earth.png
+      python sphere_texture_generator.py -m procedural -t gas_giant -s 2 -r 2k --base-colors jupiter -o planet_gas1.png  
+      python sphere_texture_generator.py -m procedural -t gas_giant -s 3 -r 2k --base-colors neptune -o planet_gas2.png
+      python sphere_texture_generator.py -m procedural -t marble -s 4 -r 2k -o planet_rock.png
 
     🎬 VFX/Animation Workflow:
       # Ultra-high resolution for close-ups
-      python sphere_textures.py -m procedural -t earth -r 8k -a 12 -c 60.0 -o hero_planet.png
+      python sphere_texture_generator.py -m procedural -t earth -r 8k -a 12 -c 60.0 -o hero_planet.png
 
       # Multiple detail levels for LOD system
-      python sphere_textures.py -m procedural -t gas_giant -s 42 -r 4k -o planet_lod0.png
-      python sphere_textures.py -m procedural -t gas_giant -s 42 -r 2k -o planet_lod1.png  
-      python sphere_textures.py -m procedural -t gas_giant -s 42 -r 1k -o planet_lod2.png
+      python sphere_texture_generator.py -m procedural -t gas_giant -s 42 -r 4k --base-colors titan -o planet_lod0.png
+      python sphere_texture_generator.py -m procedural -t gas_giant -s 42 -r 2k --base-colors titan -o planet_lod1.png  
+      python sphere_texture_generator.py -m procedural -t gas_giant -s 42 -r 1k --base-colors titan -o planet_lod2.png
 
     🔬 Texture Variations Study:
       # Study noise octave effects (keep same seed, vary octaves)
-      python sphere_textures.py -m procedural -t earth -s 100 -a 2 -o study_oct2.png
-      python sphere_textures.py -m procedural -t earth -s 100 -a 4 -o study_oct4.png
-      python sphere_textures.py -m procedural -t earth -s 100 -a 6 -o study_oct6.png
-      python sphere_textures.py -m procedural -t earth -s 100 -a 8 -o study_oct8.png
+      python sphere_texture_generator.py -m procedural -t earth -s 100 -a 2 -o study_oct2.png
+      python sphere_texture_generator.py -m procedural -t earth -s 100 -a 4 -o study_oct4.png
+      python sphere_texture_generator.py -m procedural -t earth -s 100 -a 6 -o study_oct6.png
+      python sphere_texture_generator.py -m procedural -t earth -s 100 -a 8 -o study_oct8.png
 
       # Study noise scale effects (keep octaves/seed same, vary scale)
-      python sphere_textures.py -m procedural -t gas_giant -s 42 -c 50.0 -o scale_50.png
-      python sphere_textures.py -m procedural -t gas_giant -s 42 -c 100.0 -o scale_100.png
-      python sphere_textures.py -m procedural -t gas_giant -s 42 -c 200.0 -o scale_200.png
+      python sphere_texture_generator.py -m procedural -t gas_giant -s 42 -c 50.0 --base-colors uranus -o scale_50.png
+      python sphere_texture_generator.py -m procedural -t gas_giant -s 42 -c 100.0 --base-colors uranus -o scale_100.png
+      python sphere_texture_generator.py -m procedural -t gas_giant -s 42 -c 200.0 --base-colors uranus -o scale_200.png
 
     ━━━ ENGINE INTEGRATION TIPS ━━━
 
@@ -808,29 +873,35 @@ def create_cli_parser() -> argparse.ArgumentParser:
 
     🔧 Performance Tips:
       # Fast preview generation (small, low octaves)
-      python sphere_textures.py -m procedural -t earth -w 512 -g 256 -a 3 -o preview.png
+      python sphere_texture_generator.py -m procedural -t earth -w 512 -g 256 -a 3 -o preview.png
 
       # Production quality (balanced settings)
-      python sphere_textures.py -m procedural -t earth -r 2k -a 6 -c 100.0 -o production.png
+      python sphere_texture_generator.py -m procedural -t earth -r 2k -a 6 -c 100.0 -o production.png
 
       # Hero asset quality (maximum settings)
-      python sphere_textures.py -m procedural -t earth -r 4k -a 10 -c 80.0 -v -o hero.png
+      python sphere_texture_generator.py -m procedural -t earth -r 4k -a 10 -c 80.0 -v -o hero.png
 
     ━━━ TROUBLESHOOTING ━━━
 
     ❌ Common Issues:
       # File not found → Check input path exists
-      python sphere_textures.py -m convert -i /full/path/to/image.jpg
+      python sphere_texture_generator.py -m convert -i /full/path/to/image.jpg
 
       # Out of memory → Use smaller resolution  
-      python sphere_textures.py -m procedural -t earth -r 1k  # instead of 8k
+      python sphere_texture_generator.py -m procedural -t earth -r 1k  # instead of 8k
 
       # Slow generation → Reduce octaves
-      python sphere_textures.py -m procedural -t gas_giant -a 4  # instead of 12
+      python sphere_texture_generator.py -m procedural -t gas_giant -a 4  # instead of 12
+
+      # Invalid JSON for base-colors
+      python sphere_texture_generator.py -m procedural -t gas_giant --base-colors '[[255,140,0],[204,85,0]]'
+
+      # Invalid palette name
+      python sphere_texture_generator.py -m procedural -t gas_giant --base-colors jupiter
 
     🐛 Debug Mode:
       # Verbose output for troubleshooting
-      python sphere_textures.py -m procedural -t earth -v -o debug.png
+      python sphere_texture_generator.py -m procedural -t earth -v -o debug.png
 
     📊 File Size Estimates:
       512×256 PNG:   ~200KB  | JPEG 90%: ~80KB
@@ -933,6 +1004,14 @@ def create_cli_parser() -> argparse.ArgumentParser:
         help="Noise scale",
     )
 
+    # Color options for gas giant
+    parser.add_argument(
+        "--base-colors",
+        type=str,
+        help="Colors for gas_giant: either a JSON list of RGB tuples (e.g., '[[255,140,0],[204,85,0]]') "
+        "or a predefined palette name: " + ", ".join(PREDEFINED_PALETTES.keys()),
+    )
+
     # Other options
     parser.add_argument(
         "-v",
@@ -991,6 +1070,36 @@ def main() -> int:
             coordinate_mode=args.coordinate_mode,
         )
 
+        # Parse base_colors for gas_giant
+        base_colors = None
+        if args.mode == "procedural" and args.type == "gas_giant" and args.base_colors:
+            if args.base_colors in PREDEFINED_PALETTES:
+                base_colors = PREDEFINED_PALETTES[args.base_colors]
+            else:
+                try:
+                    parsed_colors = json.loads(args.base_colors)
+                    if not isinstance(parsed_colors, list):
+                        raise ValueError(
+                            "base-colors JSON must be a list of RGB tuples"
+                        )
+                    base_colors = []
+                    for color in parsed_colors:
+                        if not isinstance(color, list) or len(color) != 3:
+                            raise ValueError(
+                                "Each color must be a list of 3 integers (RGB)"
+                            )
+                        if not all(isinstance(c, int) and 0 <= c <= 255 for c in color):
+                            raise ValueError(
+                                "RGB values must be integers between 0 and 255"
+                            )
+                        base_colors.append(tuple(color))
+                    if not base_colors:
+                        raise ValueError("base-colors list cannot be empty")
+                except json.JSONDecodeError:
+                    parser.error(f"Invalid JSON for --base-colors: {args.base_colors}")
+                except ValueError as e:
+                    parser.error(f"Error in --base-colors: {e}")
+
         # Create generator
         generator = SphereTextureGenerator(texture_config, noise_config)
 
@@ -1003,7 +1112,7 @@ def main() -> int:
         elif args.mode == "procedural":
             if not args.type:
                 parser.error("--type is required for procedural mode")
-            generator.generate_procedural(args.type)
+            generator.generate_procedural(args.type, base_colors=base_colors)
 
         logger.info("✅ Operation completed successfully!")
 
@@ -1015,6 +1124,8 @@ def main() -> int:
         print(f"📏 Final size: {texture_config.width}x{texture_config.height}")
         print(f"📦 Format: {texture_config.format}")
         print(f"💾 File size: {texture_config.output_path.stat().st_size // 1024}KB")
+        if base_colors:
+            print(f"🎨 Colors: {base_colors}")
         print("=" * 60)
         return 0
 
