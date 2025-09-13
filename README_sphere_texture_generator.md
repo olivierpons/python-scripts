@@ -19,6 +19,8 @@ configuration.
 - Advanced pole correction using Gaussian blur masking and pixel consolidation
 - Flexible resolutions: standard presets (512, 1K, 2K, 4K, 8K) plus custom dimensions
 - Comprehensive noise configuration with octave controls and coordinate modes
+- Refactored coordinate generation to eliminate code duplication for improved maintainability
+- Robust type hints using `TypeAlias` for better mypy compatibility and modern Python 3.13+ features
 - Professional output with JPEG quality control and PNG optimization
 - Detailed processing summaries and validation
 - Modern Python 3.13+ features with dataclasses and union types
@@ -43,6 +45,21 @@ python sphere_texture_generator.py -m convert -i landscape.jpg -o sphere_landsca
 
 # High-quality JPEG output with custom quality
 python sphere_texture_generator.py -m procedural -t earth -f JPEG -q 98 -o earth_hq.jpg
+
+# Batch generate all textures with planetary and marble palettes (512x256, PNG)
+mkdir -p ok/512; i=0; 
+for TYPE in earth gas_giant; do 
+    for PALETTE in jupiter neptune saturn venus mars mercury uranus pluto titan europa; do 
+        export PALETTE=$PALETTE; 
+        python sphere_texture_generator.py -m procedural -t $TYPE -r 512 -s $((202 + i)) -a 6 -c 100.0 --base-colors $PALETTE -o "ok/512/${TYPE}_${PALETTE}_512_seed$((202 + i)).png"; 
+        ((i++)); 
+    done; 
+done; 
+for PALETTE in jupiter neptune saturn venus mars mercury uranus pluto titan europa marble_classic marble_onyx marble_emerald; do 
+    export PALETTE=$PALETTE; 
+    python sphere_texture_generator.py -m procedural -t marble -r 512 -s $((202 + i)) -a 6 -c 100.0 --base-colors $PALETTE -o "ok/512/marble_${PALETTE}_512_seed$((202 + i)).png"; 
+    ((i++)); 
+done
 ```
 
 **Arguments:**
@@ -57,6 +74,10 @@ python sphere_texture_generator.py -m procedural -t earth -f JPEG -q 98 -o earth
 - `-s, --seed`: Random seed for procedural generation
 - `-f, --format`: Output format ('PNG', 'JPEG')
 - `-q, --quality`: JPEG quality (70-100, default: 90)
+- `--base-colors`: Colors for texture (JSON list of RGB tuples or predefined palette name)
+- `-a, --octaves`: Noise octaves (default: 6)
+- `-c, --scale`: Noise scale (default: 100.0)
+- `-d, --coordinate-mode`: Noise coordinate mode ('xy' or 'xz', default: 'xy')
 
 ## Français
 
@@ -77,6 +98,8 @@ polaires, optimisation `power-of-2`, et configuration complète du bruit.
 - Correction polaire avancée utilisant masquage flou gaussien et consolidation pixels
 - Résolutions flexibles : préréglages standard (512, 1K, 2K, 4K, 8K) plus dimensions personnalisées
 - Configuration complète du bruit avec contrôles octaves et modes coordonnées
+- Factorisation de la génération des coordonnées pour éliminer la duplication de code et améliorer la maintenabilité
+- Typage robuste avec `TypeAlias` pour une meilleure compatibilité mypy et fonctionnalités Python 3.13+ modernes
 - Sortie professionnelle avec contrôle qualité JPEG et optimisation PNG
 - Résumés traitement détaillés et validation
 - Fonctionnalités Python 3.13+ modernes avec dataclasses et types union
@@ -101,6 +124,21 @@ python sphere_texture_generator.py -m convert -i paysage.jpg -o sphere_paysage.p
 
 # Sortie JPEG haute qualité avec qualité personnalisée
 python sphere_texture_generator.py -m procedural -t earth -f JPEG -q 98 -o terre_hq.jpg
+
+# Générer en lot toutes les textures avec palettes planétaires et marbre (512x256, PNG)
+mkdir -p ok/512; i=0; 
+for TYPE in earth gas_giant; do 
+    for PALETTE in jupiter neptune saturn venus mars mercury uranus pluto titan europa; do 
+        export PALETTE=$PALETTE; 
+        python sphere_texture_generator.py -m procedural -t $TYPE -r 512 -s $((202 + i)) -a 6 -c 100.0 --base-colors $PALETTE -o "ok/512/${TYPE}_${PALETTE}_512_seed$((202 + i)).png"; 
+        ((i++)); 
+    done; 
+done; 
+for PALETTE in jupiter neptune saturn venus mars mercury uranus pluto titan europa marble_classic marble_onyx marble_emerald; do 
+    export PALETTE=$PALETTE; 
+    python sphere_texture_generator.py -m procedural -t marble -r 512 -s $((202 + i)) -a 6 -c 100.0 --base-colors $PALETTE -o "ok/512/marble_${PALETTE}_512_seed$((202 + i)).png"; 
+    ((i++)); 
+done
 ```
 
 **Arguments :**
@@ -115,6 +153,10 @@ python sphere_texture_generator.py -m procedural -t earth -f JPEG -q 98 -o terre
 - `-s, --seed` : Graine aléatoire pour génération procédurale
 - `-f, --format` : Format de sortie ('PNG', 'JPEG')
 - `-q, --quality` : Qualité JPEG (70-100, défaut : 90)
+- `--base-colors` : Couleurs pour la texture (liste JSON de tuples RGB ou nom de palette prédéfinie)
+- `-a, --octaves` : Octaves de bruit (défaut : 6)
+- `-c, --scale` : Échelle de bruit (défaut : 100.0)
+- `-d, --coordinate-mode` : Mode de coordonnées de bruit ('xy' ou 'xz', défaut : 'xy')
 
 ## 日本語
 
@@ -131,6 +173,8 @@ python sphere_texture_generator.py -m procedural -t earth -f JPEG -q 98 -o terre
 - ガウシアンブラーマスキングとピクセル統合による高度な極点補正
 - 柔軟な解像度：標準プリセット（512、1K、2K、4K、8K）およびカスタム寸法
 - オクターブ制御と座標モードを備えた包括的ノイズ設定
+- コード重複を排除する座標生成のリファクタリングでメンテナンス性を向上
+- `TypeAlias`を使用した堅牢な型ヒントにより、mypy互換性とPython 3.13+の現代的機能を向上
 - JPEG品質制御とPNG最適化によるプロフェッショナル出力
 - 詳細な処理サマリーと検証
 - dataclassesとユニオン型を使用した現代的Python 3.13+機能
@@ -155,6 +199,21 @@ python sphere_texture_generator.py -m convert -i landscape.jpg -o sphere_landsca
 
 # カスタム品質の高品質JPEG出力
 python sphere_texture_generator.py -m procedural -t earth -f JPEG -q 98 -o earth_hq.jpg
+
+# 惑星および大理石パレットで全テクスチャをバッチ生成（512x256、PNG）
+mkdir -p ok/512; i=0; 
+for TYPE in earth gas_giant; do 
+    for PALETTE in jupiter neptune saturn venus mars mercury uranus pluto titan europa; do 
+        export PALETTE=$PALETTE; 
+        python sphere_texture_generator.py -m procedural -t $TYPE -r 512 -s $((202 + i)) -a 6 -c 100.0 --base-colors $PALETTE -o "ok/512/${TYPE}_${PALETTE}_512_seed$((202 + i)).png"; 
+        ((i++)); 
+    done; 
+done; 
+for PALETTE in jupiter neptune saturn venus mars mercury uranus pluto titan europa marble_classic marble_onyx marble_emerald; do 
+    export PALETTE=$PALETTE; 
+    python sphere_texture_generator.py -m procedural -t marble -r 512 -s $((202 + i)) -a 6 -c 100.0 --base-colors $PALETTE -o "ok/512/marble_${PALETTE}_512_seed$((202 + i)).png"; 
+    ((i++)); 
+done
 ```
 
 **引数：**
@@ -169,6 +228,10 @@ python sphere_texture_generator.py -m procedural -t earth -f JPEG -q 98 -o earth
 - `-s, --seed`：手続き的生成用のランダムシード
 - `-f, --format`：出力フォーマット（'PNG'、'JPEG'）
 - `-q, --quality`：JPEG品質（70-100、デフォルト：90）
+- `--base-colors`：テクスチャの色（RGBタプルのJSONリストまたは定義済みパレット名）
+- `-a, --octaves`：ノイズのオクターブ（デフォルト：6）
+- `-c, --scale`：ノイズスケール（デフォルト：100.0）
+- `-d, --coordinate-mode`：ノイズ座標モード（'xy'または'xz'、デフォルト：'xy'）
 
 ## 简体中文
 
@@ -185,6 +248,8 @@ python sphere_texture_generator.py -m procedural -t earth -f JPEG -q 98 -o earth
 - 使用高斯模糊遮罩和像素合并的高级极点校正
 - 灵活分辨率：标准预设（512、1K、2K、4K、8K）加自定义尺寸
 - 具有倍频程控制和坐标模式的全面噪声配置
+- 重构坐标生成以消除代码重复，提高可维护性
+- 使用`TypeAlias`的健壮类型提示，提升mypy兼容性和Python 3.13+现代功能
 - JPEG质量控制和PNG优化的专业输出
 - 详细的处理摘要和验证
 - 具有数据类和联合类型的现代Python 3.13+功能
@@ -209,6 +274,21 @@ python sphere_texture_generator.py -m convert -i landscape.jpg -o sphere_landsca
 
 # 自定义质量的高质量JPEG输出
 python sphere_texture_generator.py -m procedural -t earth -f JPEG -q 98 -o earth_hq.jpg
+
+# 批量生成所有带有行星和大理石调色板的纹理（512x256，PNG）
+mkdir -p ok/512; i=0; 
+for TYPE in earth gas_giant; do 
+    for PALETTE in jupiter neptune saturn venus mars mercury uranus pluto titan europa; do 
+        export PALETTE=$PALETTE; 
+        python sphere_texture_generator.py -m procedural -t $TYPE -r 512 -s $((202 + i)) -a 6 -c 100.0 --base-colors $PALETTE -o "ok/512/${TYPE}_${PALETTE}_512_seed$((202 + i)).png"; 
+        ((i++)); 
+    done; 
+done; 
+for PALETTE in jupiter neptune saturn venus mars mercury uranus pluto titan europa marble_classic marble_onyx marble_emerald; do 
+    export PALETTE=$PALETTE; 
+    python sphere_texture_generator.py -m procedural -t marble -r 512 -s $((202 + i)) -a 6 -c 100.0 --base-colors $PALETTE -o "ok/512/marble_${PALETTE}_512_seed$((202 + i)).png"; 
+    ((i++)); 
+done
 ```
 
 **参数：**
@@ -223,6 +303,10 @@ python sphere_texture_generator.py -m procedural -t earth -f JPEG -q 98 -o earth
 - `-s, --seed`：程序化生成的随机种子
 - `-f, --format`：输出格式（'PNG'、'JPEG'）
 - `-q, --quality`：JPEG质量（70-100，默认：90）
+- `--base-colors`：纹理颜色（RGB元组的JSON列表或预定义调色板名称）
+- `-a, --octaves`：噪声倍频程（默认：6）
+- `-c, --scale`：噪声尺度（默认：100.0）
+- `-d, --coordinate-mode`：噪声坐标模式（'xy'或'xz'，默认：'xy'）
 
 ## 繁體中文
 
@@ -239,6 +323,8 @@ python sphere_texture_generator.py -m procedural -t earth -f JPEG -q 98 -o earth
 - 使用高斯模糊遮罩和像素合併的高級極點校正
 - 靈活分辨率：標準預設（512、1K、2K、4K、8K）加自訂尺寸
 - 具有倍頻程控制和座標模式的全面噪聲配置
+- 重構座標生成以消除代碼重複，提高可維護性
+- 使用`TypeAlias`的健壯類型提示，提升mypy兼容性和Python 3.13+現代功能
 - JPEG品質控制和PNG優化的專業輸出
 - 詳細的處理摘要和驗證
 - 具有資料類和聯合類型的現代Python 3.13+功能
@@ -263,6 +349,21 @@ python sphere_texture_generator.py -m convert -i landscape.jpg -o sphere_landsca
 
 # 自訂品質的高品質JPEG輸出
 python sphere_texture_generator.py -m procedural -t earth -f JPEG -q 98 -o earth_hq.jpg
+
+# 批量生成所有帶有行星和大理石調色板的紋理（512x256，PNG）
+mkdir -p ok/512; i=0; 
+for TYPE in earth gas_giant; do 
+    for PALETTE in jupiter neptune saturn venus mars mercury uranus pluto titan europa; do 
+        export PALETTE=$PALETTE; 
+        python sphere_texture_generator.py -m procedural -t $TYPE -r 512 -s $((202 + i)) -a 6 -c 100.0 --base-colors $PALETTE -o "ok/512/${TYPE}_${PALETTE}_512_seed$((202 + i)).png"; 
+        ((i++)); 
+    done; 
+done; 
+for PALETTE in jupiter neptune saturn venus mars mercury uranus pluto titan europa marble_classic marble_onyx marble_emerald; do 
+    export PALETTE=$PALETTE; 
+    python sphere_texture_generator.py -m procedural -t marble -r 512 -s $((202 + i)) -a 6 -c 100.0 --base-colors $PALETTE -o "ok/512/marble_${PALETTE}_512_seed$((202 + i)).png"; 
+    ((i++)); 
+done
 ```
 
 **參數：**
@@ -277,6 +378,10 @@ python sphere_texture_generator.py -m procedural -t earth -f JPEG -q 98 -o earth
 - `-s, --seed`：程序化生成的隨機種子
 - `-f, --format`：輸出格式（'PNG'、'JPEG'）
 - `-q, --quality`：JPEG品質（70-100，默認：90）
+- `--base-colors`：紋理顏色（RGB元組的JSON列表或預定義調色板名稱）
+- `-a, --octaves`：噪聲倍頻程（默認：6）
+- `-c, --scale`：噪聲尺度（默認：100.0）
+- `-d, --coordinate-mode`：噪聲座標模式（'xy'或'xz'，默認：'xy'）
 
 ## Español
 
@@ -293,6 +398,8 @@ Este script genera texturas esféricas sin costuras optimizadas para Blender y G
 - Corrección polar avanzada usando enmascarado difuminado gaussiano y consolidación píxeles
 - Resoluciones flexibles: preajustes estándar (512, 1K, 2K, 4K, 8K) más dimensiones personalizadas
 - Configuración completa de ruido con controles octavas y modos coordenadas
+- Refactorización de generación de coordenadas para eliminar duplicación de código y mejorar mantenibilidad
+- Tipos robustos con `TypeAlias` para mejor compatibilidad con mypy y características modernas de Python 3.13+
 - Salida profesional con control calidad JPEG y optimización PNG
 - Resúmenes procesamiento detallados y validación
 - Características modernas Python 3.13+ con dataclasses y tipos union
@@ -317,6 +424,21 @@ python sphere_texture_generator.py -m convert -i paisaje.jpg -o sphere_paisaje.p
 
 # Salida JPEG alta calidad con calidad personalizada
 python sphere_texture_generator.py -m procedural -t earth -f JPEG -q 98 -o earth_hq.jpg
+
+# Generar en lote todas las texturas con paletas planetarias y de mármol (512x256, PNG)
+mkdir -p ok/512; i=0; 
+for TYPE in earth gas_giant; do 
+    for PALETTE in jupiter neptune saturn venus mars mercury uranus pluto titan europa; do 
+        export PALETTE=$PALETTE; 
+        python sphere_texture_generator.py -m procedural -t $TYPE -r 512 -s $((202 + i)) -a 6 -c 100.0 --base-colors $PALETTE -o "ok/512/${TYPE}_${PALETTE}_512_seed$((202 + i)).png"; 
+        ((i++)); 
+    done; 
+done; 
+for PALETTE in jupiter neptune saturn venus mars mercury uranus pluto titan europa marble_classic marble_onyx marble_emerald; do 
+    export PALETTE=$PALETTE; 
+    python sphere_texture_generator.py -m procedural -t marble -r 512 -s $((202 + i)) -a 6 -c 100.0 --base-colors $PALETTE -o "ok/512/marble_${PALETTE}_512_seed$((202 + i)).png"; 
+    ((i++)); 
+done
 ```
 
 **Argumentos:**
@@ -331,6 +453,10 @@ python sphere_texture_generator.py -m procedural -t earth -f JPEG -q 98 -o earth
 - `-s, --seed`: Semilla aleatoria para generación procedimental
 - `-f, --format`: Formato salida ('PNG', 'JPEG')
 - `-q, --quality`: Calidad JPEG (70-100, predeterminado: 90)
+- `--base-colors`: Colores para textura (lista JSON de tuplas RGB o nombre de paleta predefinida)
+- `-a, --octaves`: Octavas de ruido (predeterminado: 6)
+- `-c, --scale`: Escala de ruido (predeterminado: 100.0)
+- `-d, --coordinate-mode`: Modo de coordenadas de ruido ('xy' o 'xz', predeterminado: 'xy')
 
 ## Italiano
 
@@ -347,6 +473,8 @@ Questo script genera texture sferiche senza giunture ottimizzate per Blender e G
 - Correzione polare avanzata utilizzando mascheratura sfocatura gaussiana e consolidamento pixel
 - Risoluzioni flessibili: preimpostazioni standard (512, 1K, 2K, 4K, 8K) più dimensioni personalizzate
 - Configurazione completa rumore con controlli ottave e modalità coordinate
+- Refactoring della generazione di coordinate per eliminare duplicazione codice e migliorare manutenibilità
+- Tipi robusti con `TypeAlias` per migliore compatibilità mypy e funzionalità moderne Python 3.13+
 - Output professionale con controllo qualità JPEG e ottimizzazione PNG
 - Riassunti elaborazione dettagliati e validazione
 - Funzionalità moderne Python 3.13+ con dataclasses e tipi union
@@ -371,6 +499,21 @@ python sphere_texture_generator.py -m convert -i paesaggio.jpg -o sphere_paesagg
 
 # Output JPEG alta qualità con qualità personalizzata
 python sphere_texture_generator.py -m procedural -t earth -f JPEG -q 98 -o earth_hq.jpg
+
+# Generare in batch tutte le texture con palette planetarie e marmoree (512x256, PNG)
+mkdir -p ok/512; i=0; 
+for TYPE in earth gas_giant; do 
+    for PALETTE in jupiter neptune saturn venus mars mercury uranus pluto titan europa; do 
+        export PALETTE=$PALETTE; 
+        python sphere_texture_generator.py -m procedural -t $TYPE -r 512 -s $((202 + i)) -a 6 -c 100.0 --base-colors $PALETTE -o "ok/512/${TYPE}_${PALETTE}_512_seed$((202 + i)).png"; 
+        ((i++)); 
+    done; 
+done; 
+for PALETTE in jupiter neptune saturn venus mars mercury uranus pluto titan europa marble_classic marble_onyx marble_emerald; do 
+    export PALETTE=$PALETTE; 
+    python sphere_texture_generator.py -m procedural -t marble -r 512 -s $((202 + i)) -a 6 -c 100.0 --base-colors $PALETTE -o "ok/512/marble_${PALETTE}_512_seed$((202 + i)).png"; 
+    ((i++)); 
+done
 ```
 
 **Argomenti:**
@@ -385,6 +528,10 @@ python sphere_texture_generator.py -m procedural -t earth -f JPEG -q 98 -o earth
 - `-s, --seed`: Seme casuale per generazione procedurale
 - `-f, --format`: Formato output ('PNG', 'JPEG')
 - `-q, --quality`: Qualità JPEG (70-100, predefinito: 90)
+- `--base-colors`: Colori per texture (lista JSON di tuple RGB o nome palette predefinita)
+- `-a, --octaves`: Ottave di rumore (predefinito: 6)
+- `-c, --scale`: Scala di rumore (predefinito: 100.0)
+- `-d, --coordinate-mode`: Modalità coordinate rumore ('xy' o 'xz', predefinito: 'xy')
 
 ## Deutsch
 
@@ -401,6 +548,8 @@ Dieses Skript generiert nahtlose Sphären-Texturen optimiert für Blender und Go
 - Erweiterte Polkorrektur mit Gaußsche Unschärfe-Maskierung und Pixelkonsolidierung
 - Flexible Auflösungen: Standard-Voreinstellungen (512, 1K, 2K, 4K, 8K) plus benutzerdefinierte Dimensionen
 - Umfassende Rauschkonfiguration mit Oktav-Kontrollen und Koordinatenmodi
+- Refaktorisierte Koordinatengenerierung zur Beseitigung von Code-Duplikation und Verbesserung der Wartbarkeit
+- Robuste Typ-Hinweise mit `TypeAlias` für bessere mypy-Kompatibilität und moderne Python 3.13+ Funktionen
 - Professionelle Ausgabe mit JPEG-Qualitätskontrolle und PNG-Optimierung
 - Detaillierte Verarbeitungszusammenfassungen und Validierung
 - Moderne Python 3.13+ Funktionen mit Dataclasses und Union-Typen
@@ -425,6 +574,21 @@ python sphere_texture_generator.py -m convert -i landschaft.jpg -o sphere_landsc
 
 # Hochqualitative JPEG-Ausgabe mit benutzerdefinierter Qualität
 python sphere_texture_generator.py -m procedural -t earth -f JPEG -q 98 -o earth_hq.jpg
+
+# Alle Texturen mit planetaren und Marmorpaletten im Batch generieren (512x256, PNG)
+mkdir -p ok/512; i=0; 
+for TYPE in earth gas_giant; do 
+    for PALETTE in jupiter neptune saturn venus mars mercury uranus pluto titan europa; do 
+        export PALETTE=$PALETTE; 
+        python sphere_texture_generator.py -m procedural -t $TYPE -r 512 -s $((202 + i)) -a 6 -c 100.0 --base-colors $PALETTE -o "ok/512/${TYPE}_${PALETTE}_512_seed$((202 + i)).png"; 
+        ((i++)); 
+    done; 
+done; 
+for PALETTE in jupiter neptune saturn venus mars mercury uranus pluto titan europa marble_classic marble_onyx marble_emerald; do 
+    export PALETTE=$PALETTE; 
+    python sphere_texture_generator.py -m procedural -t marble -r 512 -s $((202 + i)) -a 6 -c 100.0 --base-colors $PALETTE -o "ok/512/marble_${PALETTE}_512_seed$((202 + i)).png"; 
+    ((i++)); 
+done
 ```
 
 **Argumente:**
@@ -439,3 +603,7 @@ python sphere_texture_generator.py -m procedural -t earth -f JPEG -q 98 -o earth
 - `-s, --seed`: Zufallsseed für prozedurale Generierung
 - `-f, --format`: Ausgabeformat ('PNG', 'JPEG')
 - `-q, --quality`: JPEG-Qualität (70-100, Standard: 90)
+- `--base-colors`: Farben für Textur (JSON-Liste von RGB-Tupeln oder vordefinierter Palettenname)
+- `-a, --octaves`: Rausch-Oktaven (Standard: 6)
+- `-c, --scale`: Rausch-Skala (Standard: 100.0)
+- `-d, --coordinate-mode`: Rausch-Koordinatenmodus ('xy' oder 'xz', Standard: 'xy')
