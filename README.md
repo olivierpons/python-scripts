@@ -23,6 +23,7 @@ its own README file with detailed information:
   customization options and modern Python 3.13+ features.
 - [**scans_rename.py**](README_scans_rename.md): Renames and organizes files
   with Japanese timestamps in their filenames.
+- [**sphere_texture_generator.py**](README_sphere_texture_generator.md): Generates seamless sphere textures optimized for Blender and Godot using equirectangular projection. Creates procedural textures (Earth-like, gas giant, marble) or converts existing images to sphere-ready formats with automatic pole distortion fixes.
 - [**square_image_with_centered_cross_generator.py**](README_square_image_with_centered_cross_generator.md):
   Generates a square image with a centered cross, with customizable size and
   colors.
@@ -51,6 +52,7 @@ détaillées :
   avec de nombreuses options de personnalisation et les fonctionnalités modernes de Python 3.13+.
 - [**scans_rename.py**](README_scans_rename.md) : Renomme et organise les
   fichiers avec des horodatages japonais dans leurs noms.
+- [**sphere_texture_generator.py**](README_sphere_texture_generator.md) : Génère des textures sphériques seamless optimisées pour Blender et Godot en utilisant la projection équirectangulaire. Crée des textures procédurales (terrestres, géantes gazeuses, marbre) ou convertit des images existantes en formats prêts pour les sphères avec correction automatique des distorsions polaires.
 - [**square_image_with_centered_cross_generator.py**](README_square_image_with_centered_cross_generator.md):
   Génère une image carrée avec une croix centrée, avec une taille et des
   couleurs personnalisables.
@@ -80,6 +82,7 @@ détaillées :
   Python 3.13+の最新機能で生成します。
 - [**scans_rename.py**](README_scans_rename.md)：ファイル名の日本語タイムスタンプを
   持つファイルの名前変更と整理を行います。
+- [**sphere_texture_generator.py**](README_sphere_texture_generator.md)：正距円筒図法を使用してBlenderとGodot用に最適化されたシームレスな球体テクスチャを生成します。手続き的テクスチャ（地球風、ガス惑星、大理石）を作成するか、既存の画像を球体対応フォーマットに自動極歪み修正付きで変換します。
 - [**square_image_with_centered_cross_generator.py**](README_square_image_with_centered_cross_generator.md):
   中央に十字が描かれた正方形の画像を、カスタマイズ可能なサイズと色で生成します。
 - [**svg_pattern_for_vase.py**](README_svg_pattern_for_vase.md): 三角形の底面を持つ折りたたみ可能な花瓶のSVGパターンを生成します。
@@ -104,6 +107,7 @@ détaillées :
   显示从0%到100%的颜色进展，具有丰富的自定义选项和Python 3.13+的现代功能。
 - [**scans_rename.py**](README_scans_rename.md)：重命名并整理文件名中带有日语
   时间戳的文件。
+- [**sphere_texture_generator.py**](README_sphere_texture_generator.md)：使用等距圆柱投影生成为Blender和Godot优化的无缝球体纹理。创建程序化纹理（类地行星、气态巨行星、大理石）或将现有图像转换为具有自动极点畸变修正的球体就绪格式。
 - [**square_image_with_centered_cross_generator.py**](README_square_image_with_centered_cross_generator.md):
   生成一个带有居中十字的正方形图像，尺寸和颜色可自定义。
 - [**svg_pattern_for_vase.py**](README_svg_pattern_for_vase.md): 为三角形底座的可折叠花瓶生成SVG图案。
@@ -128,16 +132,17 @@ détaillées :
   顯示從0%到100%的顏色進展，具有豐富的自訂選項和Python 3.13+的現代功能。
 - [**scans_rename.py**](README_scans_rename.md)：重新命名並整理檔案名中帶有
   日語時間戳的檔案。
+- [**sphere_texture_generator.py**](README_sphere_texture_generator.md)：使用等距圓柱投影生成為Blender和Godot優化的無縫球體紋理。創建程序化紋理（類地行星、氣態巨行星、大理石）或將現有圖像轉換為具有自動極點畸變修正的球體就緒格式。
 - [**square_image_with_centered_cross_generator.py**](README_square_image_with_centered_cross_generator.md):
   生成一個帶有居中十字的正方形圖像，尺寸和顏色可自訂。
-- [**svg_pattern_for_vase.py**](README_svg_pattern_for_vase.md): 為三角形底座的可折疊花瓶生成SVG圖案。
+- [**svg_pattern_for_vase.py**](README_svg_pattern_for_vase.md): 為三角形底座的可摺疊花瓶生成SVG圖案。
 - [**svg_to_bitmap_converter.py**](README_svg_to_bitmap_converter.md): 將簡單的基於矩形的SVG檔案轉換為點陣圖格式（PNG、BMP、JPEG等），提供全面的錯誤處理和日誌記錄。
 - [**triangles.py**](README_triangles.md): 創建一個帶有雙排三角形的PNG圖像，用作可打印的圖案。
 - [**unzip_files_then_clean.py**](README_unzip_files_then_clean.md)：提取目錄中
   的所有ZIP檔案並重組資料夾結構。
 - [**video_content_cutter.py**](README_video_content_cutter.md): 從帶時間戳檔案的開頭刪除內容，直到指定的MM:SS格式的截止時間。
 - [**wordpress_scraper.py**](README_wordpress_scraper.md):
-  在通過複雜的登錄表單（支持CSRF）進行身份驗證後，獲取受保護的網頁。
+  在通過複雜的登錄表單（支援CSRF）進行身份驗證後，獲取受保護的網頁。
 
 ### Español
 
@@ -154,6 +159,7 @@ script está documentado en su propio archivo README con información detallada:
   con amplias opciones de personalización y características modernas de Python 3.13+.
 - [**scans_rename.py**](README_scans_rename.md): Renombra y organiza archivos con
   marcas de tiempo japonesas en sus nombres.
+- [**sphere_texture_generator.py**](README_sphere_texture_generator.md): Genera texturas esféricas sin costuras optimizadas para Blender y Godot usando proyección equirectangular. Crea texturas procedurales (similares a la Tierra, gigante gaseoso, mármol) o convierte imágenes existentes a formatos listos para esferas con corrección automática de distorsión en los polos.
 - [**square_image_with_centered_cross_generator.py**](README_square_image_with_centered_cross_generator.md):
   Genera una imagen cuadrada con una cruz centrada, con tamaño y colores
   personalizables.
@@ -182,6 +188,7 @@ Ogni script è documentato nel proprio file README con informazioni dettagliate:
   con ampie opzioni di personalizzazione e funzionalità moderne di Python 3.13+.
 - [**scans_rename.py**](README_scans_rename.md): Rinomina e organizza file con
   timestamp giapponesi nei loro nomi.
+- [**sphere_texture_generator.py**](README_sphere_texture_generator.md): Genera texture sferiche senza giunture ottimizzate per Blender e Godot utilizzando la proiezione equirettangolare. Crea texture procedurali (simili alla Terra, gigante gassoso, marmo) o converte immagini esistenti in formati pronti per le sfere con correzione automatica della distorsione ai poli.
 - [**square_image_with_centered_cross_generator.py**](README_square_image_with_centered_cross_generator.md):
   Genera un'immagine quadrata con una croce centrata, con dimensioni e colori
   personalizzabili.
@@ -211,6 +218,7 @@ detaillierten Informationen dokumentiert:
   zeigen, mit umfangreichen Anpassungsoptionen und modernen Python 3.13+ Funktionen.
 - [**scans_rename.py**](README_scans_rename.md): Benennt und organisiert Dateien
   mit japanischen Zeitstempeln in ihren Dateinamen.
+- [**sphere_texture_generator.py**](README_sphere_texture_generator.md): Generiert nahtlose Sphären-Texturen optimiert für Blender und Godot mit äquirektangulärer Projektion. Erstellt prozedurale Texturen (erdähnlich, Gasriese, Marmor) oder konvertiert bestehende Bilder in sphärentaugliche Formate mit automatischer Polverzerrungskorrektur.
 - [**square_image_with_centered_cross_generator.py**](README_square_image_with_centered_cross_generator.md):
   Erzeugt ein quadratisches Bild mit einem zentrierten Kreuz, dessen Größe und
   Farben anpassbar sind.
@@ -228,7 +236,7 @@ detaillierten Informationen dokumentiert:
 
 - **English**: More Python utility scripts will be added to this repository
   over time, each focused on solving specific tasks efficiently.
-- **Français**: Plus de scripts utilitaires Python seront ajoutés à ce dépôt au
+- **Français**: D'autres scripts utilitaires Python seront ajoutés à ce dépôt au
   fil du temps, chacun se concentrant sur la résolution efficace de tâches
   spécifiques.
 - **日本語**: 今後、他のPythonユーティリティスクリプトがこのリポジトリに追加される予定で、
