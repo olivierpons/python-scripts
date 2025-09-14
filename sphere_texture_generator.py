@@ -81,8 +81,8 @@ logger: logging.Logger = logging.getLogger(__name__)
 
 # Type definitions
 ColorTuple: TypeAlias = tuple[int, int, int] | tuple[int, int, int, int]
-NoiseFunction: type = Callable[[float, float], float]
-TextureArray: type = np.ndarray
+NoiseFunction: Callable[[float, float], float]
+TextureArray: np.ndarray
 
 # Standard resolution presets
 STANDARD_RESOLUTIONS: dict[str, tuple[int, int]] = {
@@ -437,7 +437,10 @@ class ProceduralTextureGenerator:
                 lon: float = (x / self.config.width) * 2 * math.pi
                 lat: float = (y / self.config.height) * math.pi
                 marble_value: float = (
-                    math.sin((lon + lat) * 4 + self._generate_turbulence(lon, lat) * 3)
+                    math.sin(
+                        (lon + lat) * (self.noise_config.scale / 25.0)
+                        + self._generate_turbulence(lon, lat) * 3
+                    )
                     * 0.5
                     + 0.5
                 )
@@ -521,7 +524,7 @@ class ProceduralTextureGenerator:
         return (x, z) if self.noise_config.coordinate_mode == "xz" else (x, y)
 
     def _generate_turbulence(self, lon: float, lat: float) -> float:
-        """Generate turbulence for gas giant effects.
+        """Generate turbulence value using configured noise parameters.
 
         Args:
             lon: Longitude in radians.
@@ -532,20 +535,22 @@ class ProceduralTextureGenerator:
         """
         coord1, coord2 = self._get_noise_coordinates(lon, lat)
         turbulence: float = 0.0
-        scale: float = 1.0
+        freq: float = self.noise_config.scale / 100.0
+        amplitude: float = 1.0
 
-        for _ in range(4):
+        for _ in range(self.noise_config.octaves):
             turbulence += (
                 abs(
                     pnoise2(
-                        coord1 * scale,
-                        coord2 * scale,
+                        coord1 * freq,
+                        coord2 * freq,
                         base=self.noise_config.seed + 100,
                     )
                 )
-                / scale
+                * amplitude
             )
-            scale *= 2.0
+            freq *= self.noise_config.lacunarity
+            amplitude *= self.noise_config.persistence
 
         return turbulence
 
